@@ -8,5 +8,6 @@ pillow
 pycodestyle
 pyflakes
 pytest
+python-dotenv
 black
 
