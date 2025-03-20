@@ -1,0 +1,12 @@
+
+flake8
+Flask
+Flask-Cors
+numpy 
+pandas
+pillow
+pycodestyle
+pyflakes
+pytest
+black
+

@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Welcome to Six Hack!</h2>
+<p>Refactor Python code interactively in the sandbox below.</p>
+<form id="sandbox-form">
+    <textarea id="code-input" rows="10" cols="50"></textarea>
+    <button type="submit">Run Code</button>
+</form>
+<pre id="output"></pre>
+<script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+{% endblock %}
