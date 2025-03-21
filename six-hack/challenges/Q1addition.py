@@ -1,6 +1,5 @@
 '''!SIXHACK
-inputs: [1, 2]
-expected_output: 3
+description: "A program to add two numbers."
 '''
 a = int(input())
 b = int(input())

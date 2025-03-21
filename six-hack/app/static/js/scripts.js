@@ -102,5 +102,31 @@ document.getElementById('test-button').addEventListener('click', async () => {
     }
 });
 
+// Save the current program as a new challenge
+document.getElementById('save-button').addEventListener('click', async () => {
+    const programName = prompt("Enter a name for the challenge:");
+    const code = document.getElementById('code-input').value;
+    const inputValues = document.getElementById('input-values').value.split(',');
+    const expectedOutput = prompt("Enter the expected output:");
+
+    const response = await fetch('/sandbox/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            name: programName,
+            code: code,
+            test_cases: [
+                {
+                    inputs: inputValues,
+                    expected_output: expectedOutput
+                }
+            ]
+        })
+    });
+
+    const data = await response.json();
+    alert(data.message || "Challenge saved successfully!");
+});
+
 // Populate the dropdown on page load
 populateDropdown();
