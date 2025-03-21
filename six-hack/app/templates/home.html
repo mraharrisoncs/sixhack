@@ -6,16 +6,21 @@
     <!-- Sandbox on the left -->
     <div class="sandbox-container">
         <form id="sandbox-form">
+            <select id="program-dropdown">
+                <option value="" disabled selected>Select a program</option>
+            </select>
+            <button id="load-button" type="button">Load</button>
             <textarea id="code-input" rows="20" cols="50" placeholder="Write your Python code here..."></textarea>
-            <button type="submit">Run Code</button>
+            <input id="input-values" type="text" placeholder="Enter input values (comma-separated)" />
+            <button id="run-button" type="button">Run</button>
+            <button id="test-button" type="button">Test</button>
         </form>
     </div>
 
     <!-- Input and Output on the right -->
     <div class="output-container">
-        <input id="input-values" type="text" placeholder="Enter input values (comma-separated)" />
         <div id="output-window">
-            <h3>Output:</h3>
+            <p>output:</p>
             <pre id="output"></pre>
         </div>
     </div>

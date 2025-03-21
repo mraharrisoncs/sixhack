@@ -2,6 +2,7 @@
 flake8
 Flask
 Flask-Cors
+flask_sqlalchemy
 numpy 
 pandas
 pillow
