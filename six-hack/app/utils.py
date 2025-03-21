@@ -1,9 +1,6 @@
 import os
 import ast
-from app import create_app
 from app.models import db, PythonProgram, TestCase
-
-app = create_app()
 
 def parse_program_file(filepath):
     """Parse a program file to extract metadata and code."""
@@ -23,13 +20,14 @@ def parse_program_file(filepath):
     code = ''.join(lines[len(metadata) + 2:])
     return metadata, code
 
-with app.app_context():
+def populate_database():
+    """Clear the database and populate it with challenges from the challenges directory."""
     # Clear existing data
     db.drop_all()
     db.create_all()
 
-    # Load programs from the "challenges" directory
-    challenges_dir = os.path.join(os.path.dirname(__file__), 'challenges')
+    # Load challenges from the "challenges" directory
+    challenges_dir = os.path.join(os.path.dirname(__file__), '../challenges')
     for filename in os.listdir(challenges_dir):
         if filename.endswith('.py'):
             filepath = os.path.join(challenges_dir, filename)

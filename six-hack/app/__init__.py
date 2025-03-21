@@ -1,7 +1,7 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from .models import db
 from .routes import setup_routes
+from .utils import populate_database
 
 def create_app():
     app = Flask(__name__)
@@ -13,5 +13,5 @@ def create_app():
 
     with app.app_context():
         setup_routes(app)  # Register routes
-        db.create_all()  # Create tables if they don't exist
+        populate_database()  # Clear and populate the database
         return app
