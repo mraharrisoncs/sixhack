@@ -12,6 +12,8 @@ def setup_routes(app):
 
     @app.route('/sandbox', methods=['POST'])
     def sandbox():
-        code = request.json.get('code', '')
-        result = run_code(code)
-        return jsonify(result=result)
+        data = request.json
+        code = data.get('code', '')
+        inputs = data.get('input', [])
+        result = run_code(code, inputs)
+        return jsonify(result)

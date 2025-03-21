@@ -2,7 +2,10 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4;
+    background: linear-gradient(to bottom, cyan, slategray);
+    /* Gradient from cyan to slate gray */
+    color: #333;
+    /* Optional: Set a default text color for better contrast */
 }
 
 header {
@@ -13,7 +16,22 @@ header {
 }
 
 h1 {
-    margin: 0;
+    text-align: center;
+    /* Center-align the heading */
+    margin-top: 20px;
+    /* Optional: Add some spacing above */
+}
+
+h2 {
+    text-align: center;
+    /* Center-align the heading */
+    margin-top: 15px;
+    /* Optional: Add some spacing above */
+}
+
+p {
+    margin-left: 20px;
+    /* Indent the paragraph 20px from the left */
 }
 
 nav {
@@ -31,9 +49,80 @@ nav a:hover {
 }
 
 .container {
-    width: 80%;
-    margin: auto;
+    width: 90%;
+    margin: 0 auto;
     overflow: hidden;
+}
+
+#code-input {
+    width: 90%;
+    height: 300px;
+    margin-left: 10px;
+    font-family: monospace;
+    font-size: 14px;
+    padding: 10px;
+    background-color: #e0ffee;
+    border: 2px solid #000000;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+
+#output-window {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: #d0fdde;
+    width: 90%;
+    margin-left: 10px;
+    box-sizing: border-box;
+    height: 300px;
+    /* Fixed height for the output window */
+    overflow-y: auto;
+    /* Add scroll if content overflows */
+}
+
+#output {
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: #333;
+}
+
+/* Flex container for sandbox and output */
+.flex-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    /* Space between the boxes */
+    margin-top: 20px;
+}
+
+/* Sandbox container (left) */
+.sandbox-container {
+    flex: 1;
+    /* Take up equal space */
+    max-width: 50%;
+    /* Limit the width to 50% */
+}
+
+/* Output container (right) */
+.output-container {
+    flex: 1;
+    /* Take up equal space */
+    max-width: 50%;
+    /* Limit the width to 50% */
+}
+
+/* Style for the input field */
+#input-values {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
 }
 
 footer {
@@ -44,4 +133,20 @@ footer {
     position: relative;
     bottom: 0;
     width: 100%;
+}
+
+button[type="submit"] {
+    margin-left: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button[type="submit"]:hover {
+    background-color: #45a049;
+    /* Optional: Darken background on hover */
 }
