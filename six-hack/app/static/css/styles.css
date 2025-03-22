@@ -1,11 +1,10 @@
+/* General page font */
 body {
-    font-family: Arial, sans-serif;
-    margin: 0;
+    font-family: Tahoma, sans-serif;
+    margin: 10px;
     padding: 0;
     background: linear-gradient(to bottom, cyan, slategray);
-    /* Gradient from cyan to slate gray */
     color: #333;
-    /* Optional: Set a default text color for better contrast */
 }
 
 header {
@@ -17,21 +16,16 @@ header {
 
 h1 {
     text-align: center;
-    /* Center-align the heading */
     margin-top: 20px;
-    /* Optional: Add some spacing above */
 }
 
 h2 {
     text-align: center;
-    /* Center-align the heading */
     margin-top: 15px;
-    /* Optional: Add some spacing above */
 }
 
 p {
     margin-left: 20px;
-    /* Indent the paragraph 20px from the left */
 }
 
 nav {
@@ -55,10 +49,9 @@ nav a:hover {
 }
 
 #code-input {
-    width: 90%;
+    /*width: 100%;*/
     height: 300px;
-    margin-left: 10px;
-    font-family: monospace;
+    font-family: "Lucida Console", monospace;
     font-size: 14px;
     padding: 10px;
     background-color: #e0ffee;
@@ -68,25 +61,25 @@ nav a:hover {
 }
 
 #output-window {
-    margin-top: 20px;
+    margin-top: 10px;
     padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    background-color: #d0fdde;
-    width: 90%;
-    margin-left: 10px;
+    border: 2px solid black;
+    border-radius: 5px;
+    background: linear-gradient(to bottom, #708090, #2f4f4f);
+    /*width: 100%;*/
+    font-family: "Lucida Console", monospace;
+    font-size: 14px;
     box-sizing: border-box;
     height: 300px;
-    /* Fixed height for the output window */
     overflow-y: auto;
-    /* Add scroll if content overflows */
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
 }
 
 #output {
-    font-family: monospace;
+    font-family: "Lucida Console", monospace;
     white-space: pre-wrap;
     word-wrap: break-word;
-    color: #333;
+    color: white;
 }
 
 /* Flex container for sandbox and output */
@@ -95,34 +88,45 @@ nav a:hover {
     justify-content: space-between;
     align-items: flex-start;
     gap: 20px;
-    /* Space between the boxes */
-    margin-top: 20px;
+    margin-top: 10px;
 }
 
 /* Sandbox container (left) */
 .sandbox-container {
     flex: 1;
-    /* Take up equal space */
-    max-width: 50%;
-    /* Limit the width to 50% */
+    max-width: 100%;
+    margin-bottom: 10px;
 }
 
 /* Output container (right) */
 .output-container {
     flex: 1;
-    /* Take up equal space */
-    max-width: 50%;
-    /* Limit the width to 50% */
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    /* Remove the gap between input and output windows */
 }
 
 /* Style for the input field */
 #input-values {
     width: 100%;
     padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
+    margin-bottom: 0;
+    /* Remove bottom margin to eliminate the gap */
+    border: 2px solid black;
     border-radius: 5px;
     box-sizing: border-box;
+    background: linear-gradient(to bottom, #708090, #2f4f4f);
+    color: white;
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Placeholder text for the input field */
+#input-values::placeholder {
+    content: "Enter input values (comma-separated)";
+    color: #ccc;
+    font-style: italic;
 }
 
 footer {
@@ -135,18 +139,58 @@ footer {
     width: 100%;
 }
 
-button[type="submit"] {
-    margin-left: 20px;
-    padding: 10px 20px;
-    font-size: 16px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
+/* Buttons with 3D beveled effect */
+button {
+    font-family: Tahoma, sans-serif;
+    font-size: 14px;
+    padding: 10px 15px;
+    margin: 5px;
+    border: 2px solid #000;
     border-radius: 5px;
+    background: linear-gradient(to bottom, #e0e0e0, #a0a0a0);
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
     cursor: pointer;
 }
 
-button[type="submit"]:hover {
-    background-color: #45a049;
-    /* Optional: Darken background on hover */
+button:active {
+    background: linear-gradient(to bottom, #a0a0a0, #e0e0e0);
+    box-shadow: inset 2px 2px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Button container to align buttons horizontally */
+.button-container {
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+/* Text boxes with slate gradient background, black border, and drop shadow */
+textarea,
+input,
+select {
+    font-family: "Lucida Console", monospace;
+    background: linear-gradient(to bottom, #708090, #2f4f4f);
+    color: #ccc;
+    border: 2px solid black;
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Placeholder text for the output window */
+#output:empty::before {
+    content: "Output will appear here...";
+    color: #ccc;
+    font-style: italic;
+}
+
+/* Add spacing between the sandbox and the dropdown */
+#program-dropdown {
+    margin-top: 10px;
 }

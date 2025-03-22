@@ -2,22 +2,36 @@ import io
 import contextlib
 import traceback
 import json
+import subprocess
 from app.models import PythonProgram, TestCase
 
 def run_code(code, inputs):
     try:
-        output = io.StringIO()
-        input_iterator = iter(inputs)
+        print(f"Running code:\n{code}")  # Debugging
+        print(f"With inputs: {inputs}")  # Debugging
 
-        def mock_input(prompt=""):
-            return next(input_iterator)
+        # Prepare the input as a string
+        input_str = "\n".join(map(str, inputs))
+        print(f"Input string: {input_str}")  # Debugging
 
-        with contextlib.redirect_stdout(output):
-            exec(code, {"input": mock_input})
+        # Run the code in a subprocess
+        process = subprocess.run(
+            ["python3", "-c", code],
+            input=input_str,
+            text=True,
+            capture_output=True,
+            timeout=5
+        )
 
-        return {"output": output.getvalue()}
-    except Exception:
-        return {"error": traceback.format_exc()}
+        # Capture the output and errors
+        output = process.stdout
+        error = process.stderr
+        print(f"Output: {output}, Error: {error}")  # Debugging
+
+        return {"output": output, "error": error}
+    except Exception as e:
+        print(f"Error running code: {e}")  # Debugging
+        return {"output": "", "error": str(e)}
 
 def test_code(program_id):
     program = PythonProgram.query.get(program_id)

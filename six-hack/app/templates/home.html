@@ -1,27 +1,28 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Six Hack is a Python sandbox with a twist!</h2>
-<p>Refactor Python code interactively in the sandbox below.</p>
+<!-- Buttons above the sandbox and output -->
+<div class="button-container">
+    <button id="run-button" type="button">Run</button>
+    <button id="test-button" type="button">Test</button>
+    <button id="save-button" type="button">Save as Challenge</button>
+    <button id="import-button" type="button">Import</button> <!-- Ensure this exists -->
+</div>
+
 <div class="flex-container">
     <!-- Sandbox on the left -->
     <div class="sandbox-container">
         <form id="sandbox-form">
+            <textarea id="code-input" rows="20" cols="50" placeholder="Write your Python code here..."></textarea>
             <select id="program-dropdown">
                 <option value="" disabled selected>Select a program</option>
             </select>
-            <button id="load-button" type="button">Load</button>
-            <textarea id="code-input" rows="20" cols="50" placeholder="Write your Python code here..."></textarea>
-            <input id="input-values" type="text" placeholder="Enter input values (comma-separated)" />
-            <button id="run-button" type="button">Run</button>
-            <button id="test-button" type="button">Test</button>
-            <button id="save-button" type="button">Save as Challenge</button>
         </form>
     </div>
 
     <!-- Input and Output on the right -->
     <div class="output-container">
+        <input id="input-values" type="text" placeholder="Enter input values (comma-separated)" />
         <div id="output-window">
-            <p>output:</p>
             <pre id="output"></pre>
         </div>
     </div>

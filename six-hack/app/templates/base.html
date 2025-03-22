@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Six Hack!</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
+
 <body>
     <header>
         <h1>Six Hack!</h1>
@@ -15,7 +17,39 @@
         </nav>
     </header>
     <main>
-        {% block content %}{% endblock %}
+        {% block content %}
+        <h2>Six Hack is a Python sandbox with a twist!</h2>
+        <p>Refactor Python code interactively in the sandbox below.</p>
+        <div class="flex-container">
+            <!-- Sandbox on the left -->
+            <div class="sandbox-container">
+                <form id="sandbox-form">
+                    <!-- Buttons along the top -->
+                    <div class="button-container">
+                        <button id="run-button" type="button">Run</button>
+                        <button id="test-button" type="button">Test</button>
+                        <button id="save-button" type="button">Save as Challenge</button>
+                        <button id="load-db-button" type="button">Load DB</button>
+                    </div>
+                    <select id="program-dropdown">
+                        <option value="" disabled selected>Select a program</option>
+                    </select>
+                    <textarea id="code-input" rows="20" cols="50"
+                        placeholder="Write your Python code here..."></textarea>
+                    <input id="input-values" type="text" placeholder="Enter input values (comma-separated)" />
+                </form>
+            </div>
+
+            <!-- Input and Output on the right -->
+            <div class="output-container">
+                <div id="output-window">
+                    <pre id="output" placeholder="Output will appear here..."></pre>
+                </div>
+            </div>
+        </div>
+        <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+        {% endblock %}
     </main>
 </body>
+
 </html>

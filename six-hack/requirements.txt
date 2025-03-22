@@ -1,4 +1,5 @@
 
+black
 flake8
 Flask
 Flask-Cors
@@ -10,5 +11,5 @@ pycodestyle
 pyflakes
 pytest
 python-dotenv
-black
+pyyaml
 
