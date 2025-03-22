@@ -10,16 +10,18 @@ def parse_program_file(filepath):
 
     # Extract metadata from the top comment
     metadata = {}
+    code_start_index = 0
     if lines[0].strip() == "'''!SIX:":
         comment_block = []
-        for line in lines[1:]:
+        for i, line in enumerate(lines[1:], start=1):
             if line.strip() == "'''":
+                code_start_index = i + 1  # Code starts after the closing triple quotes
                 break
             comment_block.append(line)
         metadata = yaml.safe_load(''.join(comment_block))
 
     # Extract the program code (after the metadata comment)
-    code = ''.join(lines[len(metadata) + 2:])
+    code = ''.join(lines[code_start_index:])
     return metadata, code
 
 def parse_test_cases(filepath):

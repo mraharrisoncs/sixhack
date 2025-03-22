@@ -20,33 +20,6 @@ document.getElementById('sandbox-form').addEventListener('submit', async (event)
     }
 });
 
-// Populate the dropdown with available programs
-async function populateDropdown() {
-    const response = await fetch('/sandbox/programs');
-    const programs = await response.json();
-    const dropdown = document.getElementById('program-dropdown');
-    dropdown.innerHTML = '<option value="" disabled selected>Select a program</option>'; // Reset dropdown
-    programs.forEach(program => {
-        const option = document.createElement('option');
-        option.value = program.id;
-        option.textContent = program.name;
-        dropdown.appendChild(option);
-    });
-}
-
-// Automatically populate the sandbox when a program is selected
-document.getElementById('program-dropdown').addEventListener('change', async (event) => {
-    const programId = event.target.value;
-    const response = await fetch(`/sandbox/load?program_id=${programId}`);
-    const program = await response.json();
-
-    if (program.error) {
-        alert(program.error);
-    } else {
-        document.getElementById('code-input').value = program.code;
-    }
-});
-
 // Load new challenges into the database
 document.getElementById('import-button').addEventListener('click', async () => {
     const response = await fetch('/sandbox/load-db', { method: 'POST' });
@@ -150,13 +123,31 @@ document.getElementById('save-button').addEventListener('click', async () => {
     }
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('import-button').addEventListener('click', async () => {
-        const response = await fetch('/sandbox/load-db', { method: 'POST' });
-        const data = await response.json();
-        alert(data.message || "Database updated successfully!");
-        populateDropdown(); // Refresh the dropdown
+// Populate the dropdown with available programs
+async function populateDropdown() {
+    const response = await fetch('/sandbox/programs');
+    const programs = await response.json();
+    const dropdown = document.getElementById('program-dropdown');
+    dropdown.innerHTML = '<option value="" disabled selected>Select a program</option>'; // Reset dropdown
+    programs.forEach(program => {
+        const option = document.createElement('option');
+        option.value = program.id;
+        option.textContent = program.name;
+        dropdown.appendChild(option);
     });
+}
+
+// Automatically populate the sandbox when a program is selected
+document.getElementById('program-dropdown').addEventListener('change', async (event) => {
+    const programId = event.target.value;
+    const response = await fetch(`/sandbox/load?program_id=${programId}`);
+    const program = await response.json();
+
+    if (program.error) {
+        alert(program.error);
+    } else {
+        document.getElementById('code-input').value = program.code;
+    }
 });
 
 // Populate the dropdown on page load
