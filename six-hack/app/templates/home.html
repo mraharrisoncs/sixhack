@@ -1,31 +1,121 @@
 {% extends 'base.html' %}
 {% block content %}
-<!-- Buttons above the sandbox and output -->
-<div class="button-container">
-    <button id="run-button" type="button">Run</button>
-    <button id="test-button" type="button">Test</button>
-    <button id="save-button" type="button">Save as Challenge</button>
-    <button id="import-button" type="button">Import</button> <!-- Ensure this exists -->
-</div>
-
+<h2>Six Hack is a Python sandbox with a twist!</h2>
 <div class="flex-container">
     <!-- Sandbox on the left -->
     <div class="sandbox-container">
         <form id="sandbox-form">
+            <!-- Buttons along the top -->
+            <div class="button-container">
+                <button id="run-button" type="button">Run</button>
+                <button id="test-button" type="button">Test</button>
+                <button id="save-button" type="button">Save as Challenge</button>
+                <button id="load-db-button" type="button">Load DB</button>
+            </div>
             <textarea id="code-input" rows="20" cols="50" placeholder="Write your Python code here..."></textarea>
-            <select id="program-dropdown">
-                <option value="" disabled selected>Select a program</option>
-            </select>
         </form>
+        <!-- Dropdown below the sandbox -->
+        <select id="program-dropdown">
+            <option value="" disabled selected>Select a program</option>
+        </select>
     </div>
 
     <!-- Input and Output on the right -->
     <div class="output-container">
-        <input id="input-values" type="text" placeholder="Enter input values (comma-separated)" />
+        <!-- Tabbed Input Box -->
+        <div id="test-tabs">
+            <ul id="tab-list"></ul>
+            <div id="tab-content"></div>
+        </div>
         <div id="output-window">
-            <pre id="output"></pre>
+            <pre id="output" placeholder="Output will appear here..."></pre>
         </div>
     </div>
 </div>
-<script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+
+<script>
+    // Fetch available programs and populate the dropdown
+    function loadPrograms() {
+        fetch('/sandbox/programs', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(programs => {
+            const dropdown = document.getElementById('program-dropdown');
+            dropdown.innerHTML = '<option value="" disabled selected>Select a program</option>';
+            programs.forEach(program => {
+                const option = document.createElement('option');
+                option.value = program.name;
+                option.textContent = program.name;
+                dropdown.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Error loading programs:', error));
+    }
+
+    // Fetch test cases dynamically and populate tabs
+    function loadTestCases(programName) {
+        fetch('/get_test_cases', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ program_name: programName })
+        })
+        .then(response => response.json())
+        .then(testCases => {
+            if (testCases.error) {
+                console.error(testCases.error);
+                return;
+            }
+
+            const tabList = document.getElementById('tab-list');
+            const tabContent = document.getElementById('tab-content');
+            tabList.innerHTML = '';
+            tabContent.innerHTML = '';
+
+            testCases.forEach(test => {
+                // Create tab
+                const tab = document.createElement('li');
+                tab.innerHTML = `<a href="#test-${test.number}">Test ${test.number}: ${test.name}</a>`;
+                tabList.appendChild(tab);
+
+                // Create tab content
+                const content = document.createElement('div');
+                content.id = `test-${test.number}`;
+                content.style.display = 'none';
+                content.innerHTML = `<textarea>${test.inputs.join('\n')}</textarea>`;
+                tabContent.appendChild(content);
+            });
+
+            // Add event listeners for tabs
+            document.querySelectorAll('#tab-list li a').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const target = tab.getAttribute('href').substring(1);
+                    document.querySelectorAll('#tab-content div').forEach(div => {
+                        div.style.display = 'none';
+                    });
+                    document.getElementById(target).style.display = 'block';
+                });
+            });
+
+            // Show the first tab by default
+            if (testCases.length > 0) {
+                document.querySelector('#tab-content div').style.display = 'block';
+            }
+        })
+        .catch(error => console.error('Error loading test cases:', error));
+    }
+
+    // Load programs into the dropdown on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        loadPrograms();
+    });
+
+    // Load test cases when a program is selected
+    document.getElementById('program-dropdown').addEventListener('change', (e) => {
+        const programName = e.target.value;
+        loadTestCases(programName);
+    });
+</script>
 {% endblock %}

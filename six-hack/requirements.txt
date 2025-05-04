@@ -1,7 +1,7 @@
 
 black
 flake8
-Flask
+flask
 Flask-Cors
 flask_sqlalchemy
 numpy 

@@ -2,7 +2,7 @@ from flask import render_template, request, jsonify
 from app.models import PythonProgram, TestCase, db
 from app.sandbox.runner import run_code, test_code
 from app.utils import load_new_challenges
-import json
+import json, yaml
 
 def setup_routes(app):
     @app.route('/')
@@ -88,10 +88,18 @@ def setup_routes(app):
 
             name = data.get('name')
             code = data.get('code')
-            test_cases = data.get('test_cases', [])
+            yaml_content = data.get('yaml')  # Get the YAML content from the frontend
 
-            if not name or not code:
-                return jsonify({"error": "Name and code are required"}), 400
+            if not name or not code or not yaml_content:
+                return jsonify({"error": "Name, code, and YAML are required"}), 400
+
+            # Parse the YAML content
+            try:
+                yaml_data = yaml.safe_load(yaml_content)
+                test_cases = yaml_data.get('test_cases', [])
+            except yaml.YAMLError as e:
+                print("Error parsing YAML:", str(e))  # Debugging
+                return jsonify({"error": "Invalid YAML format"}), 400
 
             # Check if the program already exists
             program = PythonProgram.query.filter_by(name=name).first()

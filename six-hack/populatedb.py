@@ -1,5 +1,6 @@
 import os
-import ast
+import yaml  # Use YAML for parsing the metadata
+import json  # Use JSON for storing test case inputs
 from app import create_app
 from app.models import db, PythonProgram, TestCase
 
@@ -8,19 +9,20 @@ app = create_app()
 def parse_program_file(filepath):
     """Parse a program file to extract metadata and code."""
     with open(filepath, 'r') as file:
-        lines = file.readlines()
+        content = file.read()
 
-    # Extract metadata from the top comment
-    metadata = {}
-    if lines[0].strip() == "'''!SIXHACK":
-        for line in lines[1:]:
-            if line.strip() == "'''":
-                break
-            key, value = line.split(':', 1)
-            metadata[key.strip()] = ast.literal_eval(value.strip())
+    # Extract YAML metadata from the top comment
+    if "'''!SIX:" in content:
+        yaml_start = content.find("'''!SIX:") + len("'''!SIX:")
+        yaml_end = content.find("'''", yaml_start)
+        yaml_content = content[yaml_start:yaml_end].strip()
+        metadata = yaml.safe_load(yaml_content)  # Parse YAML
+    else:
+        metadata = {}
 
     # Extract the program code (after the metadata comment)
-    code = ''.join(lines[len(metadata) + 2:])
+    code_start = content.find("'''", yaml_end + 3) + 3
+    code = content[code_start:].strip()
     return metadata, code
 
 with app.app_context():
@@ -41,10 +43,17 @@ with app.app_context():
             db.session.commit()
 
             # Add test cases to the database
-            inputs = metadata.get('inputs', [])
-            expected_output = metadata.get('expected_output', '')
-            test_case = TestCase(program_id=program.id, inputs=str(inputs), expected_output=str(expected_output))
-            db.session.add(test_case)
+            test_cases = metadata.get('test_cases', [])
+            for test_case in test_cases:
+                inputs = test_case.get('inputs', [])
+                expected_output = test_case.get('expected_output', '')
+                test_case_entry = TestCase(
+                    program_id=program.id,
+                    inputs=json.dumps(inputs),  # Store inputs as JSON
+                    expected_output=expected_output
+                )
+                db.session.add(test_case_entry)
+
             db.session.commit()
 
     print("Database populated successfully!")
