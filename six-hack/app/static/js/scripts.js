@@ -21,7 +21,7 @@ document.getElementById('sandbox-form').addEventListener('submit', async (event)
 });
 
 // Load new challenges into the database
-document.getElementById('import-button').addEventListener('click', async () => {
+document.getElementById('load-db-button').addEventListener('click', async () => {
     const response = await fetch('/sandbox/load-db', { method: 'POST' });
     const data = await response.json();
     alert(data.message || "Database updated successfully!");
@@ -43,17 +43,22 @@ async function populateDropdown() {
 }
 
 // Automatically populate the sandbox when a program is selected
-document.getElementById('program-dropdown').addEventListener('change', async (event) => {
-    const programId = event.target.value;
-    const response = await fetch(`/sandbox/load?program_id=${programId}`);
-    const program = await response.json();
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('program-dropdown').addEventListener('change', async (event) => {
+        const programId = event.target.value;
+        console.log(`Selected Program ID: ${programId}`); // Debugging
 
-    if (program.error) {
-        alert(program.error);
-    } else {
-        document.getElementById('code-input').value = program.code;
-        loadTestCases(programId); // Load test cases for the selected program
-    }
+        const response = await fetch(`/sandbox/load?program_id=${programId}`);
+        const program = await response.json();
+        console.log('Program Response:', program); // Debugging
+
+        if (program.error) {
+            alert(program.error);
+        } else {
+            document.getElementById('code-input').value = program.code;
+            loadTestCases(programId); // Load test cases for the selected program
+        }
+    });
 });
 
 // Fetch test cases dynamically and populate tabs
@@ -66,35 +71,46 @@ async function loadTestCases(programId) {
         return;
     }
 
-    const tabList = document.getElementById('tab-list');
+    const tabButtons = document.getElementById('tab-buttons');
     const tabContent = document.getElementById('tab-content');
-    tabList.innerHTML = '';
-    tabContent.innerHTML = '';
 
+    // Clear existing buttons and content, but keep the user input box
+    tabButtons.innerHTML = '<button class="tab-button" data-tab="test-0">User Input</button>';
+    tabContent.innerHTML = `
+        <div id="test-0" style="display: block;">
+            <textarea class="test-input" placeholder="Enter inputs here, e.g., [1, 2]"></textarea>
+        </div>
+    `;
+
+    // Add test cases as additional buttons
     testCases.forEach((test, index) => {
-        // Create tab with test number and name
-        const tab = document.createElement('li');
-        tab.innerHTML = `<a href="#test-${test.number}">Test ${test.number}: ${test.name}</a>`;
-        tabList.appendChild(tab);
+        const tabIndex = index + 1; // Start from 1 since 0 is the user input
 
-        // Create tab content with inputs
+        // Create button
+        const button = document.createElement('button');
+        button.className = 'tab-button';
+        button.dataset.tab = `test-${tabIndex}`;
+        button.textContent = `Test ${test.number}: ${test.name}`;
+        tabButtons.appendChild(button);
+
+        // Create tab content
         const content = document.createElement('div');
-        content.id = `test-${test.number}`;
-        content.style.display = index === 0 ? 'block' : 'none'; // Show the first tab by default
+        content.id = `test-${tabIndex}`;
+        content.style.display = 'none'; // Hide by default
         content.innerHTML = `
             <textarea class="test-input">${JSON.stringify(test.inputs)}</textarea>
         `;
         tabContent.appendChild(content);
     });
 
-    // Add event listeners for tabs
-    document.querySelectorAll('#tab-list li a').forEach((tab, index) => {
-        tab.addEventListener('click', (e) => {
+    // Add event listeners for buttons
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.addEventListener('click', (e) => {
             e.preventDefault();
             document.querySelectorAll('#tab-content div').forEach(div => {
                 div.style.display = 'none';
             });
-            document.getElementById(`test-${testCases[index].number}`).style.display = 'block';
+            document.getElementById(button.dataset.tab).style.display = 'block';
         });
     });
 }
@@ -102,12 +118,14 @@ async function loadTestCases(programId) {
 // Run the code with user-provided input values
 document.getElementById('run-button').addEventListener('click', async () => {
     const code = document.getElementById('code-input').value;
-    const inputValues = document.querySelector('.test-input').value;
+
+    // Get the currently visible input box
+    const activeInput = document.querySelector('#tab-content div[style="display: block;"] .test-input').value;
 
     const response = await fetch('/sandbox/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, input: JSON.parse(inputValues) })
+        body: JSON.stringify({ code, input: JSON.parse(activeInput) })
     });
 
     const data = await response.json();

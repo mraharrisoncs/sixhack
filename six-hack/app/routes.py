@@ -20,6 +20,9 @@ def setup_routes(app):
             code = data.get('code', '')
             inputs = data.get('input', [])
 
+            # Ensure all inputs are strings
+            inputs = [str(i) for i in inputs]
+
             # Execute the code using the sandbox runner
             result = run_code(code, inputs)
             return jsonify(result)
@@ -80,9 +83,12 @@ def setup_routes(app):
     @app.route('/sandbox/load', methods=['GET'])
     def load_program():
         program_id = request.args.get('program_id')
+        print(f"Requested program ID: {program_id}")  # Debugging
         program = PythonProgram.query.get(program_id)
         if not program:
+            print("Program not found")  # Debugging
             return jsonify({"error": "Program not found"}), 404
+        print(f"Program found: {program.name}")  # Debugging
         return jsonify({"id": program.id, "name": program.name, "code": program.code})
 
     @app.route('/sandbox/save', methods=['POST'])
@@ -201,14 +207,14 @@ def setup_routes(app):
                 return jsonify({"error": "Program not found"}), 404
 
             test_cases = [
-            {
-                "number": tc.id,  # Use the test case ID or a sequential number
-                "name": tc.name,  # Include the name field
-                "inputs": json.loads(tc.inputs),
-                "expected_output": tc.expected_output
-            }
-            for tc in program.test_cases
-        ]
-        return jsonify(test_cases)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+                {
+                    "number": tc.id,  # Use the test case ID or a sequential number
+                    "name": tc.name,  # Include the name field
+                    "inputs": json.loads(tc.inputs),
+                    "expected_output": tc.expected_output
+                }
+                for tc in program.test_cases
+            ]
+            return jsonify(test_cases)
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500

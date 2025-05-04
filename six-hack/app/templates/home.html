@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Six Hack is a Python sandbox with a twist!</h2>
 <div class="flex-container">
     <!-- Sandbox on the left -->
     <div class="sandbox-container">
@@ -22,10 +21,18 @@
 
     <!-- Input and Output on the right -->
     <div class="output-container">
+        <!-- Label for test tabs -->
+        <label for="tab-buttons" style="font-weight: bold; margin-bottom: 10px; display: block;">Tests:</label>
         <!-- Tabbed Input Box -->
         <div id="test-tabs">
-            <ul id="tab-list"></ul>
-            <div id="tab-content"></div>
+            <div id="tab-buttons">
+                <button class="tab-button active" data-tab="test-0">User Input</button>
+            </div>
+            <div id="tab-content">
+                <div id="test-0" style="display: block;">
+                    <textarea class="test-input" placeholder="Enter inputs here, e.g., [1, 2]"></textarea>
+                </div>
+            </div>
         </div>
         <div id="output-window">
             <pre id="output" placeholder="Output will appear here..."></pre>
@@ -62,16 +69,18 @@
         })
         .then(response => response.json())
         .then(testCases => {
-            const tabList = document.getElementById('tab-list');
+            const tabList = document.getElementById('tab-buttons');
             const tabContent = document.getElementById('tab-content');
             tabList.innerHTML = '';
             tabContent.innerHTML = '';
 
             testCases.forEach((test, index) => {
-                // Create tab
-                const tab = document.createElement('li');
-                tab.innerHTML = `<a href="#test-${index}">Test ${index + 1}</a>`;
-                tabList.appendChild(tab);
+                // Create tab button
+                const tabButton = document.createElement('button');
+                tabButton.className = 'tab-button';
+                tabButton.dataset.tab = `test-${index}`;
+                tabButton.textContent = `${test.number}: ${test.name}`; // Updated to show number and name only
+                tabList.appendChild(tabButton);
 
                 // Create tab content
                 const content = document.createElement('div');
@@ -83,14 +92,13 @@
                 tabContent.appendChild(content);
             });
 
-            // Add event listeners for tabs
-            document.querySelectorAll('#tab-list li a').forEach((tab, index) => {
-                tab.addEventListener('click', (e) => {
-                    e.preventDefault();
+            // Add event listeners for tab buttons
+            document.querySelectorAll('.tab-button').forEach((button) => {
+                button.addEventListener('click', (e) => {
                     document.querySelectorAll('#tab-content div').forEach(div => {
                         div.style.display = 'none';
                     });
-                    document.getElementById(`test-${index}`).style.display = 'block';
+                    document.getElementById(button.dataset.tab).style.display = 'block';
                 });
             });
         })

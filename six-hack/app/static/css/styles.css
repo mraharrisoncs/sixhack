@@ -194,3 +194,56 @@ select {
 #program-dropdown {
     margin-top: 10px;
 }
+
+/* Tab buttons container */
+#tab-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    justify-content: flex-start; /* Align buttons to the left */
+}
+
+/* Individual tab buttons */
+.tab-button {
+    padding: 10px 15px;
+    border: 2px solid black;
+    background: linear-gradient(to bottom, #708090, #2f4f4f);
+    color: white;
+    cursor: pointer;
+    border-radius: 5px 5px 0 0; /* Rounded top corners for tab effect */
+    font-family: "Lucida Console", monospace;
+    font-size: 14px;
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Hover effect for tab buttons */
+.tab-button:hover {
+    background: linear-gradient(to bottom, #607080, #1f3f4f);
+}
+
+/* Active tab button */
+.tab-button.active {
+    background: linear-gradient(to bottom, #2f4f4f, #1f2f3f);
+    font-weight: bold;
+    border-bottom: 2px solid #2f4f4f; /* Blend with the tab content */
+}
+
+document.querySelectorAll('.tab-button').forEach(button => {
+    button.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        // Remove active class from all buttons
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+
+        // Add active class to the clicked button
+        button.classList.add('active');
+
+        // Hide all tab content
+        document.querySelectorAll('#tab-content div').forEach(div => {
+            div.style.display = 'none';
+        });
+
+        // Show the selected tab content
+        document.getElementById(button.dataset.tab).style.display = 'block';
+    });
+});
