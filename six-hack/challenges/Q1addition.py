@@ -8,12 +8,12 @@ test_cases:
   - number: 2
     name: "boundary"
     inputs: [0, 0]
-    expected_output: "30\n"
+    expected_output: "0\n"
   - number: 3
     name: "extreme"
     inputs: [1000000, 2000000]
     expected_output: "3000000\n"
-'''
+!SIX.'''
 a = int(input())
 b = int(input())
 print(a + b)

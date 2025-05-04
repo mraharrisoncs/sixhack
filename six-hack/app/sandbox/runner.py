@@ -3,35 +3,34 @@ import contextlib
 import traceback
 import json
 import subprocess
+import tempfile
 from app.models import PythonProgram, TestCase
 
 def run_code(code, inputs):
     try:
-        print(f"Running code:\n{code}")  # Debugging
-        print(f"With inputs: {inputs}")  # Debugging
+        # Create a temporary file for the code
+        with tempfile.NamedTemporaryFile(suffix='.py', delete=False) as temp_code_file:
+            temp_code_file.write(code.encode('utf-8'))
+            temp_code_path = temp_code_file.name
 
-        # Prepare the input as a string
-        input_str = "\n".join(map(str, inputs))
-        print(f"Input string: {input_str}")  # Debugging
-
-        # Run the code in a subprocess
+        # Run the code using subprocess
         process = subprocess.run(
-            ["python3", "-c", code],
-            input=input_str,
-            text=True,
-            capture_output=True,
-            timeout=5
+            ['python', temp_code_path],
+            input='\n'.join(inputs).encode('utf-8'),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=5  # Limit execution time to 5 seconds
         )
 
-        # Capture the output and errors
-        output = process.stdout
-        error = process.stderr
-        print(f"Output: {output}, Error: {error}")  # Debugging
-
-        return {"output": output, "error": error}
+        # Return the output and errors
+        return {
+            "output": process.stdout.decode('utf-8'),
+            "error": process.stderr.decode('utf-8')
+        }
+    except subprocess.TimeoutExpired:
+        return {"error": "Execution timed out"}
     except Exception as e:
-        print(f"Error running code: {e}")  # Debugging
-        return {"output": "", "error": str(e)}
+        return {"error": str(e)}
 
 def test_code(program_id):
     program = PythonProgram.query.get(program_id)

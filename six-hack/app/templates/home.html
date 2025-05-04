@@ -46,7 +46,7 @@
             dropdown.innerHTML = '<option value="" disabled selected>Select a program</option>';
             programs.forEach(program => {
                 const option = document.createElement('option');
-                option.value = program.name;
+                option.value = program.id; // Use program ID for fetching test cases
                 option.textContent = program.name;
                 dropdown.appendChild(option);
             });
@@ -55,54 +55,44 @@
     }
 
     // Fetch test cases dynamically and populate tabs
-    function loadTestCases(programName) {
-        fetch('/get_test_cases', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ program_name: programName })
+    function loadTestCases(programId) {
+        fetch(`/sandbox/test_cases/${programId}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
         })
         .then(response => response.json())
         .then(testCases => {
-            if (testCases.error) {
-                console.error(testCases.error);
-                return;
-            }
-
             const tabList = document.getElementById('tab-list');
             const tabContent = document.getElementById('tab-content');
             tabList.innerHTML = '';
             tabContent.innerHTML = '';
 
-            testCases.forEach(test => {
+            testCases.forEach((test, index) => {
                 // Create tab
                 const tab = document.createElement('li');
-                tab.innerHTML = `<a href="#test-${test.number}">Test ${test.number}: ${test.name}</a>`;
+                tab.innerHTML = `<a href="#test-${index}">Test ${index + 1}</a>`;
                 tabList.appendChild(tab);
 
                 // Create tab content
                 const content = document.createElement('div');
-                content.id = `test-${test.number}`;
-                content.style.display = 'none';
-                content.innerHTML = `<textarea>${test.inputs.join('\n')}</textarea>`;
+                content.id = `test-${index}`;
+                content.style.display = index === 0 ? 'block' : 'none'; // Show the first tab by default
+                content.innerHTML = `
+                    <textarea class="test-input">${JSON.stringify(test.inputs)}</textarea>
+                `;
                 tabContent.appendChild(content);
             });
 
             // Add event listeners for tabs
-            document.querySelectorAll('#tab-list li a').forEach(tab => {
+            document.querySelectorAll('#tab-list li a').forEach((tab, index) => {
                 tab.addEventListener('click', (e) => {
                     e.preventDefault();
-                    const target = tab.getAttribute('href').substring(1);
                     document.querySelectorAll('#tab-content div').forEach(div => {
                         div.style.display = 'none';
                     });
-                    document.getElementById(target).style.display = 'block';
+                    document.getElementById(`test-${index}`).style.display = 'block';
                 });
             });
-
-            // Show the first tab by default
-            if (testCases.length > 0) {
-                document.querySelector('#tab-content div').style.display = 'block';
-            }
         })
         .catch(error => console.error('Error loading test cases:', error));
     }
@@ -114,8 +104,8 @@
 
     // Load test cases when a program is selected
     document.getElementById('program-dropdown').addEventListener('change', (e) => {
-        const programName = e.target.value;
-        loadTestCases(programName);
+        const programId = e.target.value;
+        loadTestCases(programId); // Load the test cases into the tabbed input box
     });
 </script>
 {% endblock %}

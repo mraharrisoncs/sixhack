@@ -2,7 +2,7 @@ from flask import render_template, request, jsonify
 from app.models import PythonProgram, TestCase, db
 from app.sandbox.runner import run_code, test_code
 from app.utils import load_new_challenges
-import json, yaml
+import json, yaml, os
 
 def setup_routes(app):
     @app.route('/')
@@ -15,11 +15,16 @@ def setup_routes(app):
 
     @app.route('/sandbox/run', methods=['POST'])
     def run():
-        data = request.json
-        code = data.get('code', '')
-        inputs = data.get('input', [])
-        result = run_code(code, inputs)
-        return jsonify(result)
+        try:
+            data = request.json
+            code = data.get('code', '')
+            inputs = data.get('input', [])
+
+            # Execute the code using the sandbox runner
+            result = run_code(code, inputs)
+            return jsonify(result)
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
 
     @app.route('/sandbox/test', methods=['POST'])
     def test():
@@ -149,3 +154,61 @@ def setup_routes(app):
     def load_db():
         load_new_challenges()
         return jsonify({"message": "Database updated with new challenges!"})
+
+    @app.route('/sandbox/program/<program_name>', methods=['GET'])
+    def get_program_code(program_name):
+        try:
+            # Locate the program file in the "challenges" directory
+            program_path = os.path.join("challenges", f"{program_name}.py")
+            if not os.path.exists(program_path):
+                return jsonify({"error": "Program not found"}), 404
+
+            # Read the program file
+            with open(program_path, 'r', encoding='utf-8') as file:  # Ensure UTF-8 encoding
+                content = file.read()
+
+            # Extract the YAML metadata and code
+            if "'''!SIX:" in content and "!SIX.'''" in content:
+                metadata_start = content.find("'''!SIX:") + len("'''!SIX:")  # Start of the metadata block
+                metadata_end = content.find("!SIX.'''", metadata_start)  # End of the metadata block
+                if metadata_end == -1:
+                    return jsonify({"error": "Malformed metadata block"}), 400  # Handle missing end marker
+
+                yaml_content = content[metadata_start:metadata_end].strip()  # Extract YAML content
+                print(f"YAML={yaml_content}")  # Debugging
+                code = content[metadata_end + len("!SIX.'''"):].strip()  # Extract the code after the metadata block
+            else:
+                yaml_content = None
+                code = content.strip()  # If no metadata block, return the entire content
+
+            # Parse the YAML metadata (if present)
+            metadata = None
+            if yaml_content:
+                try:
+                    metadata = yaml.safe_load(yaml_content)  # Parse the YAML content
+                except yaml.YAMLError as e:
+                    return jsonify({"error": f"Invalid YAML format: {str(e)}"}), 400
+
+            return jsonify({"code": code, "metadata": metadata})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    @app.route('/sandbox/test_cases/<int:program_id>', methods=['GET'])
+    def get_test_cases(program_id):
+        try:
+            program = PythonProgram.query.get(program_id)
+            if not program:
+                return jsonify({"error": "Program not found"}), 404
+
+            test_cases = [
+            {
+                "number": tc.id,  # Use the test case ID or a sequential number
+                "name": tc.name,  # Include the name field
+                "inputs": json.loads(tc.inputs),
+                "expected_output": tc.expected_output
+            }
+            for tc in program.test_cases
+        ]
+        return jsonify(test_cases)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

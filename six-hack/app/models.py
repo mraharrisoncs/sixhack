@@ -29,5 +29,9 @@ class PythonProgram(db.Model):
 class TestCase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     program_id = db.Column(db.Integer, db.ForeignKey('python_program.id'), nullable=False)
-    inputs = db.Column(db.Text, nullable=False)  # Store as JSON
+    name = db.Column(db.String(100), nullable=False)  # Add the name field
+    inputs = db.Column(db.Text, nullable=False)
     expected_output = db.Column(db.Text, nullable=False)
+
+    def __repr__(self):
+        return f"<TestCase {self.name}>"

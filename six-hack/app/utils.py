@@ -1,27 +1,24 @@
 import os
 import ast
 import yaml  # Use PyYAML to parse the test cases
+import json  # Import json for handling test case inputs and outputs
 from app.models import db, PythonProgram, TestCase
 
 def parse_program_file(filepath):
     """Parse a program file to extract metadata and code."""
-    with open(filepath, 'r') as file:
-        lines = file.readlines()
+    with open(filepath, 'r', encoding='utf-8') as file:
+        content = file.read()
 
-    # Extract metadata from the top comment
-    metadata = {}
-    code_start_index = 0
-    if lines[0].strip() == "'''!SIX:":
-        comment_block = []
-        for i, line in enumerate(lines[1:], start=1):
-            if line.strip() == "'''":
-                code_start_index = i + 1  # Code starts after the closing triple quotes
-                break
-            comment_block.append(line)
-        metadata = yaml.safe_load(''.join(comment_block))
+    if "'''!SIX:" in content and "!SIX.'''" in content:
+        metadata_start = content.find("'''!SIX:") + len("'''!SIX:")
+        metadata_end = content.find("!SIX.'''", metadata_start)
+        yaml_content = content[metadata_start:metadata_end].strip()
+        metadata = yaml.safe_load(yaml_content)
+        code = content[metadata_end + len("!SIX.'''"):].strip()
+    else:
+        metadata = {}
+        code = content.strip()
 
-    # Extract the program code (after the metadata comment)
-    code = ''.join(lines[code_start_index:])
     return metadata, code
 
 def parse_test_cases(filepath):
@@ -34,22 +31,25 @@ def populate_database():
     db.drop_all()
     db.create_all()
 
-    challenges_dir = os.path.join(os.path.dirname(__file__), '../challenges')
+    challenges_dir = os.path.join(os.path.dirname(__file__), 'challenges')
     for filename in os.listdir(challenges_dir):
         if filename.endswith('.py'):
             filepath = os.path.join(challenges_dir, filename)
             metadata, code = parse_program_file(filepath)
 
-            # Add the program to the database
             program = PythonProgram(name=filename.replace('.py', ''), code=code)
             db.session.add(program)
             db.session.commit()
 
-            # Add test cases to the database
             for test_case in metadata.get('test_cases', []):
-                inputs = test_case.get('inputs', [])
-                expected_output = test_case.get('expected_output', '')
-                db.session.add(TestCase(program_id=program.id, inputs=str(inputs), expected_output=expected_output))
+                test_case_entry = TestCase(
+                    program_id=program.id,
+                    name=test_case.get('name', 'Unnamed Test Case'),  # Add the name field
+                    inputs=json.dumps(test_case.get('inputs', [])),
+                    expected_output=test_case.get('expected_output', '')
+                )
+                db.session.add(test_case_entry)
+
             db.session.commit()
 
     print("Database populated successfully!")
