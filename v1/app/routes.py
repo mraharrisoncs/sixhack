@@ -3,6 +3,34 @@ from app.models import PythonProgram, TestCase, db
 from app.sandbox.runner import run_code, test_code
 from app.utils import load_new_challenges
 import json, yaml, os
+import subprocess
+
+'''def simulate_code_execution(code, inputs):
+    """
+    Simulates the execution of Python code with the given inputs.
+    :param code: The Python code to execute as a string.
+    :param inputs: A list of inputs to provide to the code.
+    :return: The output of the code execution as a string.
+    """
+    try:
+        # Join the inputs with newlines to simulate stdin
+        input_data = "\n".join(map(str, inputs))
+
+        # Use subprocess to execute the code
+        process = subprocess.run(
+            ["python", "-c", code],
+            input=input_data,
+            text=True,
+            capture_output=True,
+            check=True
+        )
+
+        # Return the standard output
+        return process.stdout
+    except subprocess.CalledProcessError as e:
+        # Handle errors during code execution
+        return f"Error: {e.stderr}"
+''' 
 
 def setup_routes(app):
     @app.route('/')
@@ -30,71 +58,28 @@ def setup_routes(app):
             return jsonify({"error": str(e)}), 500
 
     @app.route('/sandbox/test', methods=['POST'])
-    def test():
+    def run_tests():
         try:
-            data = request.json
+            data = request.get_json()
             program_id = data.get('program_id')
-            current_code = data.get('code')  # Get the current code from the frontend
+            code = data.get('code')
 
-            # Debugging: Log the received data
-            print(f"Program ID: {program_id}")
-            print(f"Current Code:\n{current_code}")
+            program = PythonProgram.query.get_or_404(program_id)
 
-            if not program_id or not current_code:
-                return jsonify({"error": "Program ID and code are required"}), 400
+            # Prepare test cases
+            test_cases = [
+                {
+                    "name": tc.name,
+                    "inputs": json.loads(tc.inputs),
+                    "expected_output": tc.expected_output
+                }
+                for tc in program.test_cases
+            ]
 
-            # Fetch the program from the database
-            program = PythonProgram.query.get(program_id)
-            if not program:
-                return jsonify({"error": "Program not found"}), 404
-
-            # Debugging: Log the program details
-            print(f"Program: {program.name}")
-
-            results = []
-            for test_case in program.test_cases:
-                try:
-                    # Parse inputs and expected output
-                    inputs = json.loads(test_case.inputs)  # Parse inputs from JSON
-                    expected_output = test_case.expected_output.strip()
-
-                    # Debugging: Log the test case details
-                    print(f"Running Test Case: {test_case.name}")
-                    print(f"Inputs: {inputs}")
-                    print(f"Expected Output: {expected_output}")
-
-                    # Run the current code against the inputs
-                    result = run_code(current_code, inputs)
-
-                    # Debugging: Log the result
-                    actual_output = result.get("output", "").strip()
-                    print(f"Actual Output: {actual_output}")
-
-                    # Compare the actual output with the expected output
-                    passed = actual_output == expected_output
-                    print(f"Test Passed: {passed}")
-
-                    results.append({
-                        "inputs": inputs,
-                        "expected": expected_output,
-                        "actual": actual_output,
-                        "passed": passed
-                    })
-                except Exception as e:
-                    # Debugging: Log the error
-                    print(f"Error processing test case: {e}")
-                    results.append({
-                        "inputs": test_case.inputs,
-                        "expected": test_case.expected_output,
-                        "actual": "Error",
-                        "passed": False
-                    })
-
-            # Return the test results
+            # Test the code using the sandbox runner
+            results = test_code(code, test_cases)
             return jsonify({"results": results})
         except Exception as e:
-            # Debugging: Log the error
-            print(f"Error in /sandbox/test: {e}")
             return jsonify({"error": str(e)}), 500
 
     @app.route('/sandbox/programs', methods=['GET'])

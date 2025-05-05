@@ -50,7 +50,7 @@ function loadPrograms() {
 
 // Automatically populate the sandbox when a program is selected
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM fully loaded and parsed."); // Debugging
+    let originalCode = ""; // Variable to store the original code
 
     const codeTabs = ['original', 'modular', 'robust', 'fast', 'documented', 'minimalist'];
     const codeVersions = {
@@ -63,21 +63,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const codeTabsContainer = document.getElementById('code-tabs');
     const codeInput = document.getElementById('code-input');
-    const tabContent = document.getElementById('tab-content');
-    const testContainer = document.querySelector('.test-container'); // Preserve the test-container
 
-    if (!codeTabsContainer) {
-        console.error("Error: #code-tabs container not found."); // Debugging
-        return;
-    }
-
-    if (!codeInput) {
-        console.error("Error: #code-input textarea not found."); // Debugging
-        return;
-    }
-
-    if (!tabContent) {
-        console.error("Error: #tab-content container not found."); // Debugging
+    if (!codeTabsContainer || !codeInput) {
+        console.error("Error: Missing required elements in DOM.");
         return;
     }
 
@@ -86,55 +74,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Create tabs dynamically
     codeTabs.forEach((tab, index) => {
-        console.log(`Creating tab: ${tab}`); // Debugging
         const button = document.createElement('button');
         button.className = 'tab-button';
-        button.dataset.tab = `code-${index}`;
-        button.textContent = tab.charAt(0).toUpperCase() + tab.slice(1); // Capitalize first letter
-        if (index === 0) button.classList.add('active'); // Set the first tab as active by default
+        button.textContent = tab.charAt(0).toUpperCase() + tab.slice(1);
+        if (index === 0) button.classList.add('active');
         codeTabsContainer.appendChild(button);
 
-        // Add event listener for each tab
         button.addEventListener('click', () => {
-            console.log(`Tab clicked: ${tab}`); // Debugging
             // Remove active class from all tabs
-            document.querySelectorAll('#code-tabs .tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
 
             // Add active class to the clicked tab
             button.classList.add('active');
 
             // Load the corresponding code version into the editor
             if (tab === 'original') {
-                console.log("Loading original code..."); // Debugging
-                loadOriginalCode(); // Load the original code dynamically
+                codeInput.value = originalCode; // Always show the original code
             } else {
                 codeInput.value = codeVersions[tab];
-            }
-
-            // Re-add the test-container to ensure it is not flushed
-            if (testContainer && !tabContent.contains(testContainer)) {
-                tabContent.appendChild(testContainer);
             }
         });
     });
 
     // Load the first version of the code by default
-    console.log("Loading default code version: original"); // Debugging
-    loadOriginalCode();
+    codeInput.value = originalCode;
 
-    // Initialize program dropdown
+    // Handle program dropdown selection
     const programDropdown = document.getElementById('program-dropdown');
+    if (programDropdown) {
+        programDropdown.addEventListener('change', (e) => {
+            const programId = e.target.value;
 
-    if (!programDropdown) {
-        console.error("Error: #program-dropdown element not found."); // Debugging
-        return;
+            // Fetch the original code for the selected program
+            fetch(`/sandbox/original_code/${programId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.original_code) {
+                        originalCode = data.original_code; // Store the original code
+                        codeInput.value = originalCode; // Load the original code into the editor
+                    }
+                })
+                .catch(error => console.error('Error fetching original code:', error));
+
+            // Load the test cases for the selected program
+            loadTestCases(programId);
+        });
     }
-
-    programDropdown.addEventListener('change', (e) => {
-        const programId = e.target.value;
-        loadTestCases(programId); // Load the test cases into the tabbed input box
-        loadOriginalCode(programId); // Load the original code for the selected program
-    });
 
     // Load programs into the dropdown on page load
     loadPrograms();
@@ -142,90 +127,76 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Fetch test cases dynamically and populate tabs
 function loadTestCases(programId) {
-    fetch(`/sandbox/test_cases/${programId}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
-    })
-    .then(response => response.json())
-    .then(testCases => {
-        const tabList = document.getElementById('tab-buttons');
-        const tabContent = document.getElementById('tab-content');
-        const testContainer = document.querySelector('.test-container'); // Preserve the test-container
+    fetch(`/sandbox/test_cases/${programId}`)
+        .then(response => response.json())
+        .then(testCases => {
+            const tabButtons = document.getElementById('tab-buttons');
+            const tabContent = document.getElementById('tab-content');
+            const testContainer = document.querySelector('.test-container'); // Preserve the test-container
 
-        // Clear only the dynamically created test tabs
-        tabList.innerHTML = '';
+            // Clear only the dynamically created test tabs
+            tabButtons.innerHTML = '';
 
-        // Preserve the test-container and only clear dynamically created test content
-        tabContent.innerHTML = ''; // Clear all content
-        if (testContainer) {
-            tabContent.appendChild(testContainer); // Re-add the test-container
-        }
+            // Preserve the test-container and only clear dynamically created test content
+            tabContent.innerHTML = '';
+            if (testContainer) {
+                tabContent.appendChild(testContainer); // Re-add the test-container
+            }
 
-        // Create test tabs dynamically
-        testCases.forEach((test, index) => {
-            // Create tab button
-            const tabButton = document.createElement('button');
-            tabButton.className = 'tab-button';
-            tabButton.dataset.tab = `test-${index}`;
-            tabButton.textContent = `${test.number}: ${test.name}`; // Updated to show number and name only
-            tabList.appendChild(tabButton);
+            // Create test tabs dynamically
+            testCases.forEach((test, index) => {
+                const button = document.createElement('button');
+                button.className = 'tab-button';
+                button.textContent = `${test.number}: ${test.name}`;
+                tabButtons.appendChild(button);
 
-            // Create tab content
-            const content = document.createElement('div');
-            content.id = `test-${index}`;
-            content.style.display = index === 0 ? 'block' : 'none'; // Show the first tab by default
-            content.innerHTML = `
-                <textarea class="test-input">${JSON.stringify(test.inputs)}</textarea>
-            `;
-            tabContent.appendChild(content);
-        });
-
-        // Dynamically create the "All Tests" button
-        const allTestsButton = document.createElement('button');
-        allTestsButton.className = 'tab-button';
-        allTestsButton.id = 'all-tests-button';
-        allTestsButton.textContent = 'All Tests';
-        tabList.appendChild(allTestsButton);
-
-        // Add event listener for "All Tests" button
-        allTestsButton.addEventListener('click', async () => {
-            const code = document.getElementById('code-input').value;
-
-            const response = await fetch('/sandbox/test', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ program_id: programId, code })
+                // Add event listener for individual test tabs
+                button.addEventListener('click', () => {
+                    // Load test inputs into the static input-box
+                    const inputBox = document.getElementById('input-box');
+                    if (inputBox) {
+                        inputBox.value = JSON.stringify(test.inputs); // Ensure inputs are properly formatted as JSON
+                    }
+                });
             });
 
-            const data = await response.json();
-            const outputElement = document.getElementById('output');
+            // Add the "All Tests" button
+            const allTestsButton = document.createElement('button');
+            allTestsButton.className = 'tab-button';
+            allTestsButton.id = 'all-tests-button';
+            allTestsButton.textContent = 'All Tests';
+            tabButtons.appendChild(allTestsButton);
 
-            if (data.error) {
-                outputElement.textContent = `Error:\n${data.error}`;
-            } else {
-                // Format the test results
-                const results = data.results.map((result, index) => {
-                    return `Test ${index + 1}: ${result.name}
+            // Add event listener for "All Tests" button
+            allTestsButton.addEventListener('click', async () => {
+                const code = document.getElementById('code-input').value;
+
+                const response = await fetch('/sandbox/test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ program_id: programId, code })
+                });
+
+                const data = await response.json();
+                const outputElement = document.getElementById('output');
+
+                if (data.error) {
+                    outputElement.textContent = `Error:\n${data.error}`;
+                } else {
+                    // Format the test results
+                    const results = data.results.map((result, index) => {
+                        return `Test ${index + 1}: ${result.name}
+Inputs: ${JSON.stringify(result.inputs)}
 Expected: ${result.expected}; Actual: ${result.actual}
 Passed: ${result.passed ? "✅" : "❌"}`;
-                }).join("\n");
+                    }).join("\n");
 
-                // Display the formatted results in the output box
-                outputElement.textContent = results;
-            }
-        });
-
-        // Add event listeners for individual test tabs
-        document.querySelectorAll('.tab-button').forEach((button) => {
-            button.addEventListener('click', (e) => {
-                document.querySelectorAll('#tab-content div').forEach(div => {
-                    div.style.display = 'none';
-                });
-                document.getElementById(button.dataset.tab).style.display = 'block';
+                    // Display the formatted results in the output box
+                    outputElement.textContent = results;
+                }
             });
-        });
-    })
-    .catch(error => console.error('Error loading test cases:', error));
+        })
+        .catch(error => console.error('Error loading test cases:', error));
 }
 
 // Truncate long names for display
@@ -254,14 +225,21 @@ document.getElementById('input-box').addEventListener('focus', () => {
 // Run the code with user-provided input values
 document.getElementById('run-button').addEventListener('click', async () => {
     const code = document.getElementById('code-input').value;
+    const inputBox = document.getElementById('input-box');
+    let inputs;
 
-    // Get the currently visible input box
-    const activeInput = document.querySelector('#tab-content div[style="display: block;"] .test-input').value;
+    try {
+        inputs = JSON.parse(inputBox.value); // Parse the input as JSON
+    } catch (error) {
+        console.error('Invalid JSON input:', error);
+        document.getElementById('output').textContent = 'Error: Invalid input format. Please provide valid JSON.';
+        return;
+    }
 
     const response = await fetch('/sandbox/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, input: JSON.parse(activeInput) })
+        body: JSON.stringify({ code, input: inputs })
     });
 
     const data = await response.json();
