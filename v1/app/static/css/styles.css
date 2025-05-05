@@ -66,11 +66,10 @@ nav a:hover {
     border: 2px solid black;
     border-radius: 5px;
     background: linear-gradient(to bottom, #708090, #2f4f4f);
-    /*width: 100%;*/
     font-family: "Lucida Console", monospace;
     font-size: 14px;
     box-sizing: border-box;
-    height: 300px;
+    height: 250px; /* Adjust height to align with dropdown */
     overflow-y: auto;
     box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
 }
@@ -108,30 +107,10 @@ nav a:hover {
     /* Remove the gap between input and output windows */
 }
 
-/* Style for the input field */
-#input-values {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 0;
-    /* Remove bottom margin to eliminate the gap */
-    border: 2px solid black;
-    border-radius: 5px;
-    box-sizing: border-box;
-    background: linear-gradient(to bottom, #708090, #2f4f4f);
-    color: white;
-    box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
-}
-
-/* Placeholder text for the input field */
-#input-values::placeholder {
-    content: "Enter input values (comma-separated)";
-    color: #ccc;
-    font-style: italic;
-}
 
 footer {
     background: #35424a;
-    color: #ffffff;
+    color: white;
     text-align: center;
     padding: 10px 0;
     position: relative;
@@ -174,7 +153,7 @@ input,
 select {
     font-family: "Lucida Console", monospace;
     background: linear-gradient(to bottom, #708090, #2f4f4f);
-    color: #ccc;
+    color: white;
     border: 2px solid black;
     box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
     border-radius: 5px;
@@ -186,7 +165,7 @@ select {
 /* Placeholder text for the output window */
 #output:empty::before {
     content: "Output will appear here...";
-    color: #ccc;
+    color: white;
     font-style: italic;
 }
 
@@ -198,52 +177,217 @@ select {
 /* Tab buttons container */
 #tab-buttons {
     display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-    justify-content: flex-start; /* Align buttons to the left */
+    gap: 0; /* Remove space between tabs */
+    margin-bottom: 0; /* Remove margin between tabs and input box */
 }
 
 /* Individual tab buttons */
 .tab-button {
     padding: 10px 15px;
-    border: 2px solid black;
-    background: linear-gradient(to bottom, #708090, #2f4f4f);
+    border: 1px solid #333;
+    background: linear-gradient(to bottom, #333, #111); /* Dark gradient */
     color: white;
     cursor: pointer;
-    border-radius: 5px 5px 0 0; /* Rounded top corners for tab effect */
-    font-family: "Lucida Console", monospace;
+    border-radius: 10px 10px 0 0; /* Larger rounded top corners */
     font-size: 14px;
-    box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
+    flex: 1; /* Make all tabs equal width */
+    text-align: center;
 }
 
 /* Hover effect for tab buttons */
 .tab-button:hover {
-    background: linear-gradient(to bottom, #607080, #1f3f4f);
+    background: linear-gradient(to bottom, #444, #222); /* Slightly lighter on hover */
 }
 
 /* Active tab button */
 .tab-button.active {
-    background: linear-gradient(to bottom, #2f4f4f, #1f2f3f);
+    background: linear-gradient(to bottom, #555, #333);
+    border-bottom: 2px solid #555; /* Blend with the tab content */
     font-weight: bold;
-    border-bottom: 2px solid #2f4f4f; /* Blend with the tab content */
 }
 
-document.querySelectorAll('.tab-button').forEach(button => {
-    button.addEventListener('click', (e) => {
-        e.preventDefault();
+/* Tab content container */
+#tab-content {
+    border: none; /* Remove the border */
+    padding: 0; /* Remove padding */
+    background-color: transparent; /* Make the background transparent */
+}
 
-        // Remove active class from all buttons
-        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+/* Input container for clear button, run button, and input box */
+.input-container {
+    display: flex;
+    align-items: center; /* Align items vertically */
+    gap: 10px; /* Add spacing between buttons and input box */
+    margin-top: 10px; /* Add some spacing from the tabs above */
+}
 
-        // Add active class to the clicked button
-        button.classList.add('active');
+/* Clear button */
+#clear-button {
+    padding: 5px 10px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 16px; /* Slightly larger font for the broom icon */
+    height: 40px; /* Match the height of the input box */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-        // Hide all tab content
-        document.querySelectorAll('#tab-content div').forEach(div => {
-            div.style.display = 'none';
-        });
+#clear-button:hover {
+    background-color: #d32f2f;
+}
 
-        // Show the selected tab content
-        document.getElementById(button.dataset.tab).style.display = 'block';
-    });
-});
+/* Run button */
+#run-button {
+    padding: 5px 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 16px; /* Slightly larger font for the play icon */
+    height: 40px; /* Match the height of the input box */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#run-button:hover {
+    background-color: #45a049;
+}
+
+/* Input box */
+#input-box {
+    flex: 1; /* Allow the input box to take up remaining space */
+    height: 40px; /* Match the height of the buttons */
+    font-family: "Lucida Console", monospace;
+    font-size: 14px;
+    padding: 10px;
+    background-color: #e0ffee;
+    border: 2px solid #000000;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+/* Bottom buttons container */
+.bottom-buttons {
+    display: flex;
+    justify-content: flex-end; /* Align buttons to the right */
+    gap: 10px; /* Add spacing between buttons */
+    margin-top: 10px;
+}
+
+#save-button,
+#load-db-button {
+    padding: 10px 15px;
+    background-color: #35424a;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#save-button:hover,
+#load-db-button:hover {
+    background-color: #2f3b45;
+}
+
+/* Code tabs container */
+#code-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 10px;
+}
+
+/* Code tab buttons */
+#code-tabs .tab-button {
+    padding: 10px 15px;
+    border: 1px solid #333;
+    background: linear-gradient(to bottom, #333, #111);
+    color: white;
+    cursor: pointer;
+    border-radius: 10px 10px 0 0; /* Rounded top corners */
+    font-size: 14px;
+    flex: 1; /* Make all tabs equal width */
+    text-align: center;
+}
+
+#code-tabs .tab-button:hover {
+    background: linear-gradient(to bottom, #444, #222);
+}
+
+#code-tabs .tab-button.active {
+    background: linear-gradient(to bottom, #555, #333);
+    border-bottom: 2px solid #555; /* Blend with the tab content */
+    font-weight: bold;
+}
+
+/* Code container and test container textareas */
+.code-container textarea,
+.test-container textarea {
+    width: 100%;
+    height: 40px;
+    font-family: "Lucida Console", monospace;
+    font-size: 14px;
+    padding: 10px;
+    border: 2px solid #000;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+/* Ensure the test-container elements are displayed side by side */
+.test-container {
+    display: flex;
+    align-items: center; /* Vertically align buttons and textarea */
+    gap: 10px; /* Add spacing between buttons and textarea */
+}
+
+/* Style for the buttons */
+.test-container button {
+    height: 40px; /* Match the height of the input box */
+    padding: 5px 10px;
+    font-size: 16px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Style for the Clear button */
+#clear-button {
+    background-color: #f44336;
+    color: white;
+}
+
+#clear-button:hover {
+    background-color: #d32f2f;
+}
+
+/* Style for the Run button */
+#run-button {
+    background-color: #4CAF50;
+    color: white;
+}
+
+#run-button:hover {
+    background-color: #45a049;
+}
+
+/* Style for the input box */
+.test-container textarea {
+    flex: 1; /* Allow the textarea to take up remaining space */
+    height: 40px;
+    font-family: "Lucida Console", monospace;
+    font-size: 14px;
+    padding: 10px;
+    border: 2px solid #000;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+

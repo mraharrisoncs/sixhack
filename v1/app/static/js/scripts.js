@@ -25,95 +25,231 @@ document.getElementById('load-db-button').addEventListener('click', async () => 
     const response = await fetch('/sandbox/load-db', { method: 'POST' });
     const data = await response.json();
     alert(data.message || "Database updated successfully!");
-    populateDropdown(); // Refresh the dropdown
+    loadPrograms(); // Refresh the dropdown
 });
 
 // Fetch available programs and populate the dropdown
-async function populateDropdown() {
-    const response = await fetch('/sandbox/programs');
-    const programs = await response.json();
-    const dropdown = document.getElementById('program-dropdown');
-    dropdown.innerHTML = '<option value="" disabled selected>Select a program</option>'; // Reset dropdown
-    programs.forEach(program => {
-        const option = document.createElement('option');
-        option.value = program.id;
-        option.textContent = program.name;
-        dropdown.appendChild(option);
-    });
+function loadPrograms() {
+    fetch('/sandbox/programs', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(programs => {
+        const dropdown = document.getElementById('program-dropdown');
+        dropdown.innerHTML = '<option value="" disabled selected>Select a program</option>';
+        programs.forEach(program => {
+            const option = document.createElement('option');
+            option.value = program.id; // Use program ID for fetching test cases
+            option.textContent = program.name;
+            dropdown.appendChild(option);
+        });
+    })
+    .catch(error => console.error('Error loading programs:', error));
 }
 
 // Automatically populate the sandbox when a program is selected
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('program-dropdown').addEventListener('change', async (event) => {
-        const programId = event.target.value;
-        console.log(`Selected Program ID: ${programId}`); // Debugging
+    console.log("DOM fully loaded and parsed."); // Debugging
 
-        const response = await fetch(`/sandbox/load?program_id=${programId}`);
-        const program = await response.json();
-        console.log('Program Response:', program); // Debugging
+    const codeTabs = ['original', 'modular', 'robust', 'fast', 'documented', 'minimalist'];
+    const codeVersions = {
+        modular: "# Modular version of the code\nprint('This is modular code')",
+        robust: "# Robust version of the code\nprint('This is robust code')",
+        fast: "# Fast version of the code\nprint('This is fast code')",
+        documented: "# Documented version of the code\nprint('This is documented code')",
+        minimalist: "# Minimalist version of the code\nprint('This is minimalist code')"
+    };
 
-        if (program.error) {
-            alert(program.error);
-        } else {
-            document.getElementById('code-input').value = program.code;
-            loadTestCases(programId); // Load test cases for the selected program
-        }
-    });
-});
+    const codeTabsContainer = document.getElementById('code-tabs');
+    const codeInput = document.getElementById('code-input');
+    const tabContent = document.getElementById('tab-content');
+    const testContainer = document.querySelector('.test-container'); // Preserve the test-container
 
-// Fetch test cases dynamically and populate tabs
-async function loadTestCases(programId) {
-    const response = await fetch(`/sandbox/test_cases/${programId}`);
-    const testCases = await response.json();
-
-    if (testCases.error) {
-        alert(testCases.error);
+    if (!codeTabsContainer) {
+        console.error("Error: #code-tabs container not found."); // Debugging
         return;
     }
 
-    const tabButtons = document.getElementById('tab-buttons');
-    const tabContent = document.getElementById('tab-content');
+    if (!codeInput) {
+        console.error("Error: #code-input textarea not found."); // Debugging
+        return;
+    }
 
-    // Clear existing buttons and content, but keep the user input box
-    tabButtons.innerHTML = '<button class="tab-button" data-tab="test-0">User Input</button>';
-    tabContent.innerHTML = `
-        <div id="test-0" style="display: block;">
-            <textarea class="test-input" placeholder="Enter inputs here, e.g., [1, 2]"></textarea>
-        </div>
-    `;
+    if (!tabContent) {
+        console.error("Error: #tab-content container not found."); // Debugging
+        return;
+    }
 
-    // Add test cases as additional buttons
-    testCases.forEach((test, index) => {
-        const tabIndex = index + 1; // Start from 1 since 0 is the user input
+    // Clear existing tabs to prevent duplicates
+    codeTabsContainer.innerHTML = '';
 
-        // Create button
+    // Create tabs dynamically
+    codeTabs.forEach((tab, index) => {
+        console.log(`Creating tab: ${tab}`); // Debugging
         const button = document.createElement('button');
         button.className = 'tab-button';
-        button.dataset.tab = `test-${tabIndex}`;
-        button.textContent = `Test ${test.number}: ${test.name}`;
-        tabButtons.appendChild(button);
+        button.dataset.tab = `code-${index}`;
+        button.textContent = tab.charAt(0).toUpperCase() + tab.slice(1); // Capitalize first letter
+        if (index === 0) button.classList.add('active'); // Set the first tab as active by default
+        codeTabsContainer.appendChild(button);
 
-        // Create tab content
-        const content = document.createElement('div');
-        content.id = `test-${tabIndex}`;
-        content.style.display = 'none'; // Hide by default
-        content.innerHTML = `
-            <textarea class="test-input">${JSON.stringify(test.inputs)}</textarea>
-        `;
-        tabContent.appendChild(content);
-    });
+        // Add event listener for each tab
+        button.addEventListener('click', () => {
+            console.log(`Tab clicked: ${tab}`); // Debugging
+            // Remove active class from all tabs
+            document.querySelectorAll('#code-tabs .tab-button').forEach(btn => btn.classList.remove('active'));
 
-    // Add event listeners for buttons
-    document.querySelectorAll('.tab-button').forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
-            document.querySelectorAll('#tab-content div').forEach(div => {
-                div.style.display = 'none';
-            });
-            document.getElementById(button.dataset.tab).style.display = 'block';
+            // Add active class to the clicked tab
+            button.classList.add('active');
+
+            // Load the corresponding code version into the editor
+            if (tab === 'original') {
+                console.log("Loading original code..."); // Debugging
+                loadOriginalCode(); // Load the original code dynamically
+            } else {
+                codeInput.value = codeVersions[tab];
+            }
+
+            // Re-add the test-container to ensure it is not flushed
+            if (testContainer && !tabContent.contains(testContainer)) {
+                tabContent.appendChild(testContainer);
+            }
         });
     });
+
+    // Load the first version of the code by default
+    console.log("Loading default code version: original"); // Debugging
+    loadOriginalCode();
+
+    // Initialize program dropdown
+    const programDropdown = document.getElementById('program-dropdown');
+
+    if (!programDropdown) {
+        console.error("Error: #program-dropdown element not found."); // Debugging
+        return;
+    }
+
+    programDropdown.addEventListener('change', (e) => {
+        const programId = e.target.value;
+        loadTestCases(programId); // Load the test cases into the tabbed input box
+        loadOriginalCode(programId); // Load the original code for the selected program
+    });
+
+    // Load programs into the dropdown on page load
+    loadPrograms();
+});
+
+// Fetch test cases dynamically and populate tabs
+function loadTestCases(programId) {
+    fetch(`/sandbox/test_cases/${programId}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(testCases => {
+        const tabList = document.getElementById('tab-buttons');
+        const tabContent = document.getElementById('tab-content');
+        const testContainer = document.querySelector('.test-container'); // Preserve the test-container
+
+        // Clear only the dynamically created test tabs
+        tabList.innerHTML = '';
+
+        // Preserve the test-container and only clear dynamically created test content
+        tabContent.innerHTML = ''; // Clear all content
+        if (testContainer) {
+            tabContent.appendChild(testContainer); // Re-add the test-container
+        }
+
+        // Create test tabs dynamically
+        testCases.forEach((test, index) => {
+            // Create tab button
+            const tabButton = document.createElement('button');
+            tabButton.className = 'tab-button';
+            tabButton.dataset.tab = `test-${index}`;
+            tabButton.textContent = `${test.number}: ${test.name}`; // Updated to show number and name only
+            tabList.appendChild(tabButton);
+
+            // Create tab content
+            const content = document.createElement('div');
+            content.id = `test-${index}`;
+            content.style.display = index === 0 ? 'block' : 'none'; // Show the first tab by default
+            content.innerHTML = `
+                <textarea class="test-input">${JSON.stringify(test.inputs)}</textarea>
+            `;
+            tabContent.appendChild(content);
+        });
+
+        // Dynamically create the "All Tests" button
+        const allTestsButton = document.createElement('button');
+        allTestsButton.className = 'tab-button';
+        allTestsButton.id = 'all-tests-button';
+        allTestsButton.textContent = 'All Tests';
+        tabList.appendChild(allTestsButton);
+
+        // Add event listener for "All Tests" button
+        allTestsButton.addEventListener('click', async () => {
+            const code = document.getElementById('code-input').value;
+
+            const response = await fetch('/sandbox/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ program_id: programId, code })
+            });
+
+            const data = await response.json();
+            const outputElement = document.getElementById('output');
+
+            if (data.error) {
+                outputElement.textContent = `Error:\n${data.error}`;
+            } else {
+                // Format the test results
+                const results = data.results.map((result, index) => {
+                    return `Test ${index + 1}: ${result.name}
+Expected: ${result.expected}; Actual: ${result.actual}
+Passed: ${result.passed ? "✅" : "❌"}`;
+                }).join("\n");
+
+                // Display the formatted results in the output box
+                outputElement.textContent = results;
+            }
+        });
+
+        // Add event listeners for individual test tabs
+        document.querySelectorAll('.tab-button').forEach((button) => {
+            button.addEventListener('click', (e) => {
+                document.querySelectorAll('#tab-content div').forEach(div => {
+                    div.style.display = 'none';
+                });
+                document.getElementById(button.dataset.tab).style.display = 'block';
+            });
+        });
+    })
+    .catch(error => console.error('Error loading test cases:', error));
 }
+
+// Truncate long names for display
+function truncateName(name, maxLength = 8) {
+    return name.length > maxLength ? name.slice(0, maxLength) + '...' : name;
+}
+
+// Clear the input box
+function clearInputBox() {
+    const inputBox = document.getElementById('input-box');
+    inputBox.value = '';
+    inputBox.placeholder = 'Type input here e.g. [1,2] or click a numbered test above';
+}
+
+// Add event listener for the "Clear" button
+document.getElementById('clear-button').addEventListener('click', clearInputBox);
+
+// Clear placeholder when user begins typing
+document.getElementById('input-box').addEventListener('focus', () => {
+    const inputBox = document.getElementById('input-box');
+    if (inputBox.placeholder === 'Type input here e.g. [1,2] or click a numbered test above') {
+        inputBox.placeholder = '';
+    }
+});
 
 // Run the code with user-provided input values
 document.getElementById('run-button').addEventListener('click', async () => {
@@ -134,40 +270,6 @@ document.getElementById('run-button').addEventListener('click', async () => {
         outputElement.textContent = `Error:\n${data.error}`;
     } else {
         outputElement.textContent = data.output;
-    }
-});
-
-// Test the loaded program against stored test cases
-document.getElementById('test-button').addEventListener('click', async () => {
-    const dropdown = document.getElementById('program-dropdown');
-    const programId = dropdown.value;
-    const currentCode = document.getElementById('code-input').value;
-
-    console.log('Testing Program ID:', programId); // Debugging
-    console.log('Current Code:', currentCode); // Debugging
-
-    if (!programId) {
-        alert('Please select a program to test.');
-        return;
-    }
-
-    const response = await fetch('/sandbox/test', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ program_id: programId, code: currentCode })
-    });
-
-    const data = await response.json();
-    console.log('Test Response:', data); // Debugging
-    const outputElement = document.getElementById('output');
-    if (data.error) {
-        outputElement.textContent = `Error:\n${data.error}`;
-    } else {
-        const results = data.results.map(
-            (r, i) =>
-                `Test Case ${i + 1}:\nInputs: ${r.inputs}\nExpected: ${r.expected}\nActual: ${r.actual}\nPassed: ${r.passed}\n`
-        );
-        outputElement.textContent = results.join('\n');
     }
 });
 
@@ -208,9 +310,59 @@ document.getElementById('save-button').addEventListener('click', async () => {
         alert(`Error: ${data.error}`);
     } else {
         alert(data.message || "Challenge saved successfully!");
-        populateDropdown(); // Refresh the dropdown after saving
+        loadPrograms(); // Refresh the dropdown after saving
     }
 });
 
-// Populate the dropdown on page load
-populateDropdown();
+document.querySelectorAll('.tab-button').forEach(button => {
+    button.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        // Remove active class from all buttons
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+
+        // Add active class to the clicked button
+        button.classList.add('active');
+
+        // Hide all tab content
+        document.querySelectorAll('#tab-content div').forEach(div => {
+            div.style.display = 'none';
+        });
+
+        // Show the selected tab content
+        document.getElementById(button.dataset.tab).style.display = 'block';
+    });
+});
+
+function loadOriginalCode(programId = null) {
+    const codeInput = document.getElementById('code-input');
+
+    if (!codeInput) {
+        console.error("Error: #code-input element not found.");
+        return;
+    }
+
+    if (!programId) {
+        codeInput.value = "# Select a program to load its original code.";
+        return;
+    }
+
+    fetch(`/sandbox/original_code/${programId}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            console.error("Error loading original code:", data.error);
+            codeInput.value = "# Error loading original code.";
+        } else {
+            console.log("Original code loaded successfully.");
+            codeInput.value = data.original_code; // Update only the value of the textarea
+        }
+    })
+    .catch(error => {
+        console.error("Error fetching original code:", error);
+        codeInput.value = "# Error fetching original code.";
+    });
+}

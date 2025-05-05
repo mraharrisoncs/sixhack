@@ -4,14 +4,13 @@
     <!-- Sandbox on the left -->
     <div class="sandbox-container">
         <form id="sandbox-form">
-            <!-- Buttons along the top -->
-            <div class="button-container">
-                <button id="run-button" type="button">Run</button>
-                <button id="test-button" type="button">Test</button>
-                <button id="save-button" type="button">Save as Challenge</button>
-                <button id="load-db-button" type="button">Load DB</button>
+            <!-- Tabs for different code versions -->
+            <div id="code-tabs">
+                <!-- Tabs will be dynamically added here -->
             </div>
-            <textarea id="code-input" rows="20" cols="50" placeholder="Write your Python code here..."></textarea>
+            <div class="code-container">
+                <textarea id="code-input" rows="20" cols="50" placeholder="Write your Python code here..."></textarea>
+            </div>
         </form>
         <!-- Dropdown below the sandbox -->
         <select id="program-dropdown">
@@ -21,99 +20,33 @@
 
     <!-- Input and Output on the right -->
     <div class="output-container">
-        <!-- Label for test tabs -->
-        <label for="tab-buttons" style="font-weight: bold; margin-bottom: 10px; display: block;">Tests:</label>
         <!-- Tabbed Input Box -->
         <div id="test-tabs">
             <div id="tab-buttons">
-                <button class="tab-button active" data-tab="test-0">User Input</button>
+                <!-- Numbered test buttons will be dynamically added here -->
             </div>
             <div id="tab-content">
                 <div id="test-0" style="display: block;">
-                    <textarea class="test-input" placeholder="Enter inputs here, e.g., [1, 2]"></textarea>
+                    <div class="test-container">
+                        <button id="clear-button">🧹</button>
+                        <button id="run-button">▶</button>
+                        <textarea id="input-box" class="test-input" placeholder="Type input here e.g. [1,2] or click a numbered test above"></textarea>
+                    </div>
                 </div>
             </div>
         </div>
+
         <div id="output-window">
-            <pre id="output" placeholder="Output will appear here..."></pre>
+            <pre id="output"></pre>
+        </div>
+
+        <div class="bottom-buttons">
+            <button id="save-button">Save as Challenge</button>
+            <button id="load-db-button">Load DB</button>
         </div>
     </div>
 </div>
 
-<script>
-    // Fetch available programs and populate the dropdown
-    function loadPrograms() {
-        fetch('/sandbox/programs', {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-        })
-        .then(response => response.json())
-        .then(programs => {
-            const dropdown = document.getElementById('program-dropdown');
-            dropdown.innerHTML = '<option value="" disabled selected>Select a program</option>';
-            programs.forEach(program => {
-                const option = document.createElement('option');
-                option.value = program.id; // Use program ID for fetching test cases
-                option.textContent = program.name;
-                dropdown.appendChild(option);
-            });
-        })
-        .catch(error => console.error('Error loading programs:', error));
-    }
-
-    // Fetch test cases dynamically and populate tabs
-    function loadTestCases(programId) {
-        fetch(`/sandbox/test_cases/${programId}`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-        })
-        .then(response => response.json())
-        .then(testCases => {
-            const tabList = document.getElementById('tab-buttons');
-            const tabContent = document.getElementById('tab-content');
-            tabList.innerHTML = '';
-            tabContent.innerHTML = '';
-
-            testCases.forEach((test, index) => {
-                // Create tab button
-                const tabButton = document.createElement('button');
-                tabButton.className = 'tab-button';
-                tabButton.dataset.tab = `test-${index}`;
-                tabButton.textContent = `${test.number}: ${test.name}`; // Updated to show number and name only
-                tabList.appendChild(tabButton);
-
-                // Create tab content
-                const content = document.createElement('div');
-                content.id = `test-${index}`;
-                content.style.display = index === 0 ? 'block' : 'none'; // Show the first tab by default
-                content.innerHTML = `
-                    <textarea class="test-input">${JSON.stringify(test.inputs)}</textarea>
-                `;
-                tabContent.appendChild(content);
-            });
-
-            // Add event listeners for tab buttons
-            document.querySelectorAll('.tab-button').forEach((button) => {
-                button.addEventListener('click', (e) => {
-                    document.querySelectorAll('#tab-content div').forEach(div => {
-                        div.style.display = 'none';
-                    });
-                    document.getElementById(button.dataset.tab).style.display = 'block';
-                });
-            });
-        })
-        .catch(error => console.error('Error loading test cases:', error));
-    }
-
-    // Load programs into the dropdown on page load
-    document.addEventListener('DOMContentLoaded', () => {
-        loadPrograms();
-    });
-
-    // Load test cases when a program is selected
-    document.getElementById('program-dropdown').addEventListener('change', (e) => {
-        const programId = e.target.value;
-        loadTestCases(programId); // Load the test cases into the tabbed input box
-    });
-</script>
+<!-- Include the external JavaScript file -->
+<script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
 {% endblock %}
