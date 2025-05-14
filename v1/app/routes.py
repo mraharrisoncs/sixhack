@@ -5,32 +5,6 @@ from app.utils import load_new_challenges
 import json, yaml, os
 import subprocess
 
-'''def simulate_code_execution(code, inputs):
-    """
-    Simulates the execution of Python code with the given inputs.
-    :param code: The Python code to execute as a string.
-    :param inputs: A list of inputs to provide to the code.
-    :return: The output of the code execution as a string.
-    """
-    try:
-        # Join the inputs with newlines to simulate stdin
-        input_data = "\n".join(map(str, inputs))
-
-        # Use subprocess to execute the code
-        process = subprocess.run(
-            ["python", "-c", code],
-            input=input_data,
-            text=True,
-            capture_output=True,
-            check=True
-        )
-
-        # Return the standard output
-        return process.stdout
-    except subprocess.CalledProcessError as e:
-        # Handle errors during code execution
-        return f"Error: {e.stderr}"
-''' 
 
 def setup_routes(app):
     @app.route('/')

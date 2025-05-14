@@ -12,7 +12,7 @@
             "request": "launch",
             "module": "flask",
             "env": {
-                "FLASK_APP": "six-hack/run.py",
+                "FLASK_APP": "v1/run.py",
                 "FLASK_DEBUG": "1"
             },
             "args": [
