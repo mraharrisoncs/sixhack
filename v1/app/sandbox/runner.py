@@ -17,6 +17,7 @@ def run_code(code, inputs):
             input=input_data,
             text=True,
             capture_output=True,
+            encoding='utf-8',
             check=True
         )
 

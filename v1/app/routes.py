@@ -2,6 +2,7 @@ from flask import render_template, request, jsonify
 from app.models import PythonProgram, TestCase, db
 from app.sandbox.runner import run_code, test_code
 from app.utils import load_new_challenges
+from app.code_styles import CODE_STYLES
 import json, yaml, os
 import subprocess
 
@@ -207,3 +208,15 @@ def setup_routes(app):
             return jsonify({"error": "Program not found"}), 404
 
         return jsonify({"original_code": program.code})  # Return the program's code
+
+    @app.route('/sandbox/styles', methods=['GET'])
+    def get_code_styles():
+        # Only send frontend-relevant fields
+        frontend_fields = [
+            "key", "name", "description", "code_version"
+        ]
+        styles = [
+            {k: style[k] for k in frontend_fields}
+            for style in CODE_STYLES
+        ]
+        return jsonify(styles)

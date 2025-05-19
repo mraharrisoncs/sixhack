@@ -391,3 +391,16 @@ select {
     box-sizing: border-box;
 }
 
+/* Set a fixed or min height for CodeMirror */
+.CodeMirror {
+    height: 400px;
+    min-height: 300px;
+    font-size: 15px;
+}
+
+/* Code container */
+.code-container {
+    width: 100%;
+    /* Optionally set a min-height or height */
+}
+
