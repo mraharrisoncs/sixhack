@@ -5,6 +5,9 @@ from app.utils import load_new_challenges
 from app.code_styles import CODE_STYLES
 import json, yaml, os
 import subprocess
+import tempfile
+import ast
+import re
 
 
 def setup_routes(app):
@@ -220,3 +223,113 @@ def setup_routes(app):
             for style in CODE_STYLES
         ]
         return jsonify(styles)
+
+    def run_pylint(code, pylint_args):
+        with tempfile.NamedTemporaryFile('w', delete=False, suffix='.py', encoding='utf-8') as tmp:
+            tmp.write(code)
+            tmp_path = tmp.name
+        try:
+            cmd = ['pylint', tmp_path] + (pylint_args or [])
+            result = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8')
+            return result.stdout
+        finally:
+            os.unlink(tmp_path)
+
+    def check_separation_of_concerns(code):
+        try:
+            tree = ast.parse(code)
+            for node in ast.walk(tree):
+                if isinstance(node, ast.FunctionDef):
+                    has_input = any(isinstance(n, ast.Call) and getattr(n.func, 'id', '') == 'input' for n in ast.walk(node))
+                    has_output = any(isinstance(n, ast.Call) and getattr(n.func, 'id', '') == 'print' for n in ast.walk(node))
+                    has_computation = any(isinstance(n, (ast.BinOp, ast.Call)) and getattr(getattr(n, 'func', None), 'id', '') not in ('input', 'print') for n in ast.walk(node) if isinstance(n, ast.Call) or isinstance(n, ast.BinOp))
+                    if (has_input and has_output) or (has_input and has_computation) or (has_output and has_computation):
+                        return False
+            return True
+        except Exception:
+            return False
+
+    def check_oop(code):
+        try:
+            tree = ast.parse(code)
+            return any(isinstance(node, ast.ClassDef) for node in ast.walk(tree))
+        except Exception:
+            return False
+
+    def check_recursive(code):
+        try:
+            tree = ast.parse(code)
+            for node in ast.walk(tree):
+                if isinstance(node, ast.FunctionDef):
+                    if any(isinstance(n, ast.Call) and getattr(n.func, 'id', '') == node.name for n in ast.walk(node)):
+                        return True
+            return False
+        except Exception:
+            return False
+
+    def extract_pylint_score_and_feedback(pylint_output):
+        # Extract score
+        match = re.search(r'Your code has been rated at ([\d\.]+)/10', pylint_output)
+        score = float(match.group(1)) if match else 0.0
+        # Clamp to 1-10 scale (or 0-10 if you prefer)
+        score = max(1, min(10, round(score)))
+        # Feedback: show the full pylint output (or just the messages if you want)
+        feedback = pylint_output
+        return score, feedback
+
+    def ast_score_and_feedback(ast_result, style):
+        # For now, just 10 for True, 1 for False, and a message
+        if style == "separation_of_concerns":
+            if ast_result:
+                return 10, "Separation of concerns: OK"
+            else:
+                return 1, "Separation of concerns: Needs improvement"
+        elif style == "oop":
+            if ast_result:
+                return 10, "OOP Detected"
+            else:
+                return 1, "No class detected"
+        elif style == "recursive":
+            if ast_result:
+                return 10, "Recursion Detected"
+            else:
+                return 1, "Code is not recursive"
+        else:
+            return 1, "No AST check implemented for this style."
+
+    @app.route('/sandbox/style_check', methods=['POST'])
+    def style_check():
+        data = request.get_json()
+        style_key = data.get('style')
+        code = data.get('code')
+        style = next((s for s in CODE_STYLES if s['key'] == style_key), None)
+        if not style:
+            return jsonify({"error": "Unknown style"}), 400
+
+        results = {}
+
+        # Pylint check
+        if style.get('pylint_required'):
+            pylint_output = run_pylint(code, style.get('pylint_parameters'))
+            score, feedback = extract_pylint_score_and_feedback(pylint_output)
+            results['pylint'] = {"score": score, "feedback": feedback}
+
+        # AST check
+        if style.get('ast_required'):
+            ast_check = style.get('ast_parameters', {}).get('check')
+            if ast_check == "separation_of_concerns":
+                ast_result = check_separation_of_concerns(code)
+                score, feedback = ast_score_and_feedback(ast_result, "separation_of_concerns")
+                results['ast'] = {"score": score, "feedback": feedback}
+            elif ast_check == "oop":
+                ast_result = check_oop(code)
+                score, feedback = ast_score_and_feedback(ast_result, "oop")
+                results['ast'] = {"score": score, "feedback": feedback}
+            elif ast_check == "recursive":
+                ast_result = check_recursive(code)
+                score, feedback = ast_score_and_feedback(ast_result, "recursive")
+                results['ast'] = {"score": score, "feedback": feedback}
+            else:
+                results['ast'] = {"score": 1, "feedback": "No AST check implemented for this style."}
+
+        return jsonify(results)

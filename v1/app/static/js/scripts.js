@@ -1,4 +1,33 @@
 let codeMirrorEditor; // <-- Move this to the top, outside any function
+let styleScores = {}; // { styleKey: score }
+let totalScore = 0;
+const MAX_SCORE = 60; // 6 tabs * 10
+
+function updateTotalScore() {
+    totalScore = Object.values(styleScores).reduce((a, b) => a + b, 0);
+    const scoreText = document.getElementById('total-score-text');
+    const scoreMeter = document.getElementById('total-score-meter');
+    scoreText.textContent = `Total Score: ${totalScore} / ${MAX_SCORE}`;
+    scoreMeter.value = totalScore;
+}
+
+function updateStyleScore(styleKey, score) {
+    styleScores[styleKey] = score;
+    updateTabProgress(styleKey, score);
+    updateTotalScore();
+}
+
+function updateTabProgress(styleKey, score) {
+    const button = document.getElementById(`tab-btn-${styleKey}`);
+    if (!button) return;
+    const percent = Math.max(0, Math.min(100, (score / 10) * 100));
+    button.style.background = `linear-gradient(to right, #4CAF50 ${percent}%, #333 ${percent}%)`;
+}
+
+function setMeterFeedback(styleKey, feedback) {
+    const feedbackDiv = document.getElementById(`meter-feedback-${styleKey}`);
+    feedbackDiv.textContent = feedback;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     let originalCode = "";
@@ -32,13 +61,46 @@ document.addEventListener('DOMContentLoaded', () => {
             codeStyles = styles;
             codeTabsContainer.innerHTML = '';
             styles.forEach((style, index) => {
+                // Tab button
                 const button = document.createElement('button');
                 button.type = 'button';
                 button.className = 'tab-button';
+                button.id = `tab-btn-${style.key}`;
                 button.textContent = style.name;
                 if (index === 0) button.classList.add('active');
                 codeTabsContainer.appendChild(button);
 
+                // Meter container
+                const meterContainer = document.createElement('div');
+                meterContainer.className = 'meter-container';
+
+                // Meter
+                const meter = document.createElement('meter');
+                meter.id = `meter-${style.key}`;
+                meter.min = 1;
+                meter.max = 10;
+                meter.value = 1;
+                meter.className = 'style-meter';
+                meterContainer.appendChild(meter);
+
+                // Feedback div (hidden, shown on hover)
+                const feedbackDiv = document.createElement('div');
+                feedbackDiv.id = `meter-feedback-${style.key}`;
+                feedbackDiv.className = 'meter-feedback';
+                feedbackDiv.style.display = 'none';
+                meterContainer.appendChild(feedbackDiv);
+
+                // Show feedback on hover
+                meter.addEventListener('mouseenter', () => {
+                    feedbackDiv.style.display = 'block';
+                });
+                meter.addEventListener('mouseleave', () => {
+                    feedbackDiv.style.display = 'none';
+                });
+
+                codeTabsContainer.appendChild(meterContainer);
+
+                // Tab click handler
                 button.addEventListener('click', () => {
                     // Save current code to the current tab
                     if (currentTab !== null) {
@@ -56,6 +118,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     codeMirrorEditor.setValue(tabCodes[currentTab]);
                     // Optionally show style.description somewhere in the UI
+
+                    // Trigger style check
+                    fetch('/sandbox/style_check', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ style: style.key, code: codeMirrorEditor.getValue() })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        let score = 1;
+                        let feedback = '';
+                        if (data.pylint) {
+                            score = data.pylint.score;
+                            feedback = data.pylint.feedback;
+                        }
+                        if (data.ast) {
+                            score = data.ast.score;
+                            feedback = data.ast.feedback;
+                        }
+                        updateStyleScore(style.key, score);
+                        setMeterFeedback(style.key, feedback);
+                    });
                 });
             });
 
@@ -89,6 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             loadTestCases(programId);
         });
+
     }
 
     // Load programs into the dropdown on page load
@@ -187,6 +272,62 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await response.json();
         alert(data.message || "Database updated successfully!");
         loadPrograms();
+    });
+
+    // --- Add save/load game functionality ---
+    document.getElementById('save-game-button').addEventListener('click', () => {
+        // Gather all data
+        const gameData = {
+            tabCodes, // all code in tabs
+            currentTab,
+            programId: document.getElementById('program-dropdown')?.value || null,
+            testCases: window.currentTestCases || [] // set this when loading test cases
+        };
+        const blob = new Blob([JSON.stringify(gameData, null, 2)], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "sixhack_game_save.json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('load-game-button').addEventListener('click', () => {
+        document.getElementById('load-game-input').click();
+    });
+
+    document.getElementById('load-game-input').addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const gameData = JSON.parse(e.target.result);
+                // Restore tab codes
+                Object.assign(tabCodes, gameData.tabCodes);
+                // Restore current tab
+                if (gameData.currentTab && document.getElementById(`tab-btn-${gameData.currentTab}`)) {
+                    document.getElementById(`tab-btn-${gameData.currentTab}`).click();
+                }
+                // Restore program ID
+                if (gameData.programId) {
+                    const dropdown = document.getElementById('program-dropdown');
+                    if (dropdown) dropdown.value = gameData.programId;
+                }
+                // Restore test cases (if you have a function to reload them)
+                if (gameData.testCases && typeof loadTestCases === "function") {
+                    window.currentTestCases = gameData.testCases;
+                    loadTestCases(gameData.programId);
+                }
+                alert("Game loaded!");
+            } catch (err) {
+                alert("Failed to load game: " + err);
+            }
+        };
+        reader.readAsText(file);
     });
 });
 

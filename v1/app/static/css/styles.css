@@ -107,7 +107,6 @@ nav a:hover {
     /* Remove the gap between input and output windows */
 }
 
-
 footer {
     background: #35424a;
     color: white;
@@ -185,13 +184,16 @@ select {
 .tab-button {
     padding: 10px 15px;
     border: 1px solid #333;
-    background: linear-gradient(to bottom, #333, #111); /* Dark gradient */
+    background: linear-gradient(to right, #333, #111); /* Default background */
     color: white;
     cursor: pointer;
-    border-radius: 10px 10px 0 0; /* Larger rounded top corners */
+    border-radius: 10px 10px 0 0;
     font-size: 14px;
-    flex: 1; /* Make all tabs equal width */
+    flex: 1;
     text-align: center;
+    transition: background 0.3s;
+    position: relative;
+    z-index: 1;
 }
 
 /* Hover effect for tab buttons */
@@ -201,9 +203,8 @@ select {
 
 /* Active tab button */
 .tab-button.active {
-    background: linear-gradient(to bottom, #555, #333);
-    border-bottom: 2px solid #555; /* Blend with the tab content */
     font-weight: bold;
+    border-bottom: 2px solid #555;
 }
 
 /* Tab content container */
@@ -307,13 +308,16 @@ select {
 #code-tabs .tab-button {
     padding: 10px 15px;
     border: 1px solid #333;
-    background: linear-gradient(to bottom, #333, #111);
+    background: linear-gradient(to right, #333, #111); /* Default background */
     color: white;
     cursor: pointer;
     border-radius: 10px 10px 0 0; /* Rounded top corners */
     font-size: 14px;
     flex: 1; /* Make all tabs equal width */
     text-align: center;
+    transition: background 0.3s;
+    position: relative;
+    z-index: 1;
 }
 
 #code-tabs .tab-button:hover {
@@ -321,9 +325,8 @@ select {
 }
 
 #code-tabs .tab-button.active {
-    background: linear-gradient(to bottom, #555, #333);
-    border-bottom: 2px solid #555; /* Blend with the tab content */
     font-weight: bold;
+    border-bottom: 2px solid #555; /* Blend with the tab content */
 }
 
 /* Code container and test container textareas */
@@ -402,5 +405,35 @@ select {
 .code-container {
     width: 100%;
     /* Optionally set a min-height or height */
+}
+
+/* Hide meter and meter-label elements if still present */
+meter, [id^="meter-label-"], .meter-container, .meter-feedback {
+    display: none !important;
+}
+
+/* Overall score at the bottom */
+#overall-score-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin: 40px auto 0 auto;
+    width: 100%;
+}
+
+.total-score-text {
+    font-size: 2em;
+    font-weight: bold;
+    color: #222;
+}
+
+.total-score-meter {
+    width: 300px;
+    height: 32px;
+    margin-left: 20px;
+    border-radius: 10px;
+    background: #eee;
+    accent-color: #4CAF50;
 }
 
