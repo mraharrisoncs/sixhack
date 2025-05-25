@@ -11,17 +11,25 @@ function updateTotalScore() {
     scoreMeter.value = totalScore;
 }
 
-function updateStyleScore(styleKey, score) {
+function updateStyleScore(styleKey, score, feedbackArr) {
     styleScores[styleKey] = score;
-    updateTabProgress(styleKey, score);
+    updateTabProgress(styleKey, score, feedbackArr);
     updateTotalScore();
 }
 
-function updateTabProgress(styleKey, score) {
+function updateTabProgress(styleKey, score, feedbackArr) {
     const button = document.getElementById(`tab-btn-${styleKey}`);
     if (!button) return;
-    const percent = Math.max(0, Math.min(100, (score / 10) * 100));
+    // Clamp score between 0 and 10
+    score = Math.max(0, Math.min(10, score));
+    const percent = (score / 10) * 100;
     button.style.background = `linear-gradient(to right, #4CAF50 ${percent}%, #333 ${percent}%)`;
+    // Tooltip: show score and feedback
+    let tooltip = `${score}/10`;
+    if (feedbackArr && feedbackArr.length) {
+        tooltip += "\n" + feedbackArr.join('\n');
+    }
+    button.setAttribute('data-feedback', tooltip);
 }
 
 function setMeterFeedback(styleKey, feedback) {
@@ -54,6 +62,11 @@ document.addEventListener('DOMContentLoaded', () => {
         autofocus: true
     });
 
+    // Create a single tooltip div
+    const tabTooltip = document.createElement('div');
+    tabTooltip.className = 'tab-tooltip';
+    document.body.appendChild(tabTooltip);
+
     // Fetch code styles from backend and build tabs
     fetch('/sandbox/styles')
         .then(response => response.json())
@@ -69,36 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 button.textContent = style.name;
                 if (index === 0) button.classList.add('active');
                 codeTabsContainer.appendChild(button);
-
-                // Meter container
-                const meterContainer = document.createElement('div');
-                meterContainer.className = 'meter-container';
-
-                // Meter
-                const meter = document.createElement('meter');
-                meter.id = `meter-${style.key}`;
-                meter.min = 1;
-                meter.max = 10;
-                meter.value = 1;
-                meter.className = 'style-meter';
-                meterContainer.appendChild(meter);
-
-                // Feedback div (hidden, shown on hover)
-                const feedbackDiv = document.createElement('div');
-                feedbackDiv.id = `meter-feedback-${style.key}`;
-                feedbackDiv.className = 'meter-feedback';
-                feedbackDiv.style.display = 'none';
-                meterContainer.appendChild(feedbackDiv);
-
-                // Show feedback on hover
-                meter.addEventListener('mouseenter', () => {
-                    feedbackDiv.style.display = 'block';
-                });
-                meter.addEventListener('mouseleave', () => {
-                    feedbackDiv.style.display = 'none';
-                });
-
-                codeTabsContainer.appendChild(meterContainer);
 
                 // Tab click handler
                 button.addEventListener('click', () => {
@@ -117,7 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         tabCodes[currentTab] = style.code_version + originalCode;
                     }
                     codeMirrorEditor.setValue(tabCodes[currentTab]);
-                    // Optionally show style.description somewhere in the UI
 
                     // Trigger style check
                     fetch('/sandbox/style_check', {
@@ -127,18 +109,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     })
                     .then(response => response.json())
                     .then(data => {
-                        let score = 1;
-                        let feedback = '';
+                        let score = 10;
+                        let feedback = [];
                         if (data.pylint) {
                             score = data.pylint.score;
-                            feedback = data.pylint.feedback;
+                            feedback = feedback.concat(data.pylint.feedback);
                         }
                         if (data.ast) {
-                            score = data.ast.score;
-                            feedback = data.ast.feedback;
+                            // Use the lower score if both are present
+                            score = Math.min(score, data.ast.score);
+                            feedback = feedback.concat(data.ast.feedback);
                         }
-                        updateStyleScore(style.key, score);
-                        setMeterFeedback(style.key, feedback);
+                        updateStyleScore(style.key, score, feedback);
                     });
                 });
             });
@@ -148,6 +130,25 @@ document.addEventListener('DOMContentLoaded', () => {
             tabCodes[currentTab] = styles[0].code_version + originalCode;
             codeMirrorEditor.setValue(tabCodes[currentTab]);
         });
+
+    // Show tooltip on hover
+    codeTabsContainer.addEventListener('mouseover', function(e) {
+        if (e.target.classList.contains('tab-button')) {
+            const feedback = e.target.getAttribute('data-feedback');
+            if (feedback) {
+                tabTooltip.textContent = feedback;
+                const rect = e.target.getBoundingClientRect();
+                tabTooltip.style.left = `${rect.left + window.scrollX}px`;
+                tabTooltip.style.top = `${rect.bottom + window.scrollY + 4}px`;
+                tabTooltip.style.display = 'block';
+            }
+        }
+    });
+    codeTabsContainer.addEventListener('mouseout', function(e) {
+        if (e.target.classList.contains('tab-button')) {
+            tabTooltip.style.display = 'none';
+        }
+    });
 
     // Handle program dropdown selection
     const programDropdown = document.getElementById('program-dropdown');

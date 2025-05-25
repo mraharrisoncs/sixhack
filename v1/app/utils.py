@@ -2,6 +2,7 @@ import os
 import ast
 import yaml  # Use PyYAML to parse the test cases
 import json  # Import json for handling test case inputs and outputs
+import re
 from app.models import db, PythonProgram, TestCase
 
 def parse_program_file(filepath):
@@ -99,3 +100,18 @@ def load_new_challenges():
                         db.session.commit()
 
     print("New challenges loaded successfully!")
+
+def extract_feedback(output, feedback_rules):
+    """
+    Parse output (from pylint or AST) using feedback_rules (list of dicts with regex/message/delta).
+    Returns (feedback_list, total_delta).
+    """
+    feedback = []
+    score_delta = 0
+    for rule in feedback_rules:
+        matches = re.findall(rule["regex"], output, re.MULTILINE)
+        for match in matches:
+            # Use the actual pylint message if message is None
+            feedback.append(match if rule.get("message") is None else rule["message"])
+            score_delta += rule.get("delta", 0)
+    return feedback, score_delta

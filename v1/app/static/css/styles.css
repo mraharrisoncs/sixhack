@@ -437,3 +437,18 @@ meter, [id^="meter-label-"], .meter-container, .meter-feedback {
     accent-color: #4CAF50;
 }
 
+/* Tooltip for tabs */
+.tab-tooltip {
+    display: none;
+    position: absolute;
+    z-index: 1000;
+    max-width: 400px;
+    background: #fff;
+    border: 1px solid #333;
+    padding: 8px;
+    border-radius: 6px;
+    white-space: pre-wrap;
+    font-size: 0.95em;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+

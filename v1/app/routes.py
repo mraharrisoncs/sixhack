@@ -1,13 +1,14 @@
 from flask import render_template, request, jsonify
 from app.models import PythonProgram, TestCase, db
 from app.sandbox.runner import run_code, test_code
-from app.utils import load_new_challenges
+from app.utils import load_new_challenges, extract_feedback
 from app.code_styles import CODE_STYLES
 import json, yaml, os
 import subprocess
 import tempfile
 import ast
 import re
+import sys
 
 
 def setup_routes(app):
@@ -229,43 +230,61 @@ def setup_routes(app):
             tmp.write(code)
             tmp_path = tmp.name
         try:
-            cmd = ['pylint', tmp_path] + (pylint_args or [])
+            cmd = [sys.executable, "-m", "pylint", tmp_path] + (pylint_args or [])
             result = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8')
             return result.stdout
         finally:
+            import os
             os.unlink(tmp_path)
 
     def check_separation_of_concerns(code):
+        # Dummy: returns "not separated" if input/print/computation in same function
         try:
             tree = ast.parse(code)
             for node in ast.walk(tree):
                 if isinstance(node, ast.FunctionDef):
                     has_input = any(isinstance(n, ast.Call) and getattr(n.func, 'id', '') == 'input' for n in ast.walk(node))
                     has_output = any(isinstance(n, ast.Call) and getattr(n.func, 'id', '') == 'print' for n in ast.walk(node))
-                    has_computation = any(isinstance(n, (ast.BinOp, ast.Call)) and getattr(getattr(n, 'func', None), 'id', '') not in ('input', 'print') for n in ast.walk(node) if isinstance(n, ast.Call) or isinstance(n, ast.BinOp))
+                    has_computation = any(isinstance(n, ast.BinOp) for n in ast.walk(node))
                     if (has_input and has_output) or (has_input and has_computation) or (has_output and has_computation):
-                        return False
-            return True
+                        return "not separated"
+            return "separated"
         except Exception:
-            return False
+            return "not separated"
 
     def check_oop(code):
         try:
             tree = ast.parse(code)
-            return any(isinstance(node, ast.ClassDef) for node in ast.walk(tree))
+            if not any(isinstance(node, ast.ClassDef) for node in ast.walk(tree)):
+                return "No class detected"
+            for node in ast.walk(tree):
+                if isinstance(node, ast.FunctionDef):
+                    if node.args.args and node.args.args[0].arg != "self":
+                        return "Method missing 'self'"
+            return "OOP OK"
         except Exception:
-            return False
+            return "No class detected"
 
     def check_recursive(code):
         try:
             tree = ast.parse(code)
+            found_recursion = False
+            found_base_case = False
             for node in ast.walk(tree):
                 if isinstance(node, ast.FunctionDef):
+                    # Recursion: function calls itself
                     if any(isinstance(n, ast.Call) and getattr(n.func, 'id', '') == node.name for n in ast.walk(node)):
-                        return True
-            return False
+                        found_recursion = True
+                        # Base case: look for 'if' in function
+                        if any(isinstance(n, ast.If) for n in ast.walk(node)):
+                            found_base_case = True
+            if not found_recursion:
+                return "No recursion detected"
+            if not found_base_case:
+                return "No base case detected"
+            return "Recursion OK"
         except Exception:
-            return False
+            return "No recursion detected"
 
     def extract_pylint_score_and_feedback(pylint_output):
         # Extract score
@@ -307,29 +326,51 @@ def setup_routes(app):
             return jsonify({"error": "Unknown style"}), 400
 
         results = {}
+        base_score = 10  # <-- Set base score to 0
 
         # Pylint check
         if style.get('pylint_required'):
             pylint_output = run_pylint(code, style.get('pylint_parameters'))
-            score, feedback = extract_pylint_score_and_feedback(pylint_output)
-            results['pylint'] = {"score": score, "feedback": feedback}
+            feedback, score_delta = extract_feedback(
+                pylint_output, style.get('pylint_feedback', [])
+            )
+            score = max(0, min(10, base_score + score_delta))
+            results['pylint'] = {
+                "score": score,
+                "feedback": feedback or ["No major issues detected."]
+            }
 
         # AST check
         if style.get('ast_required'):
             ast_check = style.get('ast_parameters', {}).get('check')
-            if ast_check == "separation_of_concerns":
+            if ast_check == "function":
+                ast_result = check_code_in_function(code)
+            elif ast_check == "separation_of_concerns":
                 ast_result = check_separation_of_concerns(code)
-                score, feedback = ast_score_and_feedback(ast_result, "separation_of_concerns")
-                results['ast'] = {"score": score, "feedback": feedback}
             elif ast_check == "oop":
                 ast_result = check_oop(code)
-                score, feedback = ast_score_and_feedback(ast_result, "oop")
-                results['ast'] = {"score": score, "feedback": feedback}
             elif ast_check == "recursive":
                 ast_result = check_recursive(code)
-                score, feedback = ast_score_and_feedback(ast_result, "recursive")
-                results['ast'] = {"score": score, "feedback": feedback}
             else:
-                results['ast'] = {"score": 1, "feedback": "No AST check implemented for this style."}
+                ast_result = ""
+            feedback, score_delta = extract_feedback(
+                ast_result, style.get('ast_feedback', [])
+            )
+            score = max(0, min(10, base_score + score_delta))
+            results['ast'] = {
+                "score": score,
+                "feedback": feedback or [ast_result or "AST checks passed."]
+            }
 
         return jsonify(results)
+
+    def check_code_in_function(code):
+        import ast
+        try:
+            tree = ast.parse(code)
+            for node in tree.body:
+                if isinstance(node, ast.FunctionDef):
+                    return "function found"
+            return "no function"
+        except Exception:
+            return "no function"

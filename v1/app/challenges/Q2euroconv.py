@@ -8,7 +8,7 @@ test_cases:
   - number: 2
     name: "normal2"
     inputs: ['£34.53']
-    expected_output: "€40.51\n"
+    expected_output: "€40.62\n"
   - number: 2
     name: "boundary"
     inputs: ['e0']

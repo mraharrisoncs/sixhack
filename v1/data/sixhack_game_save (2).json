@@ -1,0 +1,13 @@
+{
+  "tabCodes": {
+    "structured": "# Structured version\ndef get_input() -> tuple[int, int]:\n    \"\"\"Prompt the user for two integers and return them as a tuple.\"\"\"\n    a = int(input())\n    b = int(input())\n    return a, b\n\ndef compute_sum(a: int, b: int) -> int:\n    \"\"\"Return the sum of two integers.\"\"\"\n    return a + b\n\ndef main() -> None:\n    \"\"\"Main function to run the program.\"\"\"\n    a, b = get_input()\n    result = compute_sum(a, b)\n    print(result)\n\nif __name__ == \"__main__\":\n    main()",
+    "annotated": "# Annotated version\ndef get_input() -> tuple[int, int]:\n    \"\"\"Prompt the user for two integers and return them as a tuple.\"\"\"\n    a = int(input())\n    b = int(input())\n    return a, b\n\ndef compute_sum(a: int, b: int) -> int:\n    \"\"\"Return the sum of two integers.\"\"\"\n    return a + b\n\ndef main() -> None:\n    \"\"\"Main function to run the program.\"\"\"\n    a, b = get_input()\n    result = compute_sum(a, b)\n    print(result)\n\nif __name__ == \"__main__\":\n    main()",
+    "simple": "# Simple version\na = int(input())\nb = int(input())\nprint(a + b)",
+    "oop": "# OOP version\na = int(input())\nb = int(input())\nprint(a + b)# OOP version\nclass Calc:\n    def __init__(self):\n        self.a = 0\n        self.b = 0\n    def add(self):\n        return self.a + self.b\n    def get(self):\n        self.a = int(input())\n        self.b = int(input())\n\ncalc1 = Calc()\ncalc1.get()\nprint(calc1.add())\n",
+    "recursive": "# Recursive version\ndef adder(list_of_operands):\n    if len(list_of_operands) == 1:\n        return list_of_operands[0]\n    else:\n        return list_of_operands[0] + adder(list_of_operands[1:])\n\na = int(input())\nb = int(input())\nprint(adder([a,b]))",
+    "minimalist": "# Minimalist version\na = int(input())\nb = int(input())\nprint(a + b)"
+  },
+  "currentTab": "recursive",
+  "programId": "1",
+  "testCases": []
+}
