@@ -50,8 +50,8 @@ def test_code(code, test_cases):
         results.append({
             "name": test_case.get("name", "Unnamed Test"),
             "inputs": inputs,
-            "expected": expected_output,
-            "actual": actual_output,
+            "expected_output": expected_output,
+            "actual_output": actual_output,
             "passed": passed,
             "error": result.get("error", None)
         })

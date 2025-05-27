@@ -1,7 +1,8 @@
-let codeMirrorEditor; // <-- Move this to the top, outside any function
-let styleScores = {}; // { styleKey: score }
+let codeMirrorEditor;
+let styleScores = {};
 let totalScore = 0;
-const MAX_SCORE = 60; // 6 tabs * 10
+const MAX_SCORE = 60;
+let currentTab = null; // <-- Move this here, at the top!
 
 function updateTotalScore() {
     totalScore = Object.values(styleScores).reduce((a, b) => a + b, 0);
@@ -39,7 +40,6 @@ function setMeterFeedback(styleKey, feedback) {
 
 document.addEventListener('DOMContentLoaded', () => {
     let originalCode = "";
-    let currentTab = null;
     const tabCodes = {}; // Store code for each tab
     let codeStyles = [];
 
@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             inputs = JSON.parse(inputBox.value);
         } catch (error) {
-            document.getElementById('output').textContent = 'Error: Invalid input format. Please provide valid JSON.';
+            document.getElementById('output-window').innerHTML = '<span style="color:#ff6666;">Error: Invalid input format. Please provide valid JSON.</span>';
             return;
         }
 
@@ -211,11 +211,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const data = await response.json();
-        const outputElement = document.getElementById('output');
+        const outputWindow = document.getElementById('output-window');
         if (data.error) {
-            outputElement.textContent = `Error:\n${data.error}`;
+            outputWindow.innerHTML = `<span style="color:#ff6666;">Error:<br>${data.error}</span>`;
         } else {
-            outputElement.textContent = data.output;
+            outputWindow.innerHTML = `<div style="color:#fff;"><strong>Output:</strong><br><pre>${data.output}</pre></div>`;
         }
     });
 
@@ -372,13 +372,62 @@ function loadTestCases(programId) {
             testCases.forEach((test, index) => {
                 const button = document.createElement('button');
                 button.className = 'tab-button';
-                button.textContent = `${test.number}: ${test.name}`;
+                button.textContent = `${index + 1}: ${test.name || ''}`;
                 tabButtons.appendChild(button);
 
-                button.addEventListener('click', () => {
+                button.addEventListener('click', async () => {
+                    // Populate the input box with this test's inputs (single line)
                     const inputBox = document.getElementById('input-box');
                     if (inputBox) {
                         inputBox.value = JSON.stringify(test.inputs);
+                    }
+
+                    // Get the current code from the editor
+                    const code = codeMirrorEditor.getValue();
+
+                    // Run the code with this test's input
+                    let actualOutput = '""';
+                    let passed = false;
+                    let errorMsg = null;
+                    try {
+                        const response = await fetch('/sandbox/run', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ code, input: test.inputs })
+                        });
+                        const data = await response.json();
+                        if (data.error) {
+                            errorMsg = data.error;
+                        } else {
+                            actualOutput = (data.output === undefined || data.output === null || data.output === '') ? '""' : data.output;
+                            // Compare with expected output
+                            let expected = (test.expected_output ?? "");
+                            if (!isNaN(actualOutput) && !isNaN(expected) && actualOutput !== "" && expected !== "") {
+                                passed = Number(actualOutput) === Number(expected);
+                            } else {
+                                passed = String(actualOutput).trim() === String(expected).trim();
+                            }
+                        }
+                    } catch (err) {
+                        errorMsg = err.toString();
+                    }
+
+                    // Format output for this test case
+                    let outputHtml = `<div style="color: #fff;">`;
+                    outputHtml += `<strong>Test ${index + 1}: ${test.name || ''}</strong><br>`;
+                    outputHtml += `Inputs: <code>${JSON.stringify(test.inputs)}</code>, Expected Output: <code>${test.expected_output ?? '""'}</code><br>`;
+                    if (errorMsg) {
+                        outputHtml += `<span style="color:#ff6666;">Error:<br>${errorMsg}</span>`;
+                    } else {
+                        outputHtml += `Actual Output: <code>${actualOutput}</code><br>`;
+                        outputHtml += `Result: <span style="font-weight:bold;">${passed ? 'PASS ✅' : 'FAIL ❌'}</span>`;
+                        if (!passed) outputHtml += ` <span style="color:#ff6666;">score -2</span>`;
+                    }
+                    outputHtml += `</div>`;
+
+                    const outputWindow = document.getElementById('output-window');
+                    if (outputWindow) {
+                        outputWindow.innerHTML = outputHtml;
                     }
                 });
             });
@@ -399,26 +448,65 @@ function loadTestCases(programId) {
             allTestsButton.addEventListener('click', async () => {
                 const code = codeMirrorEditor.getValue();
 
-                const response = await fetch('/sandbox/test', {
+                fetch('/sandbox/test', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ program_id: programId, code })
+                    body: JSON.stringify({ program_id: programId, code, style: currentTab })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Format test results
+                    let outputHtml = `<div style="color: #fff;">`;
+                    outputHtml += `<strong>Running test cases...</strong><br>`;
+                    if (data.results && Array.isArray(data.results)) {
+                        data.results.forEach((test, idx) => {
+                            const pass = test.passed;
+                            const tick = pass ? '✅' : '';
+                            const cross = pass ? '' : '❌';
+                            // Fix undefined/blank output
+                            const actualOutput = (test.actual_output === undefined || test.actual_output === null || test.actual_output === '') ? '""' : test.actual_output;
+                            const expectedOutput = (test.expected_output === undefined || test.expected_output === null || test.expected_output === '') ? '""' : test.expected_output;
+                            outputHtml += `<div style="margin-bottom:8px;">`;
+                            outputHtml += `<strong>Test ${idx + 1}: ${test.name || ''}</strong><br>`;
+                            outputHtml += `Inputs: <code>${JSON.stringify(test.inputs)}</code>, Expected Output: <code>${expectedOutput}</code><br>`;
+                            outputHtml += `Actual Output: <code>${actualOutput}</code><br>`;
+                            outputHtml += `Result: <span style="font-weight:bold;">${pass ? 'PASS' : 'FAIL'} ${tick}${cross}</span>`;
+                            if (!pass) outputHtml += ` <span style="color:#ff6666;">score -2</span>`;
+                            outputHtml += `</div>`;
+                        });
+                    }
+                    outputHtml += `<hr><strong>Running style checks...</strong><br>`;
+                    // Only show style feedback (not test feedback) here
+                    if (data.feedback && Array.isArray(data.feedback)) {
+                        // Filter out test feedback lines (those starting with 'Test "') and score line
+                        const styleFeedback = data.feedback.filter(line =>
+                            !/^Test "\w+/.test(line) && !/^Score: /.test(line)
+                        );
+                        styleFeedback.forEach(line => {
+                            outputHtml += `${line}<br>`;
+                        });
+                    }
+                    // Show score at the bottom
+                    if (typeof data.score === 'number') {
+                        outputHtml += `<hr><strong>Score: ${data.score}/10</strong>`;
+                    }
+                    outputHtml += `</div>`;
+
+                    // Write output to output window
+                    const outputWindow = document.getElementById('output-window');
+                    if (outputWindow) {
+                        outputWindow.innerHTML = outputHtml;
+                    }
+
+                    // Update tab score and tooltip
+                    updateStyleScore(currentTab, data.score, data.feedback);
+                })
+                .catch(error => {
+                    const outputWindow = document.getElementById('output-window');
+                    if (outputWindow) {
+                        outputWindow.textContent = 'Error running tests: ' + error;
+                    }
                 });
-
-                const data = await response.json();
-                const outputElement = document.getElementById('output');
-
-                if (data.error) {
-                    outputElement.textContent = `Error:\n${data.error}`;
-                } else {
-                    const results = data.results.map((result, index) => {
-                        return `Test ${index + 1}: ${result.name}
-Inputs: ${JSON.stringify(result.inputs)}
-Expected: ${result.expected}; Actual: ${result.actual}
-Passed: ${result.passed ? "✅" : "❌"}`;
-                    }).join("\n");
-                    outputElement.textContent = results;
-                }
             });
         })
         .catch(error => console.error('Error loading test cases:', error));

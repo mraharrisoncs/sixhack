@@ -42,6 +42,7 @@ def setup_routes(app):
             data = request.get_json()
             program_id = data.get('program_id')
             code = data.get('code')
+            style_key = data.get('style')  # Pass the style key from frontend
 
             program = PythonProgram.query.get_or_404(program_id)
 
@@ -57,7 +58,19 @@ def setup_routes(app):
 
             # Test the code using the sandbox runner
             results = test_code(code, test_cases)
-            return jsonify({"results": results})
+
+            # --- Integrate style check and scoring ---
+            if style_key:
+                final_score, combined_feedback = combine_test_and_style_results(results, style_key, code)
+            else:
+                final_score = None
+                combined_feedback = []
+
+            return jsonify({
+                "results": results,
+                "score": final_score,
+                "feedback": combined_feedback
+            })
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
@@ -374,3 +387,65 @@ def setup_routes(app):
             return "no function"
         except Exception:
             return "no function"
+
+    # --- NEW: Utility to combine test and style results ---
+    def combine_test_and_style_results(test_results, style_key, code):
+        # Get style config
+        style = next((s for s in CODE_STYLES if s['key'] == style_key), None)
+        base_score = 10
+
+        # 1. Count failed tests and build test feedback
+        failed_tests = 0
+        test_feedback = []
+        for test in test_results:
+            if not test.get('passed', False):
+                failed_tests += 1
+                test_feedback.append(f"Test \"{test.get('name', test.get('number', ''))}\": Failed")
+            else:
+                test_feedback.append(f"Test \"{test.get('name', test.get('number', ''))}\": Passed")
+
+        # 2. Run style check (pylint + ast)
+        style_score = base_score
+        style_feedback = []
+
+        # Pylint
+        if style and style.get('pylint_required'):
+            pylint_output = run_pylint(code, style.get('pylint_parameters'))
+            feedback, score_delta = extract_feedback(
+                pylint_output, style.get('pylint_feedback', [])
+            )
+            style_score = max(0, min(style_score, base_score + score_delta))
+            style_feedback.extend(feedback)
+
+        # AST
+        if style and style.get('ast_required'):
+            ast_check = style.get('ast_parameters', {}).get('check')
+            if ast_check == "function":
+                ast_result = check_code_in_function(code)
+            elif ast_check == "separation_of_concerns":
+                ast_result = check_separation_of_concerns(code)
+            elif ast_check == "oop":
+                ast_result = check_oop(code)
+            elif ast_check == "recursive":
+                ast_result = check_recursive(code)
+            else:
+                ast_result = ""
+            feedback, score_delta = extract_feedback(
+                ast_result, style.get('ast_feedback', [])
+            )
+            style_score = max(0, min(style_score, base_score + score_delta))
+            style_feedback.extend(feedback if feedback else [ast_result or "AST checks passed."])
+
+        # 3. Subtract 2 for each failed test
+        final_score = max(0, style_score - 2 * failed_tests)
+
+        # 4. Combine feedback
+        combined_feedback = []
+        combined_feedback.append(f"Score: {final_score}/10")
+        combined_feedback.extend(test_feedback)
+        if style_feedback:
+            combined_feedback.extend(style_feedback)
+
+        return final_score, combined_feedback
+
+    # ...rest of your routes...
