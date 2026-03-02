@@ -1,0 +1,13 @@
+{
+    "name": "sixhack Codespace",
+    "image": "mcr.microsoft.com/devcontainers/python:3.11",
+    "forwardPorts": [5000],
+    "postCreateCommand": "pip install -r v1/requirements.txt",
+    "workspaceFolder": "/workspaces/sixhack",
+    "extensions": [
+        "ms-python.python"
+    ],
+    "settings": {
+        "python.pythonPath": "/usr/local/bin/python"
+    }
+}
