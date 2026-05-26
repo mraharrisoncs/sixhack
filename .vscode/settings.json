@@ -4,5 +4,6 @@
     "python.linting.flake8Enabled": true,
     "python.formatting.provider": "black",
     "editor.formatOnSave": true,
-    "editor.parameterHints.enabled": false
+    "editor.parameterHints.enabled": false,
+    "chat.planAgent.defaultModel": "Claude Haiku 4.5 (claude-code)"
 }

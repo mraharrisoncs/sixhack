@@ -1,4 +1,20 @@
 import subprocess
+import os
+import sys
+
+def _clean_env():
+    """Return environment with debugpy/pydevd injection stripped out."""
+    env = os.environ.copy()
+    # Remove vars that cause debugpy to attach to subprocesses
+    for key in list(env.keys()):
+        if key.startswith(('PYDEVD', 'DEBUGPY', 'PYCHARM')):
+            del env[key]
+    # Strip debugpy paths from PYTHONPATH
+    if 'PYTHONPATH' in env:
+        paths = env['PYTHONPATH'].split(os.pathsep)
+        paths = [p for p in paths if 'debugpy' not in p.lower() and 'pydevd' not in p.lower()]
+        env['PYTHONPATH'] = os.pathsep.join(paths)
+    return env
 
 def run_code(code, inputs):
     """
@@ -13,19 +29,26 @@ def run_code(code, inputs):
 
         # Use subprocess to execute the code
         process = subprocess.run(
-            ["python", "-c", code],
+            [sys.executable, "-E", "-c", code],
             input=input_data,
             text=True,
             capture_output=True,
             encoding='utf-8',
-            check=True
+            env=_clean_env()
         )
+        if process.returncode != 0:
+            stderr = process.stderr.strip()
+            if "EOFError" in stderr:
+                return {"error": "Ran out of inputs — check your test case supplies enough values."}
+            return {"error": stderr}
 
         # Return the standard output
         return {"output": process.stdout.strip()}
     except subprocess.CalledProcessError as e:
-        # Handle errors during code execution
-        return {"error": e.stderr.strip()}
+        stderr = e.stderr.strip()
+        if "EOFError" in stderr:
+            return {"error": "Ran out of inputs — check your test case supplies enough values."}
+        return {"error": stderr}
 
 def test_code(code, test_cases):
     """

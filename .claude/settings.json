@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:www.aqa.org.uk)",
+      "WebFetch(domain:cdn.sanity.io)",
+      "WebFetch(domain:qualifications.pearson.com)",
+      "WebFetch(domain:www.ocr.org.uk)",
+      "WebFetch(domain:filestore.aqa.org.uk)",
+      "WebFetch(domain:www.eduqas.co.uk)"
+    ]
+  }
+}

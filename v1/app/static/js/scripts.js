@@ -100,28 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         tabCodes[currentTab] = style.code_version + originalCode;
                     }
                     codeMirrorEditor.setValue(tabCodes[currentTab]);
-
-                    // Trigger style check
-                    fetch('/sandbox/style_check', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ style: style.key, code: codeMirrorEditor.getValue() })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        let score = 10;
-                        let feedback = [];
-                        if (data.pylint) {
-                            score = data.pylint.score;
-                            feedback = feedback.concat(data.pylint.feedback);
-                        }
-                        if (data.ast) {
-                            // Use the lower score if both are present
-                            score = Math.min(score, data.ast.score);
-                            feedback = feedback.concat(data.ast.feedback);
-                        }
-                        updateStyleScore(style.key, score, feedback);
-                    });
                 });
             });
 
@@ -469,7 +447,11 @@ function loadTestCases(programId) {
                             outputHtml += `<div style="margin-bottom:8px;">`;
                             outputHtml += `<strong>Test ${idx + 1}: ${test.name || ''}</strong><br>`;
                             outputHtml += `Inputs: <code>${JSON.stringify(test.inputs)}</code>, Expected Output: <code>${expectedOutput}</code><br>`;
-                            outputHtml += `Actual Output: <code>${actualOutput}</code><br>`;
+                            if (test.error) {
+                                outputHtml += `<span style="color:#ff6666;">Error: ${test.error}</span><br>`;
+                            } else {
+                                outputHtml += `Actual Output: <code>${actualOutput}</code><br>`;
+                            }
                             outputHtml += `Result: <span style="font-weight:bold;">${pass ? 'PASS' : 'FAIL'} ${tick}${cross}</span>`;
                             if (!pass) outputHtml += ` <span style="color:#ff6666;">score -2</span>`;
                             outputHtml += `</div>`;

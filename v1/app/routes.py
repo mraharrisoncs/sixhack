@@ -250,10 +250,12 @@ def setup_routes(app):
             import os
             os.unlink(tmp_path)
 
-    def check_separation_of_concerns(code):
-        # Dummy: returns "not separated" if input/print/computation in same function
+    def check_structured(code):
         try:
             tree = ast.parse(code)
+            has_function = any(isinstance(node, ast.FunctionDef) for node in tree.body)
+            if not has_function:
+                return "no function not separated"
             for node in ast.walk(tree):
                 if isinstance(node, ast.FunctionDef):
                     has_input = any(isinstance(n, ast.Call) and getattr(n.func, 'id', '') == 'input' for n in ast.walk(node))
@@ -261,9 +263,92 @@ def setup_routes(app):
                     has_computation = any(isinstance(n, ast.BinOp) for n in ast.walk(node))
                     if (has_input and has_output) or (has_input and has_computation) or (has_output and has_computation):
                         return "not separated"
-            return "separated"
+            return "structured OK"
         except Exception:
-            return "not separated"
+            return "no function"
+
+    def check_readable(code):
+        issues = []
+        lines = code.strip().split('\n')
+        non_empty = [l for l in lines if l.strip()]
+
+        # Comments
+        comment_lines = [l for l in non_empty if l.strip().startswith('#')]
+        if len(non_empty) > 3 and len(comment_lines) == 0:
+            issues.append("no comments")
+
+        # Magic numbers: numeric literals (other than 0 and 1) in expressions
+        try:
+            tree = ast.parse(code)
+            for node in ast.walk(tree):
+                if isinstance(node, (ast.Compare, ast.BinOp, ast.AugAssign)):
+                    for child in ast.walk(node):
+                        if isinstance(child, ast.Constant) and isinstance(child.value, (int, float)):
+                            if child.value not in (0, 1, -1):
+                                issues.append("magic number found")
+                                break
+                    else:
+                        continue
+                    break
+        except Exception:
+            pass
+
+        # Consistent indentation: base unit must be 2 or 4 spaces, all others multiples of it
+        indent_amounts = []
+        for line in lines:
+            stripped = line.lstrip(' ')
+            if stripped and stripped != line and not stripped.startswith('#'):
+                indent = len(line) - len(stripped)
+                if indent > 0:
+                    indent_amounts.append(indent)
+        if indent_amounts:
+            min_indent = min(indent_amounts)
+            if min_indent not in (2, 4) or any(i % min_indent != 0 for i in indent_amounts):
+                issues.append("inconsistent indentation")
+
+        return ' '.join(issues) if issues else "readable OK"
+
+    def check_robust(code):
+        issues = []
+        try:
+            tree = ast.parse(code)
+
+            has_input = any(
+                isinstance(node, ast.Call) and getattr(node.func, 'id', '') == 'input'
+                for node in ast.walk(tree)
+            )
+
+            if has_input:
+                # Type conversion: int()/float()/str() used anywhere
+                has_type_conversion = any(
+                    isinstance(node, ast.Call) and getattr(node.func, 'id', '') in ('int', 'float', 'str')
+                    for node in ast.walk(tree)
+                )
+                if not has_type_conversion:
+                    issues.append("input not type-checked")
+
+                # Validation: while loop containing input(), or any if/Compare in code
+                has_validation = False
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.While):
+                        if any(isinstance(n, ast.Call) and getattr(n.func, 'id', '') == 'input'
+                               for n in ast.walk(node)):
+                            has_validation = True
+                            break
+                    if isinstance(node, ast.If) and isinstance(node.test, ast.Compare):
+                        has_validation = True
+                        break
+                if not has_validation:
+                    issues.append("input not validated")
+
+            # try/except: informational only, no penalty
+            if any(isinstance(node, ast.Try) for node in ast.walk(tree)):
+                issues.append("try/except found")
+
+        except Exception:
+            pass
+
+        return ' '.join(issues) if issues else "robust OK"
 
     def check_oop(code):
         try:
@@ -356,10 +441,12 @@ def setup_routes(app):
         # AST check
         if style.get('ast_required'):
             ast_check = style.get('ast_parameters', {}).get('check')
-            if ast_check == "function":
-                ast_result = check_code_in_function(code)
-            elif ast_check == "separation_of_concerns":
-                ast_result = check_separation_of_concerns(code)
+            if ast_check == "structured":
+                ast_result = check_structured(code)
+            elif ast_check == "readable":
+                ast_result = check_readable(code)
+            elif ast_check == "robust":
+                ast_result = check_robust(code)
             elif ast_check == "oop":
                 ast_result = check_oop(code)
             elif ast_check == "recursive":
@@ -376,17 +463,6 @@ def setup_routes(app):
             }
 
         return jsonify(results)
-
-    def check_code_in_function(code):
-        import ast
-        try:
-            tree = ast.parse(code)
-            for node in tree.body:
-                if isinstance(node, ast.FunctionDef):
-                    return "function found"
-            return "no function"
-        except Exception:
-            return "no function"
 
     # --- NEW: Utility to combine test and style results ---
     def combine_test_and_style_results(test_results, style_key, code):
@@ -420,10 +496,12 @@ def setup_routes(app):
         # AST
         if style and style.get('ast_required'):
             ast_check = style.get('ast_parameters', {}).get('check')
-            if ast_check == "function":
-                ast_result = check_code_in_function(code)
-            elif ast_check == "separation_of_concerns":
-                ast_result = check_separation_of_concerns(code)
+            if ast_check == "structured":
+                ast_result = check_structured(code)
+            elif ast_check == "readable":
+                ast_result = check_readable(code)
+            elif ast_check == "robust":
+                ast_result = check_robust(code)
             elif ast_check == "oop":
                 ast_result = check_oop(code)
             elif ast_check == "recursive":
