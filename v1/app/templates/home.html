@@ -3,6 +3,10 @@
 <div class="flex-container">
     <!-- Sandbox on the left -->
     <div class="sandbox-container">
+        <!-- Dropdown above the sandbox -->
+        <select id="program-dropdown">
+            <option value="" disabled selected>Select a challenge</option>
+        </select>
         <form id="sandbox-form">
             <!-- Tabs for different code versions -->
             <div id="code-tabs">
@@ -12,10 +16,6 @@
                 <textarea id="code-input" rows="20" cols="50" placeholder="Write your Python code here..."></textarea>
             </div>
         </form>
-        <!-- Dropdown below the sandbox -->
-        <select id="program-dropdown">
-            <option value="" disabled selected>Select a program</option>
-        </select>
     </div>
 
     <!-- Input and Output on the right -->
@@ -30,7 +30,8 @@
                     <div class="test-container">
                         <button id="clear-button">🧹</button>
                         <button id="run-button">▶</button>
-                        <textarea id="input-box" class="test-input" placeholder="Type input here e.g. [1,2] or click a numbered test above"></textarea>
+                        <textarea id="input-box" class="test-input"
+                            placeholder="Type input here e.g. [1,2] or click a numbered test above"></textarea>
                     </div>
                 </div>
             </div>
@@ -45,11 +46,10 @@
             <progress id="total-score-meter" max="60" value="0" class="total-score-meter"></progress>
         </div>
         <div class="bottom-buttons">
-            <button id="save-button">Save Challenge</button>
-            <button id="load-db-button">Load DB</button>
             <button id="save-game-button">Save Game</button>
             <button id="load-game-button">Load Game</button>
-            <input type="file" id="load-game-input" style="display:none" accept=".json">        </div>
+            <input type="file" id="load-game-input" style="display:none" accept=".json">
+        </div>
     </div>
 </div>
 

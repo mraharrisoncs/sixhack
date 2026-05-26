@@ -14,6 +14,7 @@ def _clean_env():
         paths = env['PYTHONPATH'].split(os.pathsep)
         paths = [p for p in paths if 'debugpy' not in p.lower() and 'pydevd' not in p.lower()]
         env['PYTHONPATH'] = os.pathsep.join(paths)
+    env['PYTHONIOENCODING'] = 'utf-8'
     return env
 
 def run_code(code, inputs):
@@ -24,26 +25,21 @@ def run_code(code, inputs):
     :return: A dictionary containing the output or error.
     """
     try:
-        # Join the inputs with newlines to simulate stdin
-        input_data = "\n".join(map(str, inputs))
+        input_bytes = "\n".join(map(str, inputs)).encode('utf-8')
 
-        # Use subprocess to execute the code
         process = subprocess.run(
-            [sys.executable, "-E", "-c", code],
-            input=input_data,
-            text=True,
+            [sys.executable, "-E", "-X", "utf8", "-c", code],
+            input=input_bytes,
             capture_output=True,
-            encoding='utf-8',
             env=_clean_env()
         )
         if process.returncode != 0:
-            stderr = process.stderr.strip()
+            stderr = process.stderr.decode('utf-8', errors='replace').strip()
             if "EOFError" in stderr:
                 return {"error": "Ran out of inputs — check your test case supplies enough values."}
             return {"error": stderr}
 
-        # Return the standard output
-        return {"output": process.stdout.strip()}
+        return {"output": process.stdout.decode('utf-8', errors='replace').strip()}
     except subprocess.CalledProcessError as e:
         stderr = e.stderr.strip()
         if "EOFError" in stderr:

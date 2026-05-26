@@ -1,6 +1,6 @@
 import os
 import ast
-import yaml  # Use PyYAML to parse the test cases
+import tomllib
 import json  # Import json for handling test case inputs and outputs
 import re
 from app.models import db, PythonProgram, TestCase
@@ -13,8 +13,8 @@ def parse_program_file(filepath):
     if "'''!SIX:" in content and "!SIX.'''" in content:
         metadata_start = content.find("'''!SIX:") + len("'''!SIX:")
         metadata_end = content.find("!SIX.'''", metadata_start)
-        yaml_content = content[metadata_start:metadata_end].strip()
-        metadata = yaml.safe_load(yaml_content)
+        toml_content = content[metadata_start:metadata_end].strip()
+        metadata = tomllib.loads(toml_content)
         code = content[metadata_end + len("!SIX.'''"):].strip()
     else:
         metadata = {}
@@ -38,7 +38,14 @@ def populate_database():
             filepath = os.path.join(challenges_dir, filename)
             metadata, code = parse_program_file(filepath)
 
-            program = PythonProgram(name=filename.replace('.py', ''), code=code)
+            program = PythonProgram(
+                name=filename.replace('.py', ''),
+                code=code,
+                description=metadata.get('description'),
+                difficulty=metadata.get('difficulty'),
+                max_lines=metadata.get('max_lines'),
+                max_bytes=metadata.get('max_bytes'),
+            )
             db.session.add(program)
             db.session.commit()
 
@@ -68,12 +75,20 @@ def load_new_challenges():
             program = PythonProgram.query.filter_by(name=program_name).first()
 
             if program:
-                # Update the existing program
                 program.code = code
+                program.description = metadata.get('description')
+                program.difficulty = metadata.get('difficulty')
+                program.max_lines = metadata.get('max_lines')
+                program.max_bytes = metadata.get('max_bytes')
                 db.session.commit()
             else:
-                # Add a new program
-                program = PythonProgram(name=program_name, code=code)
+                program = PythonProgram(
+                    name=program_name, code=code,
+                    description=metadata.get('description'),
+                    difficulty=metadata.get('difficulty'),
+                    max_lines=metadata.get('max_lines'),
+                    max_bytes=metadata.get('max_bytes'),
+                )
                 db.session.add(program)
                 db.session.commit()
 

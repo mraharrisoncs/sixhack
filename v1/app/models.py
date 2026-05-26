@@ -24,6 +24,10 @@ class PythonProgram(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
     code = db.Column(db.Text, nullable=False)
+    description = db.Column(db.String(200), nullable=True)
+    difficulty = db.Column(db.String(20), nullable=True)
+    max_lines = db.Column(db.Integer, nullable=True)
+    max_bytes = db.Column(db.Integer, nullable=True)
     test_cases = db.relationship('TestCase', backref='program', lazy=True)
 
 class TestCase(db.Model):

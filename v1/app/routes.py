@@ -3,7 +3,7 @@ from app.models import PythonProgram, TestCase, db
 from app.sandbox.runner import run_code, test_code
 from app.utils import load_new_challenges, extract_feedback
 from app.code_styles import CODE_STYLES
-import json, yaml, os
+import json, tomllib, os
 import subprocess
 import tempfile
 import ast
@@ -61,7 +61,10 @@ def setup_routes(app):
 
             # --- Integrate style check and scoring ---
             if style_key:
-                final_score, combined_feedback = combine_test_and_style_results(results, style_key, code)
+                final_score, combined_feedback = combine_test_and_style_results(
+                    results, style_key, code,
+                    max_lines=program.max_lines, max_bytes=program.max_bytes
+                )
             else:
                 final_score = None
                 combined_feedback = []
@@ -77,7 +80,7 @@ def setup_routes(app):
     @app.route('/sandbox/programs', methods=['GET'])
     def get_programs():
         programs = PythonProgram.query.all()
-        return jsonify([{"id": p.id, "name": p.name} for p in programs])
+        return jsonify([{"id": p.id, "name": p.name, "description": p.description, "difficulty": p.difficulty} for p in programs])
 
     @app.route('/sandbox/load', methods=['GET'])
     def load_program():
@@ -88,7 +91,8 @@ def setup_routes(app):
             print("Program not found")  # Debugging
             return jsonify({"error": "Program not found"}), 404
         print(f"Program found: {program.name}")  # Debugging
-        return jsonify({"id": program.id, "name": program.name, "code": program.code})
+        return jsonify({"id": program.id, "name": program.name, "code": program.code,
+                        "max_lines": program.max_lines, "max_bytes": program.max_bytes})
 
     @app.route('/sandbox/save', methods=['POST'])
     def save_challenge():
@@ -98,18 +102,22 @@ def setup_routes(app):
 
             name = data.get('name')
             code = data.get('code')
-            yaml_content = data.get('yaml')  # Get the YAML content from the frontend
+            toml_content = data.get('toml')  # Get the TOML content from the frontend
 
-            if not name or not code or not yaml_content:
-                return jsonify({"error": "Name, code, and YAML are required"}), 400
+            if not name or not code or not toml_content:
+                return jsonify({"error": "Name, code, and TOML are required"}), 400
 
-            # Parse the YAML content
+            # Parse the TOML content
             try:
-                yaml_data = yaml.safe_load(yaml_content)
-                test_cases = yaml_data.get('test_cases', [])
-            except yaml.YAMLError as e:
-                print("Error parsing YAML:", str(e))  # Debugging
-                return jsonify({"error": "Invalid YAML format"}), 400
+                toml_data = tomllib.loads(toml_content)
+                test_cases = toml_data.get('test_cases', [])
+                description = toml_data.get('description')
+                difficulty = toml_data.get('difficulty')
+                max_lines = toml_data.get('max_lines')
+                max_bytes = toml_data.get('max_bytes')
+            except tomllib.TOMLDecodeError as e:
+                print("Error parsing TOML:", str(e))
+                return jsonify({"error": "Invalid TOML format"}), 400
 
             # Check if the program already exists
             program = PythonProgram.query.filter_by(name=name).first()
@@ -118,11 +126,15 @@ def setup_routes(app):
                 # Update the existing program's code
                 print(f"Updating program: {name}")  # Debugging
                 program.code = code
+                program.description = description
+                program.difficulty = difficulty
+                program.max_lines = max_lines
+                program.max_bytes = max_bytes
                 db.session.commit()
             else:
-                # Create a new program
-                print(f"Creating new program: {name}")  # Debugging
-                program = PythonProgram(name=name, code=code)
+                print(f"Creating new program: {name}")
+                program = PythonProgram(name=name, code=code, description=description,
+                                        difficulty=difficulty, max_lines=max_lines, max_bytes=max_bytes)
                 db.session.add(program)
                 db.session.commit()
 
@@ -179,20 +191,20 @@ def setup_routes(app):
                 if metadata_end == -1:
                     return jsonify({"error": "Malformed metadata block"}), 400  # Handle missing end marker
 
-                yaml_content = content[metadata_start:metadata_end].strip()  # Extract YAML content
-                print(f"YAML={yaml_content}")  # Debugging
-                code = content[metadata_end + len("!SIX.'''"):].strip()  # Extract the code after the metadata block
+                toml_content = content[metadata_start:metadata_end].strip()
+                print(f"TOML={toml_content}")
+                code = content[metadata_end + len("!SIX.'''"):].strip()
             else:
-                yaml_content = None
-                code = content.strip()  # If no metadata block, return the entire content
+                toml_content = None
+                code = content.strip()
 
-            # Parse the YAML metadata (if present)
+            # Parse the TOML metadata (if present)
             metadata = None
-            if yaml_content:
+            if toml_content:
                 try:
-                    metadata = yaml.safe_load(yaml_content)  # Parse the YAML content
-                except yaml.YAMLError as e:
-                    return jsonify({"error": f"Invalid YAML format: {str(e)}"}), 400
+                    metadata = tomllib.loads(toml_content)
+                except tomllib.TOMLDecodeError as e:
+                    return jsonify({"error": f"Invalid TOML format: {str(e)}"}), 400
 
             return jsonify({"code": code, "metadata": metadata})
         except Exception as e:
@@ -353,36 +365,116 @@ def setup_routes(app):
     def check_oop(code):
         try:
             tree = ast.parse(code)
-            if not any(isinstance(node, ast.ClassDef) for node in ast.walk(tree)):
+
+            class_defs = [node for node in ast.walk(tree) if isinstance(node, ast.ClassDef)]
+            if not class_defs:
                 return "No class detected"
+
             for node in ast.walk(tree):
                 if isinstance(node, ast.FunctionDef):
                     if node.args.args and node.args.args[0].arg != "self":
                         return "Method missing 'self'"
-            return "OOP OK"
+
+            class_names = {cls.name for cls in class_defs}
+
+            # Find variable names assigned by instantiating a class
+            instance_names = set()
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Assign):
+                    if isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name):
+                        if node.value.func.id in class_names:
+                            for target in node.targets:
+                                if isinstance(target, ast.Name):
+                                    instance_names.add(target.id)
+
+            if not instance_names:
+                return "Class not instantiated"
+
+            # Check that a method is called on one of those instances
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Call):
+                    if isinstance(node.func, ast.Attribute):
+                        if isinstance(node.func.value, ast.Name):
+                            if node.func.value.id in instance_names:
+                                return "OOP OK"
+
+            return "Class methods not used"
         except Exception:
             return "No class detected"
 
     def check_recursive(code):
         try:
             tree = ast.parse(code)
-            found_recursion = False
-            found_base_case = False
+            recursive_funcs = set()
+            base_case_funcs = set()
             for node in ast.walk(tree):
                 if isinstance(node, ast.FunctionDef):
-                    # Recursion: function calls itself
                     if any(isinstance(n, ast.Call) and getattr(n.func, 'id', '') == node.name for n in ast.walk(node)):
-                        found_recursion = True
-                        # Base case: look for 'if' in function
+                        recursive_funcs.add(node.name)
                         if any(isinstance(n, ast.If) for n in ast.walk(node)):
-                            found_base_case = True
-            if not found_recursion:
+                            base_case_funcs.add(node.name)
+
+            if not recursive_funcs:
                 return "No recursion detected"
-            if not found_base_case:
+            if not recursive_funcs.issubset(base_case_funcs):
                 return "No base case detected"
-            return "Recursion OK"
+
+            # Check that at least one recursive function is called from outside itself
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+                    if node.func.id in recursive_funcs:
+                        # Verify the call is not inside the function itself (i.e. it's an external call)
+                        called_externally = True
+                        for func_node in ast.walk(tree):
+                            if isinstance(func_node, ast.FunctionDef) and func_node.name == node.func.id:
+                                if node in ast.walk(func_node):
+                                    called_externally = False
+                                    break
+                        if called_externally:
+                            return "Recursion OK"
+
+            return "Recursive function never called"
         except Exception:
             return "No recursion detected"
+
+    def check_minimalist(code, max_lines=None, max_bytes=None):
+        issues = []
+        try:
+            tree = ast.parse(code)
+
+            # Single-use variable detection
+            assigned = {}
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Assign):
+                    for target in node.targets:
+                        if isinstance(target, ast.Name):
+                            assigned[target.id] = 0
+
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
+                    if node.id in assigned:
+                        assigned[node.id] += 1
+
+            single_use = [name for name, count in assigned.items() if count == 1]
+            if single_use:
+                issues.append(f"Single-use variables could be inlined: {', '.join(single_use)}")
+
+        except Exception:
+            pass
+
+        # Line count check (ignore blank lines and comment-only lines)
+        if max_lines is not None:
+            code_lines = [l for l in code.splitlines() if l.strip() and not l.strip().startswith('#')]
+            if len(code_lines) > max_lines:
+                issues.append(f"Too many lines: {len(code_lines)} (max {max_lines})")
+
+        # Byte count check
+        if max_bytes is not None:
+            byte_count = len(code.encode('utf-8'))
+            if byte_count > max_bytes:
+                issues.append(f"Too many bytes: {byte_count} (max {max_bytes})")
+
+        return "; ".join(issues) if issues else "minimalist OK"
 
     def extract_pylint_score_and_feedback(pylint_output):
         # Extract score
@@ -419,6 +511,8 @@ def setup_routes(app):
         data = request.get_json()
         style_key = data.get('style')
         code = data.get('code')
+        max_lines = data.get('max_lines')
+        max_bytes = data.get('max_bytes')
         style = next((s for s in CODE_STYLES if s['key'] == style_key), None)
         if not style:
             return jsonify({"error": "Unknown style"}), 400
@@ -451,6 +545,8 @@ def setup_routes(app):
                 ast_result = check_oop(code)
             elif ast_check == "recursive":
                 ast_result = check_recursive(code)
+            elif ast_check == "minimalist":
+                ast_result = check_minimalist(code, max_lines=max_lines, max_bytes=max_bytes)
             else:
                 ast_result = ""
             feedback, score_delta = extract_feedback(
@@ -465,7 +561,7 @@ def setup_routes(app):
         return jsonify(results)
 
     # --- NEW: Utility to combine test and style results ---
-    def combine_test_and_style_results(test_results, style_key, code):
+    def combine_test_and_style_results(test_results, style_key, code, max_lines=None, max_bytes=None):
         # Get style config
         style = next((s for s in CODE_STYLES if s['key'] == style_key), None)
         base_score = 10
@@ -506,6 +602,8 @@ def setup_routes(app):
                 ast_result = check_oop(code)
             elif ast_check == "recursive":
                 ast_result = check_recursive(code)
+            elif ast_check == "minimalist":
+                ast_result = check_minimalist(code, max_lines=max_lines, max_bytes=max_bytes)
             else:
                 ast_result = ""
             feedback, score_delta = extract_feedback(

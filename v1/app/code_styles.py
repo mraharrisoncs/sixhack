@@ -143,6 +143,16 @@ CODE_STYLES = [
                 "regex": r"Method.*missing 'self'",
                 "message": "Method missing 'self' parameter.",
                 "delta": -2
+            },
+            {
+                "regex": r"Class not instantiated",
+                "message": "Class is never instantiated — create an object from your class.",
+                "delta": -3
+            },
+            {
+                "regex": r"Class methods not used",
+                "message": "Class methods are never called — use your object to do the work.",
+                "delta": -3
             }
         ]
     },
@@ -166,6 +176,11 @@ CODE_STYLES = [
                 "regex": r"No base case detected",
                 "message": "No base case detected in recursion.",
                 "delta": -2
+            },
+            {
+                "regex": r"Recursive function never called",
+                "message": "Recursive function is defined but never called.",
+                "delta": -5
             }
         ]
     },
@@ -192,8 +207,24 @@ CODE_STYLES = [
                 "delta": -3
             }
         ],
-        "ast_required": False,
-        "ast_parameters": None,
-        "ast_feedback": []
+        "ast_required": True,
+        "ast_parameters": {"check": "minimalist"},
+        "ast_feedback": [
+            {
+                "regex": r"Single-use variables could be inlined",
+                "message": None,
+                "delta": -2
+            },
+            {
+                "regex": r"Too many lines",
+                "message": None,
+                "delta": -3
+            },
+            {
+                "regex": r"Too many bytes",
+                "message": None,
+                "delta": -3
+            }
+        ]
     }
 ]

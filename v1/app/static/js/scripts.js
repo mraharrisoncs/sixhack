@@ -1,6 +1,8 @@
 let codeMirrorEditor;
 let styleScores = {};
 let totalScore = 0;
+let currentProgramMaxLines = null;
+let currentProgramMaxBytes = null;
 const MAX_SCORE = 60;
 let currentTab = null; // <-- Move this here, at the top!
 
@@ -134,21 +136,63 @@ document.addEventListener('DOMContentLoaded', () => {
         programDropdown.addEventListener('change', (e) => {
             const programId = e.target.value;
 
+            // Offer to save if there's any progress and this isn't a restore
+            if (!window.pendingGameRestore && Object.values(styleScores).some(s => s > 0)) {
+                if (confirm("Save your current progress before switching challenge?")) {
+                    if (currentTab !== null) tabCodes[currentTab] = codeMirrorEditor.getValue();
+                    const gameData = { programId: programDropdown.dataset.lastId, tabCodes: {...tabCodes}, currentTab, styleScores: {...styleScores} };
+                    const blob = new Blob([JSON.stringify(gameData, null, 2)], {type: "application/json"});
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url; a.download = "sixhack_save.json"; a.click();
+                    URL.revokeObjectURL(url);
+                }
+            }
+            programDropdown.dataset.lastId = programId;
+
             fetch(`/sandbox/original_code/${programId}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.original_code) {
                         originalCode = data.original_code;
-                        // Reset all tab codes
-                        Object.keys(tabCodes).forEach(tab => {
-                            tabCodes[tab] = "";
-                        });
-                        // Set the current tab's code
+                        Object.keys(tabCodes).forEach(tab => { tabCodes[tab] = ""; });
                         tabCodes[currentTab] = codeStyles.find(style => style.key === currentTab).code_version + originalCode;
                         codeMirrorEditor.setValue(tabCodes[currentTab]);
+
+                        // Reset scores, tab colours, and output
+                        Object.keys(styleScores).forEach(key => {
+                            styleScores[key] = 0;
+                            const btn = document.getElementById(`tab-btn-${key}`);
+                            if (btn) { btn.style.background = ''; btn.removeAttribute('data-feedback'); }
+                        });
+                        document.getElementById('output').textContent = '';
+                        updateTotalScore();
+
+                        // Apply a pending game restore if one was queued by Load Game
+                        if (window.pendingGameRestore && window.pendingGameRestore.programId == programId) {
+                            const restore = window.pendingGameRestore;
+                            window.pendingGameRestore = null;
+                            Object.assign(tabCodes, restore.tabCodes);
+                            if (restore.styleScores) Object.assign(styleScores, restore.styleScores);
+                            const savedTabBtn = document.getElementById(`tab-btn-${restore.currentTab}`);
+                            if (savedTabBtn) {
+                                savedTabBtn.click();
+                            } else {
+                                codeMirrorEditor.setValue(tabCodes[currentTab]);
+                            }
+                            updateTotalScore();
+                        }
                     }
                 })
                 .catch(error => console.error('Error fetching original code:', error));
+
+            fetch(`/sandbox/load?program_id=${programId}`)
+                .then(response => response.json())
+                .then(data => {
+                    currentProgramMaxLines = data.max_lines ?? null;
+                    currentProgramMaxBytes = data.max_bytes ?? null;
+                })
+                .catch(error => console.error('Error fetching program constraints:', error));
 
             loadTestCases(programId);
         });
@@ -255,12 +299,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Add save/load game functionality ---
     document.getElementById('save-game-button').addEventListener('click', () => {
-        // Gather all data
+        // Flush current editor content before saving
+        if (currentTab !== null) tabCodes[currentTab] = codeMirrorEditor.getValue();
+
+        const programId = document.getElementById('program-dropdown')?.value || null;
+        if (!programId) { alert("Select a challenge before saving."); return; }
+
         const gameData = {
-            tabCodes, // all code in tabs
+            programId,
+            tabCodes: {...tabCodes},
             currentTab,
-            programId: document.getElementById('program-dropdown')?.value || null,
-            testCases: window.currentTestCases || [] // set this when loading test cases
+            styleScores: {...styleScores},
         };
         const blob = new Blob([JSON.stringify(gameData, null, 2)], {type: "application/json"});
         const url = URL.createObjectURL(blob);
@@ -285,23 +334,15 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.onload = function(e) {
             try {
                 const gameData = JSON.parse(e.target.result);
-                // Restore tab codes
-                Object.assign(tabCodes, gameData.tabCodes);
-                // Restore current tab
-                if (gameData.currentTab && document.getElementById(`tab-btn-${gameData.currentTab}`)) {
-                    document.getElementById(`tab-btn-${gameData.currentTab}`).click();
-                }
-                // Restore program ID
-                if (gameData.programId) {
-                    const dropdown = document.getElementById('program-dropdown');
-                    if (dropdown) dropdown.value = gameData.programId;
-                }
-                // Restore test cases (if you have a function to reload them)
-                if (gameData.testCases && typeof loadTestCases === "function") {
-                    window.currentTestCases = gameData.testCases;
-                    loadTestCases(gameData.programId);
-                }
-                alert("Game loaded!");
+                if (!gameData.programId || !gameData.tabCodes) throw new Error("Invalid save file.");
+
+                // Queue the restore — the change handler will apply it after resetting tab codes
+                window.pendingGameRestore = gameData;
+
+                const dropdown = document.getElementById('program-dropdown');
+                dropdown.value = gameData.programId;
+                dropdown.dispatchEvent(new Event('change'));
+                loadTestCases(gameData.programId);
             } catch (err) {
                 alert("Failed to load game: " + err);
             }
@@ -320,11 +361,13 @@ function loadPrograms() {
     .then(response => response.json())
     .then(programs => {
         const dropdown = document.getElementById('program-dropdown');
-        dropdown.innerHTML = '<option value="" disabled selected>Select a program</option>';
+        dropdown.innerHTML = '<option value="" disabled selected>Select a challenge</option>';
         programs.forEach(program => {
             const option = document.createElement('option');
             option.value = program.id;
-            option.textContent = program.name;
+            const desc = program.description || program.name;
+            const diff = program.difficulty ? ` [${program.difficulty}]` : '';
+            option.textContent = desc + diff;
             dropdown.appendChild(option);
         });
     })
@@ -429,7 +472,8 @@ function loadTestCases(programId) {
                 fetch('/sandbox/test', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ program_id: programId, code, style: currentTab })
+                    body: JSON.stringify({ program_id: programId, code, style: currentTab,
+                        max_lines: currentProgramMaxLines, max_bytes: currentProgramMaxBytes })
                 })
                 .then(response => response.json())
                 .then(data => {
