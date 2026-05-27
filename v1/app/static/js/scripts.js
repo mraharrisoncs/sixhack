@@ -20,13 +20,20 @@ function updateStyleScore(styleKey, score, feedbackArr) {
     updateTotalScore();
 }
 
+function repaintTabFills() {
+    Object.entries(styleScores).forEach(([key, score]) => {
+        if (score > 0) updateTabProgress(key, score);
+    });
+}
+
 function updateTabProgress(styleKey, score, feedbackArr) {
     const button = document.getElementById(`tab-btn-${styleKey}`);
     if (!button) return;
     // Clamp score between 0 and 10
     score = Math.max(0, Math.min(10, score));
     const percent = (score / 10) * 100;
-    button.style.background = `linear-gradient(to right, #4CAF50 ${percent}%, #333 ${percent}%)`;
+    const fillColor = document.body.classList.contains('dark') ? 'steelblue' : '#700CBC';
+    button.style.background = `linear-gradient(to right, ${fillColor} ${percent}%, #333 ${percent}%)`;
     // Tooltip: show score and feedback
     let tooltip = `${score}/10`;
     if (feedbackArr && feedbackArr.length) {
@@ -56,13 +63,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize CodeMirror for the code-input textarea
     codeMirrorEditor = CodeMirror.fromTextArea(codeInputTextarea, {
         mode: 'python',
-        theme: 'material',
+        theme: localStorage.getItem('theme') === 'dark' ? 'material' : 'default',
         lineNumbers: true,
         indentUnit: 4,
         tabSize: 4,
+        indentWithTabs: false,
         matchBrackets: true,
         autofocus: true
     });
+
+    codeMirrorEditor.setValue(
+        `# Welcome to Six Hack!
+#
+# Your goal is to find six different ways to solve the same problem.
+# Given some starting code, you must rewrite or refactor it six ways:
+#
+#   Structured, Readable, Robust, OOP, Recursive and Minimalist
+#
+# Choose a challenge from the dropdown above to begin!`
+    );
 
     // Create a single tooltip div
     const tabTooltip = document.createElement('div');
@@ -97,22 +116,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     button.classList.add('active');
                     currentTab = style.key;
 
-                    // If this tab has no code yet, initialize it
+                    // If this tab has no code yet, initialize it (only if a program is loaded)
                     if (!tabCodes[currentTab] || tabCodes[currentTab] === "") {
-                        tabCodes[currentTab] = style.code_version + originalCode;
+                        tabCodes[currentTab] = originalCode ? style.code_version + originalCode : "";
                     }
-                    codeMirrorEditor.setValue(tabCodes[currentTab]);
+                    if (tabCodes[currentTab]) codeMirrorEditor.setValue(tabCodes[currentTab]);
                 });
             });
 
             // Load the first version of the code by default
             currentTab = styles[0].key;
-            tabCodes[currentTab] = styles[0].code_version + originalCode;
-            codeMirrorEditor.setValue(tabCodes[currentTab]);
+            if (originalCode) {
+                tabCodes[currentTab] = styles[0].code_version + originalCode;
+                codeMirrorEditor.setValue(tabCodes[currentTab]);
+            }
         });
 
     // Show tooltip on hover
-    codeTabsContainer.addEventListener('mouseover', function(e) {
+    codeTabsContainer.addEventListener('mouseover', function (e) {
         if (e.target.classList.contains('tab-button')) {
             const feedback = e.target.getAttribute('data-feedback');
             if (feedback) {
@@ -124,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
-    codeTabsContainer.addEventListener('mouseout', function(e) {
+    codeTabsContainer.addEventListener('mouseout', function (e) {
         if (e.target.classList.contains('tab-button')) {
             tabTooltip.style.display = 'none';
         }
@@ -140,8 +161,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!window.pendingGameRestore && Object.values(styleScores).some(s => s > 0)) {
                 if (confirm("Save your current progress before switching challenge?")) {
                     if (currentTab !== null) tabCodes[currentTab] = codeMirrorEditor.getValue();
-                    const gameData = { programId: programDropdown.dataset.lastId, tabCodes: {...tabCodes}, currentTab, styleScores: {...styleScores} };
-                    const blob = new Blob([JSON.stringify(gameData, null, 2)], {type: "application/json"});
+                    const gameData = { programId: programDropdown.dataset.lastId, tabCodes: { ...tabCodes }, currentTab, styleScores: { ...styleScores } };
+                    const blob = new Blob([JSON.stringify(gameData, null, 2)], { type: "application/json" });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url; a.download = "sixhack_save.json"; a.click();
@@ -208,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Clear placeholder when user begins typing
     document.getElementById('input-box').addEventListener('focus', () => {
         const inputBox = document.getElementById('input-box');
-        if (inputBox.placeholder === 'Type input here e.g. [1,2] or click a numbered test above') {
+        if (inputBox.placeholder.startsWith('Type')) {
             inputBox.placeholder = '';
         }
     });
@@ -222,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             inputs = JSON.parse(inputBox.value);
         } catch (error) {
-            document.getElementById('output-window').innerHTML = '<span style="color:#ff6666;">Error: Invalid input format. Please provide valid JSON.</span>';
+            document.getElementById('output-window').innerHTML = '<span class="output-error">Error: Invalid input format. Please provide valid JSON.</span>';
             return;
         }
 
@@ -235,68 +256,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await response.json();
         const outputWindow = document.getElementById('output-window');
         if (data.error) {
-            outputWindow.innerHTML = `<span style="color:#ff6666;">Error:<br>${data.error}</span>`;
+            outputWindow.innerHTML = `<span class="output-error">Error:<br>${data.error}</span>`;
         } else {
-            outputWindow.innerHTML = `<div style="color:#fff;"><strong>Output:</strong><br><pre>${data.output}</pre></div>`;
+            outputWindow.innerHTML = `<div><strong>Output:</strong><br><pre>${data.output}</pre></div>`;
         }
     });
 
     // Save the current program as a new challenge
-    document.getElementById('save-button').addEventListener('click', async () => {
-        const programName = prompt("Enter a name for the challenge:");
-        if (!programName) {
-            alert("Challenge name is required!");
-            return;
-        }
-
-        const code = codeMirrorEditor.getValue();
-        const inputBox = document.getElementById('input-box');
-        let inputValues;
-        try {
-            inputValues = JSON.parse(inputBox.value);
-        } catch {
-            alert("Please provide valid JSON input values before saving.");
-            return;
-        }
-        const expectedOutput = document.getElementById('output').textContent.trim();
-
-        if (!code || !inputValues || !expectedOutput) {
-            alert("Please ensure the code, inputs, and expected output are filled in before saving.");
-            return;
-        }
-
-        const response = await fetch('/sandbox/save', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: programName,
-                code: code,
-                test_cases: [
-                    {
-                        inputs: inputValues,
-                        expected_output: expectedOutput
-                    }
-                ]
-            })
-        });
-
-        const data = await response.json();
-        if (data.error) {
-            alert(`Error: ${data.error}`);
-        } else {
-            alert(data.message || "Challenge saved successfully!");
-            loadPrograms();
-        }
-    });
-
-    // Load new challenges into the database
-    document.getElementById('load-db-button').addEventListener('click', async () => {
-        const response = await fetch('/sandbox/load-db', { method: 'POST' });
-        const data = await response.json();
-        alert(data.message || "Database updated successfully!");
-        loadPrograms();
-    });
-
     // --- Add save/load game functionality ---
     document.getElementById('save-game-button').addEventListener('click', () => {
         // Flush current editor content before saving
@@ -307,11 +273,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const gameData = {
             programId,
-            tabCodes: {...tabCodes},
+            tabCodes: { ...tabCodes },
             currentTab,
-            styleScores: {...styleScores},
+            styleScores: { ...styleScores },
         };
-        const blob = new Blob([JSON.stringify(gameData, null, 2)], {type: "application/json"});
+        const blob = new Blob([JSON.stringify(gameData, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
 
         const a = document.createElement('a');
@@ -331,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const file = event.target.files[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             try {
                 const gameData = JSON.parse(e.target.result);
                 if (!gameData.programId || !gameData.tabCodes) throw new Error("Invalid save file.");
@@ -358,20 +324,20 @@ function loadPrograms() {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
     })
-    .then(response => response.json())
-    .then(programs => {
-        const dropdown = document.getElementById('program-dropdown');
-        dropdown.innerHTML = '<option value="" disabled selected>Select a challenge</option>';
-        programs.forEach(program => {
-            const option = document.createElement('option');
-            option.value = program.id;
-            const desc = program.description || program.name;
-            const diff = program.difficulty ? ` [${program.difficulty}]` : '';
-            option.textContent = desc + diff;
-            dropdown.appendChild(option);
-        });
-    })
-    .catch(error => console.error('Error loading programs:', error));
+        .then(response => response.json())
+        .then(programs => {
+            const dropdown = document.getElementById('program-dropdown');
+            dropdown.innerHTML = '<option value="" disabled selected>Select a challenge</option>';
+            programs.forEach(program => {
+                const option = document.createElement('option');
+                option.value = program.id;
+                const desc = program.description || program.name;
+                const diff = program.difficulty ? ` [${program.difficulty}]` : '';
+                option.textContent = desc + diff;
+                dropdown.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Error loading programs:', error));
 }
 
 // --- Fetch test cases dynamically and populate tabs ---
@@ -434,15 +400,15 @@ function loadTestCases(programId) {
                     }
 
                     // Format output for this test case
-                    let outputHtml = `<div style="color: #fff;">`;
-                    outputHtml += `<strong>Test ${index + 1}: ${test.name || ''}</strong><br>`;
-                    outputHtml += `Inputs: <code>${JSON.stringify(test.inputs)}</code>, Expected Output: <code>${test.expected_output ?? '""'}</code><br>`;
+                    let outputHtml = `<div>`;
+                    outputHtml += `<strong>Test ${index + 1}: ${test.name || ''}</strong>, Inputs: <code>${JSON.stringify(test.inputs)}</code><br>`;
+                    outputHtml += `Expected Output: <code>${test.expected_output ?? '""'}</code><br>`;
                     if (errorMsg) {
-                        outputHtml += `<span style="color:#ff6666;">Error:<br>${errorMsg}</span>`;
+                        outputHtml += `<span class="output-error">Error:<br>${errorMsg}</span>`;
                     } else {
-                        outputHtml += `Actual Output: <code>${actualOutput}</code><br>`;
-                        outputHtml += `Result: <span style="font-weight:bold;">${passed ? 'PASS ✅' : 'FAIL ❌'}</span>`;
-                        if (!passed) outputHtml += ` <span style="color:#ff6666;">score -2</span>`;
+                        outputHtml += `Actual Output:&nbsp;&nbsp;&nbsp;<code>${actualOutput}</code><br>`;
+                        outputHtml += `Result: <span class="output-result">${passed ? 'PASS ✅' : 'FAIL ❌'}</span>`;
+                        if (!passed) outputHtml += ` <span class="output-penalty">score -2</span>`;
                     }
                     outputHtml += `</div>`;
 
@@ -472,67 +438,69 @@ function loadTestCases(programId) {
                 fetch('/sandbox/test', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ program_id: programId, code, style: currentTab,
-                        max_lines: currentProgramMaxLines, max_bytes: currentProgramMaxBytes })
+                    body: JSON.stringify({
+                        program_id: programId, code, style: currentTab,
+                        max_lines: currentProgramMaxLines, max_bytes: currentProgramMaxBytes
+                    })
                 })
-                .then(response => response.json())
-                .then(data => {
-                    // Format test results
-                    let outputHtml = `<div style="color: #fff;">`;
-                    outputHtml += `<strong>Running test cases...</strong><br>`;
-                    if (data.results && Array.isArray(data.results)) {
-                        data.results.forEach((test, idx) => {
-                            const pass = test.passed;
-                            const tick = pass ? '✅' : '';
-                            const cross = pass ? '' : '❌';
-                            // Fix undefined/blank output
-                            const actualOutput = (test.actual_output === undefined || test.actual_output === null || test.actual_output === '') ? '""' : test.actual_output;
-                            const expectedOutput = (test.expected_output === undefined || test.expected_output === null || test.expected_output === '') ? '""' : test.expected_output;
-                            outputHtml += `<div style="margin-bottom:8px;">`;
-                            outputHtml += `<strong>Test ${idx + 1}: ${test.name || ''}</strong><br>`;
-                            outputHtml += `Inputs: <code>${JSON.stringify(test.inputs)}</code>, Expected Output: <code>${expectedOutput}</code><br>`;
-                            if (test.error) {
-                                outputHtml += `<span style="color:#ff6666;">Error: ${test.error}</span><br>`;
-                            } else {
-                                outputHtml += `Actual Output: <code>${actualOutput}</code><br>`;
-                            }
-                            outputHtml += `Result: <span style="font-weight:bold;">${pass ? 'PASS' : 'FAIL'} ${tick}${cross}</span>`;
-                            if (!pass) outputHtml += ` <span style="color:#ff6666;">score -2</span>`;
-                            outputHtml += `</div>`;
-                        });
-                    }
-                    outputHtml += `<hr><strong>Running style checks...</strong><br>`;
-                    // Only show style feedback (not test feedback) here
-                    if (data.feedback && Array.isArray(data.feedback)) {
-                        // Filter out test feedback lines (those starting with 'Test "') and score line
-                        const styleFeedback = data.feedback.filter(line =>
-                            !/^Test "\w+/.test(line) && !/^Score: /.test(line)
-                        );
-                        styleFeedback.forEach(line => {
-                            outputHtml += `${line}<br>`;
-                        });
-                    }
-                    // Show score at the bottom
-                    if (typeof data.score === 'number') {
-                        outputHtml += `<hr><strong>Score: ${data.score}/10</strong>`;
-                    }
-                    outputHtml += `</div>`;
+                    .then(response => response.json())
+                    .then(data => {
+                        // Format test results
+                        let outputHtml = `<div>`;
+                        outputHtml += `<strong>Running test cases...</strong><br>`;
+                        if (data.results && Array.isArray(data.results)) {
+                            data.results.forEach((test, idx) => {
+                                const pass = test.passed;
+                                const tick = pass ? '✅' : '';
+                                const cross = pass ? '' : '❌';
+                                // Fix undefined/blank output
+                                const actualOutput = (test.actual_output === undefined || test.actual_output === null || test.actual_output === '') ? '""' : test.actual_output;
+                                const expectedOutput = (test.expected_output === undefined || test.expected_output === null || test.expected_output === '') ? '""' : test.expected_output;
+                                outputHtml += `<div class="output-test">`;
+                                outputHtml += `<strong>Test ${idx + 1}: ${test.name || ''}</strong>, Inputs: <code>${JSON.stringify(test.inputs)}</code><br>`;
+                                outputHtml += `Expected Output: <code>${expectedOutput}</code><br>`;
+                                if (test.error) {
+                                    outputHtml += `<span class="output-error">Error: ${test.error}</span><br>`;
+                                } else {
+                                    outputHtml += `Actual Output:&nbsp;&nbsp;&nbsp;<code>${actualOutput}</code><br>`;
+                                }
+                                outputHtml += `Result: <span class="output-result">${pass ? 'PASS' : 'FAIL'} ${tick}${cross}</span>`;
+                                if (!pass) outputHtml += ` <span class="output-penalty">score -2</span>`;
+                                outputHtml += `</div>`;
+                            });
+                        }
+                        outputHtml += `<hr><strong>Running style checks...</strong><br>`;
+                        // Only show style feedback (not test feedback) here
+                        if (data.feedback && Array.isArray(data.feedback)) {
+                            // Filter out test feedback lines (those starting with 'Test "') and score line
+                            const styleFeedback = data.feedback.filter(line =>
+                                !/^Test "\w+/.test(line) && !/^Score: /.test(line)
+                            );
+                            styleFeedback.forEach(line => {
+                                outputHtml += `${line}<br>`;
+                            });
+                        }
+                        // Show score at the bottom
+                        if (typeof data.score === 'number') {
+                            outputHtml += `<hr><strong>Score: ${data.score}/10</strong>`;
+                        }
+                        outputHtml += `</div>`;
 
-                    // Write output to output window
-                    const outputWindow = document.getElementById('output-window');
-                    if (outputWindow) {
-                        outputWindow.innerHTML = outputHtml;
-                    }
+                        // Write output to output window
+                        const outputWindow = document.getElementById('output-window');
+                        if (outputWindow) {
+                            outputWindow.innerHTML = outputHtml;
+                        }
 
-                    // Update tab score and tooltip
-                    updateStyleScore(currentTab, data.score, data.feedback);
-                })
-                .catch(error => {
-                    const outputWindow = document.getElementById('output-window');
-                    if (outputWindow) {
-                        outputWindow.textContent = 'Error running tests: ' + error;
-                    }
-                });
+                        // Update tab score and tooltip
+                        updateStyleScore(currentTab, data.score, data.feedback);
+                    })
+                    .catch(error => {
+                        const outputWindow = document.getElementById('output-window');
+                        if (outputWindow) {
+                            outputWindow.textContent = 'Error running tests: ' + error;
+                        }
+                    });
             });
         })
         .catch(error => console.error('Error loading test cases:', error));

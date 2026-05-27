@@ -7,7 +7,8 @@
       "WebFetch(domain:qualifications.pearson.com)",
       "WebFetch(domain:www.ocr.org.uk)",
       "WebFetch(domain:filestore.aqa.org.uk)",
-      "WebFetch(domain:www.eduqas.co.uk)"
+      "WebFetch(domain:www.eduqas.co.uk)",
+      "WebFetch(domain:time2code.today)"
     ]
   }
 }

@@ -14,12 +14,24 @@
         <nav style="float: right;">
             <a href="{{ url_for('home') }}">Home</a>
             <a href="{{ url_for('about') }}">About</a>
+            <button id="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">💡</button>
         </nav>
     </header>
     <main>
         {% block content %}
         {% endblock %}
     </main>
+    <script>
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            if (typeof codeMirrorEditor !== 'undefined' && codeMirrorEditor) {
+                codeMirrorEditor.setOption('theme', isDark ? 'material' : 'default');
+            }
+            if (typeof repaintTabFills === 'function') repaintTabFills();
+        }
+        if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+    </script>
     <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
 </body>
 

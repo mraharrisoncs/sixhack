@@ -4,25 +4,25 @@ difficulty = "easy"
 
 [[test_cases]]
 number = 1
-name = "normal1"
+name = "Normal - EUR to GBP"
 inputs = ["E100"]
 expected_output = "£85.0\n"
 
 [[test_cases]]
 number = 2
-name = "normal2"
+name = "Normal - GBP to EUR"
 inputs = ["£34.53"]
 expected_output = "€40.62\n"
 
 [[test_cases]]
 number = 3
-name = "boundary"
+name = "Boundary - zero amount"
 inputs = ["e0"]
 expected_output = "£0.0\n"
 
 [[test_cases]]
 number = 4
-name = "extreme"
+name = "Normal - large EUR"
 inputs = ["€1000"]
 expected_output = "£850.0\n"
 !SIX.'''

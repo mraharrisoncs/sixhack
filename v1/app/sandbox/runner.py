@@ -39,7 +39,7 @@ def run_code(code, inputs):
                 return {"error": "Ran out of inputs — check your test case supplies enough values."}
             return {"error": stderr}
 
-        return {"output": process.stdout.decode('utf-8', errors='replace').strip()}
+        return {"output": process.stdout.decode('utf-8', errors='replace').replace('\r\n', '\n').strip()}
     except subprocess.CalledProcessError as e:
         stderr = e.stderr.strip()
         if "EOFError" in stderr:

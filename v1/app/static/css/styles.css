@@ -3,13 +3,13 @@ body {
     font-family: Tahoma, sans-serif;
     margin: 10px;
     padding: 0;
-    background: linear-gradient(to bottom, cyan, slategray);
-    color: #333;
+    background: linear-gradient(to bottom, #D4E0F7, #b8caf0);
+    color: #210934;
 }
 
 header {
-    background: #35424a;
-    color: #ffffff;
+    background: SteelBlue;
+    color: #D4E0F7;
     padding: 10px 0;
     text-align: center;
 }
@@ -33,13 +33,29 @@ nav {
 }
 
 nav a {
-    color: #ffffff;
+    color: #D4E0F7;
     text-decoration: none;
     padding: 10px 15px;
 }
 
 nav a:hover {
     background: #e8491d;
+}
+
+#theme-toggle {
+    background: none;
+    border: none;
+    box-shadow: none;
+    font-size: 20px;
+    padding: 6px 10px;
+    margin: 0;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+#theme-toggle:active {
+    background: none;
+    box-shadow: none;
 }
 
 .container {
@@ -111,22 +127,28 @@ footer {
     width: 100%;
 }
 
-/* Buttons with 3D beveled effect */
+/* Buttons */
 button {
     font-family: Tahoma, sans-serif;
     font-size: 14px;
     padding: 10px 15px;
     margin: 5px;
-    border: 2px solid #000;
+    border: 2px solid #1258DC;
     border-radius: 5px;
-    background: linear-gradient(to bottom, #e0e0e0, #a0a0a0);
-    box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
+    background: linear-gradient(to bottom, #1258DC, #2E2FE3);
+    color: #ffffff;
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.3);
     cursor: pointer;
 }
 
+button:hover {
+    background: linear-gradient(to bottom, #700CBC, #2E2FE3);
+    border-color: #700CBC;
+}
+
 button:active {
-    background: linear-gradient(to bottom, #a0a0a0, #e0e0e0);
-    box-shadow: inset 2px 2px 2px rgba(0, 0, 0, 0.5);
+    background: linear-gradient(to bottom, #2E2FE3, #1258DC);
+    box-shadow: inset 2px 2px 2px rgba(0, 0, 0, 0.4);
 }
 
 /* Button container to align buttons horizontally */
@@ -140,15 +162,15 @@ button:active {
     box-sizing: border-box;
 }
 
-/* Text boxes with slate gradient background, black border, and drop shadow */
+/* Text boxes */
 textarea,
 input,
 select {
     font-family: "Lucida Console", monospace;
-    background: linear-gradient(to bottom, #708090, #2f4f4f);
-    color: white;
-    border: 2px solid black;
-    box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
+    background: #ffffff;
+    color: #210934;
+    border: 2px solid #1258DC;
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.2);
     border-radius: 5px;
     padding: 10px;
     width: 100%;
@@ -158,14 +180,15 @@ select {
 /* Placeholder text for the output window */
 #output:empty::before {
     content: "Output will appear here...";
-    color: white;
+    color: gray;
     font-style: italic;
 }
 
 #program-dropdown {
     margin-bottom: 10px;
-    color: #111;
-    background: linear-gradient(to bottom, #d0d0d0, #a0a0a0);
+    color: #210934;
+    background: #D4E0F7;
+    border-color: #1258DC;
     font-family: Tahoma, sans-serif;
     font-size: 15px;
 }
@@ -173,15 +196,18 @@ select {
 /* Tab buttons container */
 #tab-buttons {
     display: flex;
-    gap: 0; /* Remove space between tabs */
-    margin-bottom: 0; /* Remove margin between tabs and input box */
+    gap: 0;
+    /* Remove space between tabs */
+    margin-bottom: 0;
+    /* Remove margin between tabs and input box */
 }
 
 /* Individual tab buttons */
 .tab-button {
     padding: 10px 15px;
     border: 1px solid #333;
-    background: linear-gradient(to right, #333, #111); /* Default background */
+    background: linear-gradient(to right, #333, #111);
+    /* Default background */
     color: white;
     cursor: pointer;
     border-radius: 10px 10px 0 0;
@@ -195,7 +221,8 @@ select {
 
 /* Hover effect for tab buttons */
 .tab-button:hover {
-    background: linear-gradient(to bottom, #444, #222); /* Slightly lighter on hover */
+    background: linear-gradient(to bottom, #444, #222);
+    /* Slightly lighter on hover */
 }
 
 /* Active tab button */
@@ -206,51 +233,39 @@ select {
 
 /* Tab content container */
 #tab-content {
-    border: none; /* Remove the border */
-    padding: 0; /* Remove padding */
-    background-color: transparent; /* Make the background transparent */
+    border: none;
+    /* Remove the border */
+    padding: 0;
+    /* Remove padding */
+    background-color: transparent;
+    /* Make the background transparent */
 }
 
 /* Input container for clear button, run button, and input box */
 .input-container {
     display: flex;
-    align-items: center; /* Align items vertically */
-    gap: 10px; /* Add spacing between buttons and input box */
-    margin-top: 10px; /* Add some spacing from the tabs above */
-}
-
-/* Clear button */
-#clear-button {
-    padding: 5px 10px;
-    background-color: #f44336;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 16px; /* Slightly larger font for the broom icon */
-    height: 40px; /* Match the height of the input box */
-    display: flex;
     align-items: center;
-    justify-content: center;
+    /* Align items vertically */
+    gap: 10px;
+    /* Add spacing between buttons and input box */
+    margin-top: 10px;
+    /* Add some spacing from the tabs above */
 }
 
-#clear-button:hover {
-    background-color: #d32f2f;
-}
-
-/* Run button */
+/* Clear and Run buttons — fixed equal size */
+#clear-button,
 #run-button {
-    padding: 5px 10px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
+    padding: 0;
+    width: 44px;
+    height: 40px;
+    font-size: 16px;
     border-radius: 3px;
+    border: none;
     cursor: pointer;
-    font-size: 16px; /* Slightly larger font for the play icon */
-    height: 40px; /* Match the height of the input box */
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 #run-button:hover {
@@ -259,13 +274,14 @@ select {
 
 /* Input box */
 #input-box {
-    flex: 1; /* Allow the input box to take up remaining space */
-    height: 40px; /* Match the height of the buttons */
+    flex: 1;
+    height: 40px;
     font-family: "Lucida Console", monospace;
     font-size: 14px;
     padding: 10px;
-    background-color: #e0ffee;
-    border: 2px solid #000000;
+    background-color: #eef2fc;
+    color: #210934;
+    border: 2px solid #1258DC;
     border-radius: 5px;
     box-sizing: border-box;
 }
@@ -273,26 +289,13 @@ select {
 /* Bottom buttons container */
 .bottom-buttons {
     display: flex;
-    justify-content: flex-end; /* Align buttons to the right */
-    gap: 10px; /* Add spacing between buttons */
+    justify-content: flex-end;
+    /* Align buttons to the right */
+    gap: 10px;
+    /* Add spacing between buttons */
     margin-top: 10px;
 }
 
-#save-button,
-#load-db-button {
-    padding: 10px 15px;
-    background-color: #35424a;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-#save-button:hover,
-#load-db-button:hover {
-    background-color: #2f3b45;
-}
 
 /* Code tabs container */
 #code-tabs {
@@ -305,12 +308,15 @@ select {
 #code-tabs .tab-button {
     padding: 10px 15px;
     border: 1px solid #333;
-    background: linear-gradient(to right, #333, #111); /* Default background */
+    background: linear-gradient(to right, #333, #111);
+    /* Default background */
     color: white;
     cursor: pointer;
-    border-radius: 10px 10px 0 0; /* Rounded top corners */
+    border-radius: 10px 10px 0 0;
+    /* Rounded top corners */
     font-size: 14px;
-    flex: 1; /* Make all tabs equal width */
+    flex: 1;
+    /* Make all tabs equal width */
     text-align: center;
     transition: background 0.3s;
     position: relative;
@@ -323,16 +329,19 @@ select {
 
 #code-tabs .tab-button.active {
     font-weight: bold;
-    border-bottom: 2px solid #555; /* Blend with the tab content */
+    border-bottom: 2px solid #555;
+    /* Blend with the tab content */
 }
 
 #all-tests-button {
-    background: linear-gradient(to right, #2e7d32, #1b5e20);
-    border-color: #2e7d32;
+    background: linear-gradient(to right, #700CBC, #210934);
+    border-color: #700CBC;
+    color: white;
 }
 
 #all-tests-button:hover {
-    background: linear-gradient(to right, #388e3c, #2e7d32);
+    background: linear-gradient(to right, #2E2FE3, #700CBC);
+    border-color: #2E2FE3;
 }
 
 /* Code container and test container textareas */
@@ -351,13 +360,16 @@ select {
 /* Ensure the test-container elements are displayed side by side */
 .test-container {
     display: flex;
-    align-items: center; /* Vertically align buttons and textarea */
-    gap: 10px; /* Add spacing between buttons and textarea */
+    align-items: center;
+    /* Vertically align buttons and textarea */
+    gap: 10px;
+    /* Add spacing between buttons and textarea */
 }
 
 /* Style for the buttons */
 .test-container button {
-    height: 40px; /* Match the height of the input box */
+    height: 40px;
+    /* Match the height of the input box */
     padding: 5px 10px;
     font-size: 16px;
     border: none;
@@ -368,29 +380,28 @@ select {
     justify-content: center;
 }
 
-/* Style for the Clear button */
 #clear-button {
-    background-color: #f44336;
+    background: DarkOrchid;
     color: white;
 }
 
 #clear-button:hover {
-    background-color: #d32f2f;
+    background: #700CBC;
 }
 
-/* Style for the Run button */
 #run-button {
-    background-color: #4CAF50;
+    background: #1258DC;
     color: white;
 }
 
 #run-button:hover {
-    background-color: #45a049;
+    background: #700CBC;
 }
 
 /* Style for the input box */
 .test-container textarea {
-    flex: 1; /* Allow the textarea to take up remaining space */
+    flex: 1;
+    /* Allow the textarea to take up remaining space */
     height: 40px;
     font-family: "Lucida Console", monospace;
     font-size: 14px;
@@ -414,7 +425,10 @@ select {
 }
 
 /* Hide meter and meter-label elements if still present */
-meter, [id^="meter-label-"], .meter-container, .meter-feedback {
+meter,
+[id^="meter-label-"],
+.meter-container,
+.meter-feedback {
     display: none !important;
 }
 
@@ -431,7 +445,7 @@ meter, [id^="meter-label-"], .meter-container, .meter-feedback {
 .total-score-text {
     font-size: 2em;
     font-weight: bold;
-    color: #222;
+    color: #210934;
 }
 
 .total-score-meter {
@@ -439,9 +453,12 @@ meter, [id^="meter-label-"], .meter-container, .meter-feedback {
     height: 32px;
     margin-left: 20px;
     border-radius: 10px;
-    background: #eee;
-    accent-color: #4CAF50;
+    accent-color: #700CBC;
 }
+
+.total-score-meter::-webkit-progress-bar   { background: #ddd; border-radius: 10px; }
+.total-score-meter::-webkit-progress-value { background: #700CBC; border-radius: 10px; }
+.total-score-meter::-moz-progress-bar      { background: #700CBC; border-radius: 10px; }
 
 /* Tooltip for tabs */
 .tab-tooltip {
@@ -450,11 +467,113 @@ meter, [id^="meter-label-"], .meter-container, .meter-feedback {
     z-index: 1000;
     max-width: 400px;
     background: #fff;
-    border: 1px solid #333;
+    border: 1px solid #1258DC;
+    color: #210934;
     padding: 8px;
     border-radius: 6px;
     white-space: pre-wrap;
     font-size: 0.95em;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    box-shadow: 0 2px 8px rgba(18, 88, 220, 0.2);
 }
 
+/* ── Output window classes ──────────────────────────────── */
+.output-error   { color: #cc2200; }
+.output-penalty { color: #cc2200; }
+.output-result  { font-weight: bold; }
+.output-test    { margin-bottom: 8px; }
+
+body.dark .output-error,
+body.dark .output-penalty { color: #ff6666; }
+
+/* ── Light theme output overrides ──────────────────────── */
+body:not(.dark) #output-window {
+    background: #ffffff;
+    color: #210934;
+    border: 2px solid #1258DC;
+}
+
+body:not(.dark) #output {
+    color: #210934;
+}
+
+body:not(.dark) #output:empty::before {
+    color: #888;
+}
+
+/* ── Dark theme ─────────────────────────────────────────── */
+body.dark header {
+    background: MidnightBlue;
+}
+
+body.dark {
+    background: linear-gradient(to bottom, midnightblue, darkslategray);
+    color: #f0ffff;
+}
+
+body.dark .total-score-text {
+    color: #f0ffff;
+}
+
+body.dark .tab-tooltip {
+    background: #1e2a35;
+    border-color: #555;
+    color: #f0ffff;
+}
+
+body.dark textarea,
+body.dark input,
+body.dark select {
+    background: linear-gradient(to bottom, #1e2a35, #162028);
+    color: #f0ffff;
+    border-color: #445;
+}
+
+body.dark #input-box {
+    background: #1e2a35;
+    color: #f0ffff;
+    border-color: #445;
+}
+
+body.dark #program-dropdown {
+    background: #273238;
+    color: #f0ffff;
+}
+
+body.dark button {
+    background: linear-gradient(to bottom, #2e3f4f, #1a2a35);
+    color: #f0ffff;
+    border-color: #445;
+}
+
+body.dark button:active {
+    background: linear-gradient(to bottom, #1a2a35, #2e3f4f);
+}
+
+body.dark #clear-button {
+    background: RebeccaPurple;
+    color: #f0ffff;
+}
+
+body.dark #clear-button:hover {
+    background: #7b2fbe;
+}
+
+body.dark #run-button {
+    background: steelblue;
+    border-color: #2a6090;
+    color: #f0ffff;
+}
+
+body.dark .total-score-meter {
+    accent-color: steelblue;
+}
+
+body.dark .total-score-meter::-webkit-progress-bar   { background: #1a2a35; border-radius: 10px; }
+body.dark .total-score-meter::-webkit-progress-value { background: steelblue; border-radius: 10px; }
+body.dark .total-score-meter::-moz-progress-bar      { background: steelblue; border-radius: 10px; }
+
+body.dark #all-tests-button {
+    background: linear-gradient(to right, steelblue, #1a3a5c);
+    color: #f0ffff;
+    border-color: steelblue;
+}
