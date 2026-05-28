@@ -9,7 +9,8 @@
       "WebFetch(domain:filestore.aqa.org.uk)",
       "WebFetch(domain:www.eduqas.co.uk)",
       "WebFetch(domain:time2code.today)",
-      "Bash(del \"c:\\\\Users\\\\alan\\\\OneDrive\\\\Git\\\\sixhack\\\\v1\\\\app\\\\forms.py\")"
+      "Bash(del \"c:\\\\Users\\\\alan\\\\OneDrive\\\\Git\\\\sixhack\\\\v1\\\\app\\\\forms.py\")",
+      "PowerShell(Move-Item \"c:\\\\Users\\\\alan\\\\OneDrive\\\\Git\\\\sixhack\\\\v1\\\\app\\\\templates\\\\sixhack_bg.svg\" \"c:\\\\Users\\\\alan\\\\OneDrive\\\\Git\\\\sixhack\\\\v1\\\\app\\\\static\\\\sixhack_bg.svg\")"
     ]
   }
 }

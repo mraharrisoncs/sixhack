@@ -4,6 +4,9 @@ body {
     margin: 10px;
     padding: 0;
     background: linear-gradient(to bottom, #D4E0F7, #b8caf0);
+    background-image: url('/static/sixhack_bg.svg');
+    background-size: cover;
+    background-attachment: fixed;
     color: #210934;
 }
 
@@ -275,6 +278,82 @@ select {
 .total-score-meter::-webkit-progress-bar   { background: #ddd; border-radius: 10px; }
 .total-score-meter::-webkit-progress-value { background: #c49ad8; border-radius: 10px; }
 .total-score-meter::-moz-progress-bar      { background: #c49ad8; border-radius: 10px; }
+
+/* ── Tab copy popover ───────────────────────────────────── */
+#tab-copy-popover {
+    display: none;
+    position: fixed;
+    z-index: 8000;
+    background: #ffffff;
+    border: 2px solid #1258DC;
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(18, 88, 220, 0.2);
+    padding: 6px 0;
+    min-width: 160px;
+    font-family: 'Exo 2', Tahoma, sans-serif;
+    font-size: 13px;
+}
+
+#tab-copy-popover .popover-title {
+    padding: 4px 12px 6px;
+    font-weight: 600;
+    color: #1258DC;
+    border-bottom: 1px solid #d0dcf4;
+    margin-bottom: 4px;
+}
+
+#tab-copy-popover button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 5px 12px;
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    color: #210934;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+#tab-copy-popover button:hover {
+    background: #d4e0f7;
+    border: none;
+    color: #210934;
+}
+
+#tab-copy-popover .popover-all {
+    border-top: 1px solid #d0dcf4;
+    margin-top: 4px;
+    padding-top: 4px;
+    font-weight: 600;
+    color: #700CBC;
+}
+
+body.dark #tab-copy-popover {
+    background: #1e2a35;
+    border-color: #1258DC;
+}
+
+body.dark #tab-copy-popover .popover-title {
+    color: #7ab3f5;
+    border-bottom-color: #2e3f4f;
+}
+
+body.dark #tab-copy-popover button {
+    color: #d8d8d8;
+}
+
+body.dark #tab-copy-popover button:hover {
+    background: #2e3f4f;
+    color: #d8d8d8;
+}
+
+body.dark #tab-copy-popover .popover-all {
+    border-top-color: #2e3f4f;
+    color: #c49ad8;
+}
 
 /* ── Tooltip ────────────────────────────────────────────── */
 .tab-tooltip {

@@ -146,6 +146,15 @@ document.addEventListener('DOMContentLoaded', () => {
     tabTooltip.className = 'tab-tooltip';
     document.body.appendChild(tabTooltip);
 
+    // Copy-to popover (right-click on a style tab)
+    const copyPopover = document.createElement('div');
+    copyPopover.id = 'tab-copy-popover';
+    document.body.appendChild(copyPopover);
+
+    const dismissPopover = () => { copyPopover.style.display = 'none'; };
+    document.addEventListener('click', dismissPopover);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') dismissPopover(); });
+
     fetch('/sandbox/styles')
         .then(r => r.json())
         .then(styles => {
@@ -172,6 +181,50 @@ document.addEventListener('DOMContentLoaded', () => {
                         tabCodes[currentTab] = originalCode ? style.code_version + originalCode : '';
                     }
                     if (tabCodes[currentTab]) codeMirrorEditor.setValue(tabCodes[currentTab]);
+                });
+
+                button.addEventListener('contextmenu', e => {
+                    e.preventDefault();
+
+                    // Snapshot current editor into its tab before showing popover
+                    if (currentTab !== null) tabCodes[currentTab] = codeMirrorEditor.getValue();
+
+                    const sourceKey = style.key;
+                    const sourceCode = tabCodes[sourceKey] || '';
+                    const targets = styles.filter(s => s.key !== sourceKey);
+
+                    copyPopover.innerHTML = `<div class="popover-title">Copy code to…</div>`;
+
+                    targets.forEach(target => {
+                        const btn = document.createElement('button');
+                        btn.textContent = target.name;
+                        btn.addEventListener('click', () => {
+                            tabCodes[target.key] = sourceCode;
+                            if (currentTab === target.key) codeMirrorEditor.setValue(sourceCode);
+                            dismissPopover();
+                        });
+                        copyPopover.appendChild(btn);
+                    });
+
+                    const allBtn = document.createElement('button');
+                    allBtn.textContent = 'All tabs';
+                    allBtn.className = 'popover-all';
+                    allBtn.addEventListener('click', () => {
+                        targets.forEach(target => {
+                            tabCodes[target.key] = sourceCode;
+                            if (currentTab === target.key) codeMirrorEditor.setValue(sourceCode);
+                        });
+                        dismissPopover();
+                    });
+                    copyPopover.appendChild(allBtn);
+
+                    // Position near the tab, keeping within viewport
+                    const rect = button.getBoundingClientRect();
+                    copyPopover.style.display = 'block';
+                    const pw = copyPopover.offsetWidth;
+                    const left = Math.min(rect.left, window.innerWidth - pw - 8);
+                    copyPopover.style.left = `${left}px`;
+                    copyPopover.style.top  = `${rect.bottom + 4}px`;
                 });
             });
 
