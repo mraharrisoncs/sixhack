@@ -1,26 +1,24 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="flex-container">
-    <!-- Sandbox on the left -->
+
+    <!-- Left: challenge selector + code editor -->
     <div class="sandbox-container">
-        <!-- Dropdown above the sandbox -->
         <select id="program-dropdown">
             <option value="" disabled selected>Select a challenge</option>
         </select>
         <form id="sandbox-form">
-            <!-- Tabs for different code versions -->
             <div id="code-tabs">
-                <!-- Tabs will be dynamically added here -->
+                <!-- Style tabs injected by scripts.js -->
             </div>
             <div class="code-container">
-                <textarea id="code-input" rows="20" cols="50" placeholder="Write your Python code here..."></textarea>
+                <textarea id="code-input"></textarea>
             </div>
         </form>
     </div>
 
-    <!-- Input and Output on the right -->
+    <!-- Right: input, test tabs, output, score -->
     <div class="output-container">
-        <!-- Input row -->
         <div class="test-container">
             <button id="clear-button">🧹</button>
             <button id="run-button">▶</button>
@@ -28,9 +26,8 @@
                 placeholder="Type input e.g. [0,1] or click a tab above"></textarea>
         </div>
 
-        <!-- Test case tabs -->
         <div id="tab-buttons">
-            <!-- Numbered test buttons will be dynamically added here -->
+            <!-- Test case tabs injected by scripts.js -->
         </div>
 
         <div id="output-window">
@@ -41,22 +38,18 @@
             <span id="total-score-text" class="total-score-text">Total Score: 0 / 60</span>
             <progress id="total-score-meter" max="60" value="0" class="total-score-meter"></progress>
         </div>
+
         <div class="bottom-buttons">
             <button id="save-game-button">Save Game</button>
             <button id="load-game-button">Load Game</button>
             <input type="file" id="load-game-input" style="display:none" accept=".json">
         </div>
     </div>
+
 </div>
 
-<!-- CodeMirror CSS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
-<!-- CodeMirror Theme (optional) -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material.min.css">
-
-<!-- CodeMirror JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
-<!-- Python mode -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
-
 {% endblock %}

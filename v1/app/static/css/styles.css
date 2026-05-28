@@ -1,4 +1,4 @@
-/* General page font */
+/* ── Base ───────────────────────────────────────────────── */
 body {
     font-family: 'Exo 2', Tahoma, sans-serif;
     margin: 10px;
@@ -14,23 +14,11 @@ header {
     text-align: center;
 }
 
-h1 {
-    text-align: center;
-    margin-top: 20px;
-}
+h1 { text-align: center; margin-top: 20px; }
+h2 { text-align: center; margin-top: 15px; }
+p  { margin-left: 20px; }
 
-h2 {
-    text-align: center;
-    margin-top: 15px;
-}
-
-p {
-    margin-left: 20px;
-}
-
-nav {
-    margin: 20px 0;
-}
+nav { margin: 20px 0; }
 
 nav a {
     color: #D4E0F7;
@@ -38,9 +26,7 @@ nav a {
     padding: 10px 15px;
 }
 
-nav a:hover {
-    background: #e8491d;
-}
+nav a:hover { background: #e8491d; }
 
 #theme-toggle {
     background: none;
@@ -58,48 +44,7 @@ nav a:hover {
     box-shadow: none;
 }
 
-.container {
-    width: 90%;
-    margin: 0 auto;
-    overflow: hidden;
-}
-
-#code-input {
-    /*width: 100%;*/
-    height: 300px;
-    font-family: "Lucida Console", monospace;
-    font-size: 14px;
-    padding: 10px;
-    background-color: #e0ffee;
-    border: 2px solid #000000;
-    border-radius: 10px;
-    box-sizing: border-box;
-}
-
-#output-window {
-    color: #fff;
-    background: #222;
-    padding: 12px;
-    margin-top: 0;
-    border-radius: 0 0 8px 8px;
-    font-family: monospace;
-}
-
-#output {
-    font-family: "Lucida Console", monospace;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    color: white;
-}
-
-/* Placeholder text for the output window */
-#output:empty::before {
-    content: "Output will appear here...";
-    color: gray;
-    font-size: 0.85em;
-}
-
-/* Flex container for sandbox and output */
+/* ── Layout ─────────────────────────────────────────────── */
 .flex-container {
     display: flex;
     justify-content: space-between;
@@ -108,14 +53,12 @@ nav a:hover {
     margin-top: 10px;
 }
 
-/* Sandbox container (left) */
 .sandbox-container {
     flex: 1;
     max-width: 100%;
     margin-bottom: 10px;
 }
 
-/* Output container (right) */
 .output-container {
     flex: 1;
     max-width: 100%;
@@ -125,17 +68,7 @@ nav a:hover {
     margin-left: 6px;
 }
 
-footer {
-    background: #35424a;
-    color: white;
-    text-align: center;
-    padding: 10px 0;
-    position: relative;
-    bottom: 0;
-    width: 100%;
-}
-
-/* Buttons */
+/* ── Buttons ────────────────────────────────────────────── */
 button {
     font-family: 'Exo 2', Tahoma, sans-serif;
     font-size: 14px;
@@ -159,18 +92,14 @@ button:active {
     box-shadow: inset 2px 2px 2px rgba(0, 0, 0, 0.4);
 }
 
-/* Button container to align buttons horizontally */
-.button-container {
+.bottom-buttons {
     display: flex;
-    justify-content: flex-start;
+    justify-content: flex-end;
     gap: 10px;
-    margin-bottom: 10px;
-    width: 100%;
-    padding: 10px;
-    box-sizing: border-box;
+    margin-top: 10px;
 }
 
-/* Text boxes */
+/* ── Form controls ──────────────────────────────────────── */
 textarea,
 input,
 select {
@@ -196,74 +125,14 @@ select {
     font-size: 15px;
 }
 
-/* Tab buttons container */
-#tab-buttons {
-    display: flex;
-    gap: 0;
-    margin-top: 8px;
-    margin-bottom: 0;
-    width: 100%;
-}
-
-/* Individual tab buttons */
-.tab-button {
-    padding: 0 15px;
-    margin: 0;
-    height: 40px;
-    border: 1px solid #333;
-    background: linear-gradient(to right, #333, #111);
-    color: white;
-    cursor: pointer;
-    border-radius: 10px 10px 0 0;
-    font-size: 14px;
-    flex: 1;
-    min-width: 0;
-    text-align: center;
-    transition: background 0.3s;
-    position: relative;
-    z-index: 1;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-
-/* Hover effect for tab buttons */
-.tab-button:hover {
-    background: linear-gradient(to bottom, #444, #222);
-    /* Slightly lighter on hover */
-}
-
-/* Active tab button */
-.tab-button.active {
-    font-weight: bold;
-    background: linear-gradient(to right, #1a6090, #1258DC);
-    border-color: #1258DC;
-    border-bottom: 2px solid #1258DC;
-    color: #ffffff;
-}
-
-/* Tab content container */
-#tab-content {
-    border: none;
-    /* Remove the border */
-    padding: 0;
-    /* Remove padding */
-    background-color: transparent;
-    /* Make the background transparent */
-}
-
-/* Input container for clear button, run button, and input box */
-.input-container {
+/* ── Input row (clear / run / input box) ────────────────── */
+.test-container {
     display: flex;
     align-items: center;
-    /* Align items vertically */
     gap: 10px;
-    /* Add spacing between buttons and input box */
-    margin-top: 10px;
-    /* Add some spacing from the tabs above */
+    margin-top: 2px;
 }
 
-/* Clear and Run buttons — fixed equal size */
 #clear-button,
 #run-button {
     padding: 0;
@@ -280,11 +149,12 @@ select {
     flex-shrink: 0;
 }
 
-#run-button:hover {
-    background-color: #45a049;
-}
+#clear-button { background: #1258DC; color: white; }
+#clear-button:hover { background: #700CBC; }
 
-/* Input box */
+#run-button { background: #1258DC; color: white; }
+#run-button:hover { background: #700CBC; }
+
 #input-box {
     flex: 1;
     height: 44px;
@@ -299,115 +169,85 @@ select {
     box-sizing: border-box;
 }
 
-/* Bottom buttons container */
-.bottom-buttons {
-    display: flex;
-    justify-content: flex-end;
-    /* Align buttons to the right */
-    gap: 10px;
-    /* Add spacing between buttons */
-    margin-top: 10px;
-}
-
-
-/* Code tabs container */
-#code-tabs {
+/* ── Tab buttons (shared by style tabs and test case tabs) ─ */
+#code-tabs,
+#tab-buttons {
     display: flex;
     gap: 0;
     margin-bottom: 0;
     width: 100%;
 }
 
+#tab-buttons { margin-top: 10px; }
 
-/* Code container and test container textareas */
-.code-container textarea,
-.test-container textarea {
-    width: 100%;
+.tab-button {
+    padding: 0 15px;
+    margin: 0;
     height: 40px;
-    font-family: "Lucida Console", monospace;
-    font-size: 14px;
-    padding: 10px;
-    border: 2px solid #000;
-    border-radius: 5px;
-    box-sizing: border-box;
-}
-
-/* Ensure the test-container elements are displayed side by side */
-.test-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 2px;
-    /* Add spacing between buttons and textarea */
-}
-
-/* Style for the buttons */
-.test-container button {
-    height: 40px;
-    /* Match the height of the input box */
-    padding: 5px 10px;
-    font-size: 16px;
-    border: none;
-    border-radius: 3px;
+    border: 2px solid #1258DC;
+    background: linear-gradient(to right, #b8caf0, #d4e0f7);
+    color: #210934;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#clear-button {
-    background: DarkOrchid;
-    color: white;
-}
-
-#clear-button:hover {
-    background: #700CBC;
-}
-
-#run-button {
-    background: #1258DC;
-    color: white;
-}
-
-#run-button:hover {
-    background: #700CBC;
-}
-
-/* Style for the input box */
-.test-container textarea {
-    flex: 1;
-    /* Allow the textarea to take up remaining space */
-    height: 40px;
-    font-family: "Lucida Console", monospace;
+    border-radius: 10px 10px 0 0;
     font-size: 14px;
-    padding: 10px;
-    border: 2px solid #000;
-    border-radius: 5px;
-    box-sizing: border-box;
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+    transition: background 0.3s;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
-/* CodeMirror */
+.tab-button:hover { background: linear-gradient(to right, #a0bce8, #b8caf0); }
+
+.tab-button.active {
+    font-weight: bold;
+    background: linear-gradient(to right, #1a6090, #1258DC);
+    border-color: #1258DC;
+    border-bottom: none;
+    color: #ffffff;
+}
+
+/* ── Output window ──────────────────────────────────────── */
+#output-window {
+    color: #fff;
+    background: #222;
+    padding: 12px;
+    margin-top: 0;
+    border-radius: 0 0 8px 8px;
+    font-family: monospace;
+}
+
+#output {
+    font-family: "Lucida Console", monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: white;
+}
+
+#output:empty::before {
+    content: "Output will appear here...";
+    color: gray;
+    font-size: 0.85em;
+}
+
+.output-error   { color: #cc2200; }
+.output-penalty { color: #cc2200; }
+.output-result  { font-weight: bold; }
+.output-test    { margin-bottom: 8px; }
+
+/* ── CodeMirror ─────────────────────────────────────────── */
 .CodeMirror {
     font-size: 15px;
     border: 2px solid #1258DC;
+    border-top: none;
     border-radius: 0 0 5px 5px;
 }
 
-/* Code container */
-.code-container {
-    width: 100%;
-    /* Optionally set a min-height or height */
-}
-
-/* Hide meter and meter-label elements if still present */
-meter,
-[id^="meter-label-"],
-.meter-container,
-.meter-feedback {
-    display: none !important;
-}
-
-/* Overall score at the bottom */
+/* ── Score row ──────────────────────────────────────────── */
 #overall-score-container {
     display: flex;
     align-items: center;
@@ -426,29 +266,17 @@ meter,
 .total-score-meter {
     width: 300px;
     height: 32px;
-    margin-left: 0;
     border-radius: 10px;
-    accent-color: #700CBC;
+    accent-color: #c49ad8;
     border: 2px solid #1258DC;
     box-sizing: border-box;
 }
 
-.total-score-meter::-webkit-progress-bar {
-    background: #ddd;
-    border-radius: 10px;
-}
+.total-score-meter::-webkit-progress-bar   { background: #ddd; border-radius: 10px; }
+.total-score-meter::-webkit-progress-value { background: #c49ad8; border-radius: 10px; }
+.total-score-meter::-moz-progress-bar      { background: #c49ad8; border-radius: 10px; }
 
-.total-score-meter::-webkit-progress-value {
-    background: #700CBC;
-    border-radius: 10px;
-}
-
-.total-score-meter::-moz-progress-bar {
-    background: #700CBC;
-    border-radius: 10px;
-}
-
-/* Tooltip for tabs */
+/* ── Tooltip ────────────────────────────────────────────── */
 .tab-tooltip {
     display: none;
     position: absolute;
@@ -487,20 +315,9 @@ meter,
     font-family: 'Exo 2', Tahoma, sans-serif;
 }
 
-#intro-modal h2 {
-    margin-top: 0;
-    color: #1258DC;
-}
-
-#intro-modal p {
-    margin-left: 0;
-    line-height: 1.6;
-}
-
-#intro-modal ul {
-    padding-left: 20px;
-    line-height: 1.8;
-}
+#intro-modal h2 { margin-top: 0; color: #1258DC; }
+#intro-modal p  { margin-left: 0; line-height: 1.6; }
+#intro-modal ul { padding-left: 20px; line-height: 1.8; }
 
 #intro-modal .modal-buttons {
     display: flex;
@@ -520,70 +337,42 @@ meter,
     cursor: pointer;
 }
 
-body.dark #intro-modal {
-    background: #1e2a35;
-    color: #d8d8d8;
-    border-color: #1258DC;
+/* ── Legacy element suppression ─────────────────────────── */
+/* Hides any old meter/progress elements that may remain in saved HTML */
+meter,
+[id^="meter-label-"],
+.meter-container,
+.meter-feedback {
+    display: none !important;
 }
 
-body.dark #intro-modal h2 {
-    color: #7ab3f5;
-}
-
-body.dark #intro-modal .modal-buttons label {
-    color: #aaa;
-}
-
-/* ── Output window classes ──────────────────────────────── */
-.output-error {
-    color: #cc2200;
-}
-
-.output-penalty {
-    color: #cc2200;
-}
-
-.output-result {
-    font-weight: bold;
-}
-
-.output-test {
-    margin-bottom: 8px;
-}
-
-body.dark .output-error,
-body.dark .output-penalty {
-    color: #ff6666;
-}
-
-/* ── Light theme output overrides ──────────────────────── */
+/* ── Light theme overrides ──────────────────────────────── */
 body:not(.dark) #output-window {
     background: #ffffff;
     color: #210934;
     border: 2px solid #1258DC;
+    border-top: none;
 }
 
-body:not(.dark) #output {
-    color: #210934;
-}
+body:not(.dark) #output { color: #210934; }
 
-body:not(.dark) #output:empty::before {
-    color: #888;
-}
+body:not(.dark) #output:empty::before { color: #888; }
 
 /* ── Dark theme ─────────────────────────────────────────── */
-body.dark header {
-    background: MidnightBlue;
-}
-
 body.dark {
     background: linear-gradient(to bottom, midnightblue, darkslategray);
     color: #d8d8d8;
 }
 
-body.dark .total-score-text {
+body.dark header { background: MidnightBlue; }
+
+body.dark .tab-button {
+    background: linear-gradient(to right, #333, #111);
+    border-color: #1258DC;
     color: #d8d8d8;
 }
+
+body.dark .tab-button:hover { background: linear-gradient(to right, #444, #222); }
 
 body.dark .tab-tooltip {
     background: #1e2a35;
@@ -602,7 +391,6 @@ body.dark select {
 body.dark #input-box {
     background: #1e2a35;
     color: #d8d8d8;
-    border-color: #1258DC;
 }
 
 body.dark #program-dropdown {
@@ -621,14 +409,12 @@ body.dark button:active {
 }
 
 body.dark #clear-button {
-    background: RebeccaPurple;
+    background: #1258DC;
     color: #d8d8d8;
     border: 2px solid #1258DC;
 }
 
-body.dark #clear-button:hover {
-    background: #7b2fbe;
-}
+body.dark #clear-button:hover { background: #700CBC; }
 
 body.dark #run-button {
     background: steelblue;
@@ -636,31 +422,31 @@ body.dark #run-button {
     color: #d8d8d8;
 }
 
-body.dark .total-score-meter {
-    accent-color: steelblue;
-}
-
-body.dark .total-score-meter::-webkit-progress-bar {
-    background: #1a2a35;
-    border-radius: 10px;
-}
-
-body.dark .total-score-meter::-webkit-progress-value {
-    background: steelblue;
-    border-radius: 10px;
-}
-
-body.dark .total-score-meter::-moz-progress-bar {
-    background: steelblue;
-    border-radius: 10px;
-}
-
-body.dark .CodeMirror {
-    border-color: #1258DC;
-}
+body.dark .output-error,
+body.dark .output-penalty { color: #ff6666; }
 
 body.dark #output-window {
     border: 2px solid #1258DC;
+    border-top: none;
     color: #d8d8d8;
 }
 
+body.dark .CodeMirror { border-color: #1258DC; }
+
+body.dark .total-score-text { color: #d8d8d8; }
+
+body.dark .total-score-meter { accent-color: #700CBC; }
+
+body.dark .total-score-meter::-webkit-progress-bar   { background: #1a2a35; border-radius: 10px; }
+body.dark .total-score-meter::-webkit-progress-value { background: #700CBC; border-radius: 10px; }
+body.dark .total-score-meter::-moz-progress-bar      { background: #700CBC; border-radius: 10px; }
+
+body.dark #intro-modal {
+    background: #1e2a35;
+    color: #d8d8d8;
+    border-color: #1258DC;
+}
+
+body.dark #intro-modal h2 { color: #7ab3f5; }
+
+body.dark #intro-modal .modal-buttons label { color: #aaa; }

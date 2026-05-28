@@ -3,6 +3,7 @@ from .models import db
 from .routes import setup_routes
 from .utils import populate_database
 
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object('config.Config')
@@ -12,6 +13,6 @@ def create_app():
     db.init_app(app)
 
     with app.app_context():
-        setup_routes(app)  # Register routes
-        populate_database()  # Clear and populate the database
+        setup_routes(app)
+        populate_database()
         return app

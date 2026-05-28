@@ -8,7 +8,8 @@
       "WebFetch(domain:www.ocr.org.uk)",
       "WebFetch(domain:filestore.aqa.org.uk)",
       "WebFetch(domain:www.eduqas.co.uk)",
-      "WebFetch(domain:time2code.today)"
+      "WebFetch(domain:time2code.today)",
+      "Bash(del \"c:\\\\Users\\\\alan\\\\OneDrive\\\\Git\\\\sixhack\\\\v1\\\\app\\\\forms.py\")"
     ]
   }
 }

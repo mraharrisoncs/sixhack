@@ -1,14 +1,21 @@
+"""Utilities for loading challenge files into the database and parsing style feedback."""
+
 import os
-import ast
-import tomllib
-import json  # Import json for handling test case inputs and outputs
+import json
 import re
+import tomllib
+
 from app.models import db, PythonProgram, TestCase
 
+
 def parse_program_file(filepath):
-    """Parse a program file to extract metadata and code."""
-    with open(filepath, 'r', encoding='utf-8') as file:
-        content = file.read()
+    """
+    Parse a challenge .py file, extracting embedded TOML metadata and the challenge code.
+    Metadata is delimited by '''!SIX: ... !SIX.'''.
+    Returns (metadata_dict, code_string).
+    """
+    with open(filepath, 'r', encoding='utf-8') as f:
+        content = f.read()
 
     if "'''!SIX:" in content and "!SIX.'''" in content:
         metadata_start = content.find("'''!SIX:") + len("'''!SIX:")
@@ -22,111 +29,55 @@ def parse_program_file(filepath):
 
     return metadata, code
 
-def parse_test_cases(filepath):
-    """Parse a JSON file to extract test cases."""
-    with open(filepath, 'r') as file:
-        return json.load(file)
 
 def populate_database():
-    """Clear the database and populate it with challenges."""
+    """
+    Drop and recreate all tables, then load every challenge from the challenges directory.
+    Called once on app startup.
+    """
     db.drop_all()
     db.create_all()
 
     challenges_dir = os.path.join(os.path.dirname(__file__), 'challenges')
-    for filename in os.listdir(challenges_dir):
-        if filename.endswith('.py'):
-            filepath = os.path.join(challenges_dir, filename)
-            metadata, code = parse_program_file(filepath)
+    for filename in sorted(os.listdir(challenges_dir)):
+        if not filename.endswith('.py'):
+            continue
+        filepath = os.path.join(challenges_dir, filename)
+        metadata, code = parse_program_file(filepath)
 
-            program = PythonProgram(
-                name=filename.replace('.py', ''),
-                code=code,
-                description=metadata.get('description'),
-                difficulty=metadata.get('difficulty'),
-                max_lines=metadata.get('max_lines'),
-                max_bytes=metadata.get('max_bytes'),
-            )
-            db.session.add(program)
-            db.session.commit()
+        program = PythonProgram(
+            name=filename.replace('.py', ''),
+            code=code,
+            description=metadata.get('description'),
+            difficulty=metadata.get('difficulty'),
+            max_lines=metadata.get('max_lines'),
+            max_bytes=metadata.get('max_bytes'),
+        )
+        db.session.add(program)
+        db.session.commit()
 
-            for test_case in metadata.get('test_cases', []):
-                test_case_entry = TestCase(
-                    program_id=program.id,
-                    name=test_case.get('name', 'Unnamed Test Case'),  # Add the name field
-                    inputs=json.dumps(test_case.get('inputs', [])),
-                    expected_output=test_case.get('expected_output', '')
-                )
-                db.session.add(test_case_entry)
+        for tc in metadata.get('test_cases', []):
+            db.session.add(TestCase(
+                program_id=program.id,
+                name=tc.get('name', 'Unnamed Test Case'),
+                inputs=json.dumps(tc.get('inputs', [])),
+                expected_output=tc.get('expected_output', '')
+            ))
+        db.session.commit()
 
-            db.session.commit()
+    print("Database populated successfully.")
 
-    print("Database populated successfully!")
-
-def load_new_challenges():
-    """Load new challenges from the challenges directory and update the database."""
-    challenges_dir = os.path.join(os.path.dirname(__file__), '../challenges')
-    for filename in os.listdir(challenges_dir):
-        if filename.endswith('.py'):
-            filepath = os.path.join(challenges_dir, filename)
-            metadata, code = parse_program_file(filepath)
-
-            # Check if the program already exists
-            program_name = filename.replace('.py', '')
-            program = PythonProgram.query.filter_by(name=program_name).first()
-
-            if program:
-                program.code = code
-                program.description = metadata.get('description')
-                program.difficulty = metadata.get('difficulty')
-                program.max_lines = metadata.get('max_lines')
-                program.max_bytes = metadata.get('max_bytes')
-                db.session.commit()
-            else:
-                program = PythonProgram(
-                    name=program_name, code=code,
-                    description=metadata.get('description'),
-                    difficulty=metadata.get('difficulty'),
-                    max_lines=metadata.get('max_lines'),
-                    max_bytes=metadata.get('max_bytes'),
-                )
-                db.session.add(program)
-                db.session.commit()
-
-            # Load or update test cases
-            test_file = os.path.join(challenges_dir, f"{program_name}_tests.json")
-            if os.path.exists(test_file):
-                test_cases = parse_test_cases(test_file)
-                for test_case in test_cases:
-                    inputs = test_case.get('inputs', [])
-                    expected_output = test_case.get('expected_output', '')
-
-                    # Check if the test case already exists
-                    existing_test_case = TestCase.query.filter_by(
-                        program_id=program.id, inputs=str(inputs)
-                    ).first()
-
-                    if existing_test_case:
-                        # Update the existing test case
-                        existing_test_case.expected_output = expected_output
-                        db.session.commit()
-                    else:
-                        # Add a new test case
-                        db.session.add(TestCase(program_id=program.id, inputs=str(inputs), expected_output=expected_output))
-                        db.session.commit()
-
-    print("New challenges loaded successfully!")
 
 def extract_feedback(output, feedback_rules):
     """
-    Parse output (from pylint or AST) using feedback_rules (list of dicts with regex/message/delta).
-    Returns (feedback_list, total_delta).
+    Match output (pylint stdout or AST result string) against a list of feedback rules.
+    Each rule is a dict with keys: regex, message (None to use the matched text), delta.
+    Returns (feedback_lines, total_score_delta).
     """
     feedback = []
     score_delta = 0
     for rule in feedback_rules:
-        matches = re.findall(rule["regex"], output, re.MULTILINE)
-        for match in matches:
-            # Use the actual pylint message if message is None
+        for match in re.findall(rule["regex"], output, re.MULTILINE):
             feedback.append(match if rule.get("message") is None else rule["message"])
             score_delta += rule.get("delta", 0)
     return feedback, score_delta
