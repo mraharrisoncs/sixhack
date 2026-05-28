@@ -20,21 +20,17 @@
 
     <!-- Input and Output on the right -->
     <div class="output-container">
-        <!-- Tabbed Input Box -->
-        <div id="test-tabs">
-            <div id="tab-buttons">
-                <!-- Numbered test buttons will be dynamically added here -->
-            </div>
-            <div id="tab-content">
-                <div id="test-0" style="display: block;">
-                    <div class="test-container">
-                        <button id="clear-button">🧹</button>
-                        <button id="run-button">▶</button>
-                        <textarea id="input-box" class="test-input"
-                            placeholder="Type input here e.g. [1,2] or click a numbered test above"></textarea>
-                    </div>
-                </div>
-            </div>
+        <!-- Input row -->
+        <div class="test-container">
+            <button id="clear-button">🧹</button>
+            <button id="run-button">▶</button>
+            <textarea id="input-box" class="test-input"
+                placeholder="Type input e.g. [0,1] or click a tab above"></textarea>
+        </div>
+
+        <!-- Test case tabs -->
+        <div id="tab-buttons">
+            <!-- Numbered test buttons will be dynamically added here -->
         </div>
 
         <div id="output-window">

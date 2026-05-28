@@ -47,7 +47,44 @@ function setMeterFeedback(styleKey, feedback) {
     feedbackDiv.textContent = feedback;
 }
 
+function showIntroModal() {
+    if (localStorage.getItem('sixhack_intro_seen')) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'intro-overlay';
+
+    overlay.innerHTML = `
+        <div id="intro-modal">
+            <h2>Welcome to Six Hack!</h2>
+            <p>Your goal is to find <strong>six different ways</strong> to solve the same problem.</p>
+            <p>Given a starting function, rewrite or refactor it in each of these styles:</p>
+            <ul>
+                <li><strong>Structured</strong> — clear, step-by-step with functions</li>
+                <li><strong>Readable</strong> — self-documenting, easy to follow</li>
+                <li><strong>Robust</strong> — handles edge cases and errors</li>
+                <li><strong>OOP</strong> — object-oriented with classes</li>
+                <li><strong>Recursive</strong> — solves the problem by calling itself</li>
+                <li><strong>Minimalist</strong> — as short and clean as possible</li>
+            </ul>
+            <p>Choose a challenge from the dropdown, then use the style tabs to switch between your six versions. Hit <strong>All Tests</strong> to score your code!</p>
+            <div class="modal-buttons">
+                <label><input type="checkbox" id="intro-dont-show"> Don't show this again</label>
+                <button id="intro-close-btn">Let's go! 🚀</button>
+            </div>
+        </div>`;
+
+    document.body.appendChild(overlay);
+
+    document.getElementById('intro-close-btn').addEventListener('click', () => {
+        if (document.getElementById('intro-dont-show').checked) {
+            localStorage.setItem('sixhack_intro_seen', '1');
+        }
+        overlay.remove();
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    showIntroModal();
     let originalCode = "";
     const tabCodes = {}; // Store code for each tab
     let codeStyles = [];
@@ -71,6 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         matchBrackets: true,
         autofocus: true
     });
+    codeMirrorEditor.setSize(null, 600);
 
     codeMirrorEditor.setValue(
         `# Welcome to Six Hack!
@@ -229,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Clear placeholder when user begins typing
     document.getElementById('input-box').addEventListener('focus', () => {
         const inputBox = document.getElementById('input-box');
-        if (inputBox.placeholder.startsWith('Type')) {
+        if (inputBox.placeholder.startsWith('Type input')) {
             inputBox.placeholder = '';
         }
     });
@@ -336,6 +374,10 @@ function loadPrograms() {
                 option.textContent = desc + diff;
                 dropdown.appendChild(option);
             });
+            if (programs.length > 0) {
+                dropdown.value = programs[0].id;
+                dropdown.dispatchEvent(new Event('change'));
+            }
         })
         .catch(error => console.error('Error loading programs:', error));
 }
@@ -347,14 +389,7 @@ function loadTestCases(programId) {
         .then(response => response.json())
         .then(testCases => {
             const tabButtons = document.getElementById('tab-buttons');
-            const tabContent = document.getElementById('tab-content');
-            const testContainer = document.querySelector('.test-container');
-
             tabButtons.innerHTML = '';
-            tabContent.innerHTML = '';
-            if (testContainer) {
-                tabContent.appendChild(testContainer);
-            }
 
             testCases.forEach((test, index) => {
                 const button = document.createElement('button');
@@ -363,6 +398,9 @@ function loadTestCases(programId) {
                 tabButtons.appendChild(button);
 
                 button.addEventListener('click', async () => {
+                    document.querySelectorAll('#tab-buttons .tab-button').forEach(b => b.classList.remove('active'));
+                    button.classList.add('active');
+
                     // Populate the input box with this test's inputs (single line)
                     const inputBox = document.getElementById('input-box');
                     if (inputBox) {
@@ -433,6 +471,9 @@ function loadTestCases(programId) {
             tabButtons.appendChild(allTestsButton);
 
             allTestsButton.addEventListener('click', async () => {
+                document.querySelectorAll('#tab-buttons .tab-button').forEach(b => b.classList.remove('active'));
+                allTestsButton.classList.add('active');
+
                 const code = codeMirrorEditor.getValue();
 
                 fetch('/sandbox/test', {
@@ -511,5 +552,5 @@ function loadTestCases(programId) {
 function clearInputBox() {
     const inputBox = document.getElementById('input-box');
     inputBox.value = '';
-    inputBox.placeholder = 'Type input here e.g. [1,2] or click a numbered test above';
+    inputBox.placeholder = 'Type input e.g. [0,1] or click a tab above';
 }
