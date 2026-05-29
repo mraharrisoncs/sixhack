@@ -10,7 +10,17 @@
       "WebFetch(domain:www.eduqas.co.uk)",
       "WebFetch(domain:time2code.today)",
       "Bash(del \"c:\\\\Users\\\\alan\\\\OneDrive\\\\Git\\\\sixhack\\\\v1\\\\app\\\\forms.py\")",
-      "PowerShell(Move-Item \"c:\\\\Users\\\\alan\\\\OneDrive\\\\Git\\\\sixhack\\\\v1\\\\app\\\\templates\\\\sixhack_bg.svg\" \"c:\\\\Users\\\\alan\\\\OneDrive\\\\Git\\\\sixhack\\\\v1\\\\app\\\\static\\\\sixhack_bg.svg\")"
+      "PowerShell(Move-Item \"c:\\\\Users\\\\alan\\\\OneDrive\\\\Git\\\\sixhack\\\\v1\\\\app\\\\templates\\\\sixhack_bg.svg\" \"c:\\\\Users\\\\alan\\\\OneDrive\\\\Git\\\\sixhack\\\\v1\\\\app\\\\static\\\\sixhack_bg.svg\")",
+      "Bash(grep -v \"^v1$\\\\|^\\\\.git$\\\\|^\\\\.venv$\")",
+      "Bash(cp -r v1/app .)",
+      "Bash(cp -r v1/tests .)",
+      "Bash(cp -r v1/data .)",
+      "Bash(cp -r v1/instance .)",
+      "Bash(grep -v \"^\\\\.git$\\\\|^\\\\.venv$\")",
+      "Bash(Remove-Item -Recurse -Force c:/Users/alan/OneDrive/Git/sixhack/v1)",
+      "Bash(git add *)",
+      "Bash(git rm *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }
