@@ -343,7 +343,24 @@ select {
     width: 100%;
 }
 
-#tab-buttons { margin-top: 10px; }
+#tab-buttons {
+    margin-top: 10px;
+    flex-wrap: nowrap;
+    overflow: visible;
+}
+
+#tab-buttons .tab-button {
+    flex: 1 1 0;
+    min-width: 28px;
+    padding: 0 6px;
+    font-size: 12px;
+    margin-right: -2px;  /* overlap borders so they don't stack up */
+}
+
+#tab-buttons .tab-button.active {
+    z-index: 2;
+    margin-right: -2px;
+}
 
 .tab-button {
     padding: 0 15px;
