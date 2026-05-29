@@ -3,3 +3,8 @@ __pycache__/
 *.pyo
 *.db
 .env
+.venv/
+venv/
+v1/
+instance/
+data/
