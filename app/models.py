@@ -9,8 +9,12 @@ class PythonProgram(db.Model):
     code = db.Column(db.Text, nullable=False)
     description = db.Column(db.String(200), nullable=True)
     difficulty = db.Column(db.String(20), nullable=True)
+    topic = db.Column(db.String(50), nullable=True)
+    spec_level = db.Column(db.String(20), nullable=True)
+    hints = db.Column(db.Text, nullable=True)
     max_lines = db.Column(db.Integer, nullable=True)
     max_bytes = db.Column(db.Integer, nullable=True)
+    solutions = db.Column(db.Text, nullable=True)
     test_cases = db.relationship('TestCase', backref='program', lazy=True)
 
 

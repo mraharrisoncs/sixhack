@@ -1,6 +1,20 @@
+E = 0.85 # NB. changing this invalidates the test cases!
+f = input()
+if f[0] in "eE€":
+    t = float(f[1:]) * E
+    c = "£"
+else:
+    t = float(f[1:]) / E
+    c = "€"
+o = c + str(round(t, 2))
+print(o)
+
 '''!SIX:
 description = "Convert EUR<>GBP"
 difficulty = "easy"
+topic = "arithmetic"
+spec_level = "gcse"
+hints = ["Variable names like 'f', 't', 'c', 'o' tell the reader nothing", "What happens if the input is invalid?"]
 
 [[test_cases]]
 number = 1
@@ -25,14 +39,44 @@ number = 4
 name = "Normal - large EUR"
 inputs = ["€1000"]
 expected_output = "£850.0\n"
-!SIX.'''
-E = 0.85 # NB. changing this invalidates the test cases!
-f = input()
-if f[0] in "eE€":
-    t = float(f[1:]) * E
-    c = "£"
+
+[[solutions]]
+label = "Clean"
+code = """
+RATE = 0.85
+
+amount_str = input()
+prefix = amount_str[0]
+amount = float(amount_str[1:])
+
+if prefix in "eE€":
+    converted = amount * RATE
+    symbol = "£"
 else:
-    t = float(f[1:]) / E
-    c = "€"
-o = c + str(round(t, 2))
-print(o)
+    converted = amount / RATE
+    symbol = "€"
+
+print(symbol + str(round(converted, 2)))
+"""
+
+[[solutions]]
+label = "Structured"
+code = """
+RATE = 0.85
+
+def eur_to_gbp(amount):
+    return round(amount * RATE, 2)
+
+def gbp_to_eur(amount):
+    return round(amount / RATE, 2)
+
+def convert(input_str):
+    prefix = input_str[0]
+    amount = float(input_str[1:])
+    if prefix in "eE€":
+        return "£" + str(eur_to_gbp(amount))
+    return "€" + str(gbp_to_eur(amount))
+
+print(convert(input()))
+"""
+!SIX.'''

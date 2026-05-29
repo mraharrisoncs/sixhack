@@ -1,6 +1,22 @@
+n = int(input())
+i = 1
+while i <= n:
+    if i % 3 == 0 and i % 5 == 0:
+        print("FizzBuzz")
+    if i % 3 == 0 and i % 5 != 0:
+        print("Fizz")
+    if i % 5 == 0 and i % 3 != 0:
+        print("Buzz")
+    if i % 3 != 0 and i % 5 != 0:
+        print(i)
+    i = i + 1
+
 '''!SIX:
 description = "Print FizzBuzz from 1 to N"
 difficulty = "medium"
+topic = "iteration"
+spec_level = "gcse"
+hints = ["Four separate if statements check every condition repeatedly — can you reduce this?", "elif and else exist for a reason"]
 
 [[test_cases]]
 number = 1
@@ -25,16 +41,27 @@ number = 4
 name = "Boundary - first Buzz"
 inputs = [5]
 expected_output = "1\n2\nFizz\n4\nBuzz\n"
-!SIX.'''
+
+[[solutions]]
+label = "Clean"
+code = """
 n = int(input())
-i = 1
-while i <= n:
-    if i % 3 == 0 and i % 5 == 0:
+for i in range(1, n + 1):
+    if i % 15 == 0:
         print("FizzBuzz")
-    if i % 3 == 0 and i % 5 != 0:
+    elif i % 3 == 0:
         print("Fizz")
-    if i % 5 == 0 and i % 3 != 0:
+    elif i % 5 == 0:
         print("Buzz")
-    if i % 3 != 0 and i % 5 != 0:
+    else:
         print(i)
-    i = i + 1
+"""
+
+[[solutions]]
+label = "Minimal"
+code = """
+n = int(input())
+for i in range(1, n+1):
+    print("Fizz"*(i%3==0) + "Buzz"*(i%5==0) or i)
+"""
+!SIX.'''

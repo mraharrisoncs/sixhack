@@ -1,6 +1,13 @@
+a = int(input())
+b = int(input())
+print(a + b)
+
 '''!SIX:
 description = "Add two numbers"
 difficulty = "easy"
+topic = "arithmetic"
+spec_level = "gcse"
+hints = ["Do you really need that many lines?"]
 max_lines = 1
 
 [[test_cases]]
@@ -20,7 +27,10 @@ number = 3
 name = "Normal - large values"
 inputs = [1000000, 2000000]
 expected_output = "3000000\n"
+
+[[solutions]]
+label = "Minimal"
+code = """
+print(int(input()) + int(input()))
+"""
 !SIX.'''
-a = int(input())
-b = int(input())
-print(a + b)

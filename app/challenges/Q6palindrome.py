@@ -1,6 +1,23 @@
+word = input()
+reversed_word = ""
+i = 0
+while i < len(word):
+    reversed_word = word[i] + reversed_word
+    i = i + 1
+is_palindrome = False
+if reversed_word == word:
+    is_palindrome = True
+if is_palindrome == True:
+    print("Yes")
+if is_palindrome == False:
+    print("No")
+
 '''!SIX:
 description = "Check if a word is a palindrome"
 difficulty = "medium"
+topic = "strings"
+spec_level = "gcse"
+hints = ["Manually reversing a string with a while loop is unnecessary in Python", "Comparing a boolean to True with == is redundant"]
 
 [[test_cases]]
 number = 1
@@ -37,17 +54,21 @@ number = 6
 name = "Normal - longer palindrome"
 inputs = ["madam"]
 expected_output = "Yes\n"
-!SIX.'''
+
+[[solutions]]
+label = "Clean"
+code = """
 word = input()
-reversed_word = ""
-i = 0
-while i < len(word):
-    reversed_word = word[i] + reversed_word
-    i = i + 1
-is_palindrome = False
-if reversed_word == word:
-    is_palindrome = True
-if is_palindrome == True:
-    print("Yes")
-if is_palindrome == False:
-    print("No")
+print("Yes" if word == word[::-1] else "No")
+"""
+
+[[solutions]]
+label = "Structured"
+code = """
+def is_palindrome(word):
+    return word == word[::-1]
+
+word = input()
+print("Yes" if is_palindrome(word) else "No")
+"""
+!SIX.'''

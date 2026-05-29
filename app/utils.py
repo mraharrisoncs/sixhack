@@ -22,7 +22,7 @@ def parse_program_file(filepath):
         metadata_end = content.find("!SIX.'''", metadata_start)
         toml_content = content[metadata_start:metadata_end].strip()
         metadata = tomllib.loads(toml_content)
-        code = content[metadata_end + len("!SIX.'''"):].strip()
+        code = content[:content.find("'''!SIX:")].strip()
     else:
         metadata = {}
         code = content.strip()
@@ -50,8 +50,12 @@ def populate_database():
             code=code,
             description=metadata.get('description'),
             difficulty=metadata.get('difficulty'),
+            topic=metadata.get('topic'),
+            spec_level=metadata.get('spec_level'),
+            hints=json.dumps(metadata.get('hints', [])),
             max_lines=metadata.get('max_lines'),
             max_bytes=metadata.get('max_bytes'),
+            solutions=json.dumps(metadata.get('solutions', [])),
         )
         db.session.add(program)
         db.session.commit()

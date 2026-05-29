@@ -1,6 +1,23 @@
+# get the mark
+x = int(input())
+if x >= 40:
+    g = "D"
+if x >= 50:
+    g = "C"
+if x >= 60:
+    g = "B"
+if x >= 70:
+    g = "A"
+if x < 40:
+    g = "F"
+print(g)
+
 '''!SIX:
 description = "Convert a percentage mark to a letter grade"
 difficulty = "easy"
+topic = "selection"
+spec_level = "gcse"
+hints = ["The independent if statements look suspicious — trace through a mark of 45", "elif would make the logic clearer and more efficient"]
 
 [[test_cases]]
 number = 1
@@ -43,17 +60,28 @@ number = 7
 name = "Boundary - upper F"
 inputs = [39]
 expected_output = "F\n"
+
+[[solutions]]
+label = "Clean"
+code = """
+mark = int(input())
+if mark >= 70:
+    grade = "A"
+elif mark >= 60:
+    grade = "B"
+elif mark >= 50:
+    grade = "C"
+elif mark >= 40:
+    grade = "D"
+else:
+    grade = "F"
+print(grade)
+"""
+
+[[solutions]]
+label = "Minimal"
+code = """
+m = int(input())
+print("A" if m>=70 else "B" if m>=60 else "C" if m>=50 else "D" if m>=40 else "F")
+"""
 !SIX.'''
-# get the mark
-x = int(input())
-if x >= 40:
-    g = "D"
-if x >= 50:
-    g = "C"
-if x >= 60:
-    g = "B"
-if x >= 70:
-    g = "A"
-if x < 40:
-    g = "F"
-print(g)
