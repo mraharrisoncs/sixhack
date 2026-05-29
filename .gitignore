@@ -8,3 +8,4 @@ venv/
 v1/
 instance/
 data/
+.claude/
