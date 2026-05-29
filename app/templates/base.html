@@ -26,8 +26,14 @@
         <div id="level-bar">
             <!-- Level hexagons injected by scripts.js -->
             <div id="header-scores">
-                <span id="challenge-score-display">–</span>
-                <span id="total-score-display">Total: 0</span>
+                <div class="score-box" id="challenge-score-box">
+                    <span class="score-symbol">Q</span>
+                    <span id="challenge-score-display">–</span>
+                </div>
+                <div class="score-box score-box-total" id="total-score-box">
+                    <span class="score-symbol score-symbol-sigma">Σ</span>
+                    <span id="total-score-display">0</span>
+                </div>
             </div>
         </div>
     </header>

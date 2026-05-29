@@ -75,8 +75,11 @@ def setup_routes(app):
 
     @app.route('/sandbox/programs', methods=['GET'])
     def get_programs():
-        difficulty_order = {'easy': 0, 'medium': 1, 'hard': 2}
-        programs = sorted(PythonProgram.query.all(), key=lambda p: difficulty_order.get(p.difficulty, 3))
+        import re
+        def sort_key(p):
+            m = re.match(r'Q(\d+)', p.name)
+            return int(m.group(1)) if m else 999
+        programs = sorted(PythonProgram.query.all(), key=sort_key)
         return jsonify([
             {"id": p.id, "name": p.name, "description": p.description,
              "difficulty": p.difficulty, "topic": p.topic, "spec_level": p.spec_level}

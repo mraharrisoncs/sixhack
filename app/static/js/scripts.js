@@ -40,20 +40,19 @@ function updateHeaderScores() {
     const totalEl = document.getElementById('total-score-display');
     if (challengeEl) {
         const score = getChallengeScore(currentProgramId);
-        challengeEl.textContent = currentProgramId
-            ? `Q${currentProgramIndex}: ${score}/${MAX_CHALLENGE_SCORE}`
-            : '–';
+        challengeEl.textContent = currentProgramId ? `${score}/${MAX_CHALLENGE_SCORE}` : '–';
     }
-    if (totalEl) totalEl.textContent = `Total: ${getGrandTotal()}`;
+    if (totalEl) totalEl.textContent = getGrandTotal();
 }
 
 function updateHexFill(programId) {
-    const hex = document.querySelector(`.level-hex[data-id="${programId}"]`);
+    const hex = document.querySelector(`.level-hex-wrap[data-id="${programId}"] .level-hex`);
     if (!hex) return;
     const score = getChallengeScore(programId);
     const pct = ((score / MAX_CHALLENGE_SCORE) * 100).toFixed(1);
     hex.style.setProperty('--fill-pct', `${pct}%`);
 }
+
 
 // ── Style tab score tracking ─────────────────────────────────────────────────
 
@@ -70,8 +69,9 @@ function updateStyleScore(styleKey, score, feedbackArr) {
 }
 
 function repaintTabFills() {
-    Object.entries(styleScores).forEach(([key, score]) => {
-        if (score > 0) updateTabProgress(key, score);
+    document.querySelectorAll('#code-tabs .tab-button').forEach(btn => {
+        const key = btn.id.replace('tab-btn-', '');
+        updateTabProgress(key, styleScores[key] || 0);
     });
 }
 
@@ -225,6 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.querySelectorAll('#code-tabs .tab-button').forEach(b => b.classList.remove('active'));
                     button.classList.add('active');
                     currentTab = style.key;
+                    document.getElementById('output-window').innerHTML = '<pre id="output"></pre>';
                     if (!tabCodes[currentTab]) {
                         tabCodes[currentTab] = originalCode ? style.code_version + originalCode : '';
                     }
@@ -233,6 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 button.addEventListener('contextmenu', e => {
                     e.preventDefault();
+                    tabTooltip.style.display = 'none';
                     if (currentTab !== null) tabCodes[currentTab] = codeMirrorEditor.getValue();
                     const sourceKey = style.key;
                     const sourceCode = tabCodes[sourceKey] || '';
@@ -334,8 +336,8 @@ document.addEventListener('DOMContentLoaded', () => {
         currentProgramId = programId;
         currentProgramIndex = programIndex;
 
-        // Highlight active hex
-        document.querySelectorAll('.level-hex').forEach(h => {
+        // Highlight active hex wrapper
+        document.querySelectorAll('.level-hex-wrap').forEach(h => {
             h.classList.toggle('active', h.dataset.id == programId);
         });
 
@@ -442,20 +444,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('clear-button').addEventListener('click', clearInputBox);
 
     document.getElementById('input-box').addEventListener('focus', (e) => {
-        if (e.target.placeholder.startsWith('Type input')) e.target.placeholder = '';
+        if (e.target.placeholder.startsWith('Type inputs')) e.target.placeholder = '';
     });
 
     document.getElementById('run-button').addEventListener('click', async () => {
         const code = codeMirrorEditor.getValue();
         const inputBox = document.getElementById('input-box');
-        let inputs;
-        try {
-            inputs = JSON.parse(inputBox.value);
-        } catch {
-            document.getElementById('output-window').innerHTML =
-                '<span class="output-error">Error: Invalid input format. Please provide valid JSON.</span>';
-            return;
-        }
+        const inputs = inputBox.value
+            .split(/[\n,]+/)
+            .map(s => s.trim())
+            .filter(s => s !== '');
         const response = await fetch('/sandbox/run', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -496,7 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.currentProgramId) {
                     window.pendingRestore = data;
                     // Find the hex to get the index
-                    const hex = document.querySelector(`.level-hex[data-id="${data.currentProgramId}"]`);
+                    const hex = document.querySelector(`.level-hex-wrap[data-id="${data.currentProgramId}"]`);
                     const index = hex ? parseInt(hex.dataset.index) : 1;
                     loadChallenge(data.currentProgramId, index, tabCodes, originalCode, codeStyles);
                 }
@@ -523,40 +521,45 @@ function loadPrograms(levelTooltip, onSelect) {
             const scoresEl = document.getElementById('header-scores');
             // Insert hexagons before the scores element
             programs.forEach((program, index) => {
+                const wrap = document.createElement('div');
+                wrap.className = 'level-hex-wrap';
+                wrap.dataset.id = program.id;
+                wrap.dataset.index = index + 1;
+
+                const diffClass = program.difficulty ? `diff-${program.difficulty}` : '';
+                if (diffClass) wrap.classList.add(diffClass);
+
                 const hex = document.createElement('div');
                 hex.className = 'level-hex';
                 hex.dataset.id = program.id;
-                hex.dataset.index = index + 1;
-
-                const diffClass = program.difficulty ? `diff-${program.difficulty}` : '';
-                if (diffClass) hex.classList.add(diffClass);
 
                 const label = document.createElement('span');
                 label.textContent = index + 1;
                 hex.appendChild(label);
+                wrap.appendChild(hex);
 
-                levelBar.insertBefore(hex, scoresEl);
+                levelBar.insertBefore(wrap, scoresEl);
 
-                hex.addEventListener('mouseenter', () => {
+                wrap.addEventListener('mouseenter', () => {
                     const diff = program.difficulty ? ` · ${program.difficulty}` : '';
                     const level = program.spec_level
                         ? ` · ${program.spec_level === 'a_level' ? 'A-Level' : 'GCSE'}` : '';
                     levelTooltip.innerHTML = `<strong>${program.description || program.name}</strong>${diff}${level}`;
                     levelTooltip.style.display = 'block';
-                    const rect = hex.getBoundingClientRect();
+                    const rect = wrap.getBoundingClientRect();
                     const tw = levelTooltip.offsetWidth;
                     const left = Math.min(rect.left + rect.width / 2 - tw / 2, window.innerWidth - tw - 8);
                     levelTooltip.style.left = `${Math.max(4, left) + window.scrollX}px`;
                     levelTooltip.style.top  = `${rect.bottom + window.scrollY + 6}px`;
                 });
-                hex.addEventListener('mouseleave', () => { levelTooltip.style.display = 'none'; });
-                hex.addEventListener('click', () => onSelect(program.id, index + 1));
+                wrap.addEventListener('mouseleave', () => { levelTooltip.style.display = 'none'; });
+                wrap.addEventListener('click', () => onSelect(program.id, index + 1));
             });
 
             // Decide which challenge to open: pending restore or first
             const pending = window.pendingRestore;
             if (pending && pending.currentProgramId) {
-                const hex = document.querySelector(`.level-hex[data-id="${pending.currentProgramId}"]`);
+                const hex = document.querySelector(`.level-hex-wrap[data-id="${pending.currentProgramId}"]`);
                 const idx = hex ? parseInt(hex.dataset.index) : 1;
                 onSelect(pending.currentProgramId, idx);
             } else if (programs.length > 0) {
@@ -585,9 +588,11 @@ function loadTestCases(programId) {
                     document.querySelectorAll('#tab-buttons .tab-button').forEach(b => b.classList.remove('active'));
                     button.classList.add('active');
 
+                    // Populate input box so student can see and tweak inputs
                     const inputBox = document.getElementById('input-box');
-                    if (inputBox) inputBox.value = JSON.stringify(test.inputs);
+                    if (inputBox) inputBox.value = test.inputs.join('\n');
 
+                    // Run through the same path as ▶
                     const code = codeMirrorEditor.getValue();
                     let actualOutput = '""';
                     let passed = false;
@@ -611,20 +616,20 @@ function loadTestCases(programId) {
                         errorMsg = err.toString();
                     }
 
-                    let outputHtml = `<div>`;
-                    outputHtml += `<strong>Test ${index + 1}: ${test.name || ''}</strong>, Inputs: <code>${JSON.stringify(test.inputs)}</code><br>`;
-                    outputHtml += `Expected Output: <code>${test.expected_output ?? '""'}</code><br>`;
-                    if (errorMsg) {
-                        outputHtml += `<span class="output-error">Error:<br>${errorMsg}</span>`;
-                    } else {
-                        outputHtml += `Actual Output:&nbsp;&nbsp;&nbsp;<code>${actualOutput}</code><br>`;
-                        outputHtml += `Result: <span class="output-result">${passed ? 'PASS ✅' : 'FAIL ❌'}</span>`;
-                        if (!passed) outputHtml += ` <span class="output-penalty">score -2</span>`;
-                    }
-                    outputHtml += `</div>`;
-
                     const outputWindow = document.getElementById('output-window');
-                    if (outputWindow) outputWindow.innerHTML = outputHtml;
+                    if (errorMsg) {
+                        outputWindow.innerHTML = `<span class="output-error">Error:<br>${errorMsg}</span>`;
+                    } else {
+                        outputWindow.innerHTML = `
+                            <div>
+                                <strong>Output:</strong><br><pre>${actualOutput}</pre>
+                                <hr>
+                                <strong>Test ${index + 1}: ${test.name || ''}</strong><br>
+                                Expected: <code>${test.expected_output ?? '""'}</code><br>
+                                Result: <span class="output-result">${passed ? 'PASS ✅' : 'FAIL ❌'}</span>
+                                ${!passed ? '<span class="output-penalty"> score -2</span>' : ''}
+                            </div>`;
+                    }
                 });
             });
 
@@ -700,5 +705,5 @@ function loadTestCases(programId) {
 function clearInputBox() {
     const inputBox = document.getElementById('input-box');
     inputBox.value = '';
-    inputBox.placeholder = 'Type input e.g. [0,1] or click a tab above';
+    inputBox.placeholder = 'Type inputs (one per line, or comma-separated) or click a test tab';
 }
