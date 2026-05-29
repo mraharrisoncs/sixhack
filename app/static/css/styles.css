@@ -66,42 +66,52 @@ nav a:hover { background: #e8491d; border-radius: 4px; }
     justify-content: center;
 }
 
-.level-diamond {
-    width: 30px;
-    height: 30px;
-    transform: rotate(45deg);
-    background: linear-gradient(135deg, #1a6090, #1258DC);
-    border: 2px solid #D4E0F7;
-    border-radius: 4px;
+.level-hex {
+    --fill-pct: 0%;
+    width: 36px;
+    height: 32px;
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+    background: linear-gradient(to top, #700CBC var(--fill-pct), #1a6090 var(--fill-pct));
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
+    transition: filter 0.2s;
     position: relative;
+    outline: none;
 }
 
-.level-diamond span {
-    transform: rotate(-45deg);
+.level-hex span {
     font-size: 11px;
     font-weight: 700;
     color: #D4E0F7;
     user-select: none;
+    pointer-events: none;
 }
 
-.level-diamond:hover {
-    background: linear-gradient(135deg, #700CBC, #1258DC);
-    border-color: #fff;
+.level-hex:hover { filter: brightness(1.3); }
+
+.level-hex.active { filter: brightness(1.4) saturate(1.5); outline: 2px solid #fff; }
+
+.level-hex.diff-easy   { box-shadow: 0 0 0 2px #7fd67f; }
+.level-hex.diff-medium { box-shadow: 0 0 0 2px #f0c040; }
+.level-hex.diff-hard   { box-shadow: 0 0 0 2px #e06060; }
+
+/* ── Header scores ──────────────────────────────────────── */
+#header-scores {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-left: 16px;
+    color: #D4E0F7;
+    font-size: 0.9em;
+    font-weight: 600;
+    white-space: nowrap;
 }
 
-.level-diamond.active {
-    background: linear-gradient(135deg, #c49ad8, #700CBC);
-    border-color: #fff;
-}
-
-.level-diamond.diff-easy   { border-color: #7fd67f; }
-.level-diamond.diff-medium { border-color: #f0c040; }
-.level-diamond.diff-hard   { border-color: #e06060; }
+#challenge-score-display { color: #c49ad8; }
+#total-score-display     { color: #D4E0F7; }
 
 .level-tooltip {
     display: none;
@@ -402,34 +412,6 @@ select {
     border-radius: 0 0 5px 5px;
 }
 
-/* ── Score row ──────────────────────────────────────────── */
-#overall-score-container {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 20px;
-    margin: 10px 0 0 0;
-    width: 100%;
-}
-
-.total-score-text {
-    font-size: 1.1em;
-    font-weight: bold;
-    color: #210934;
-}
-
-.total-score-meter {
-    width: 300px;
-    height: 32px;
-    border-radius: 10px;
-    accent-color: #c49ad8;
-    border: 2px solid #1258DC;
-    box-sizing: border-box;
-}
-
-.total-score-meter::-webkit-progress-bar   { background: #ddd; border-radius: 10px; }
-.total-score-meter::-webkit-progress-value { background: #c49ad8; border-radius: 10px; }
-.total-score-meter::-moz-progress-bar      { background: #c49ad8; border-radius: 10px; }
 
 /* ── Tab copy popover ───────────────────────────────────── */
 #tab-copy-popover {
@@ -611,19 +593,8 @@ body.dark header { background: MidnightBlue; }
 
 body.dark #header-title h1 { color: #D4E0F7; }
 
-body.dark .level-diamond {
-    background: linear-gradient(135deg, #1a2a40, #1258DC);
-    border-color: #4a6a9a;
-}
-
-body.dark .level-diamond:hover {
-    background: linear-gradient(135deg, #700CBC, #1258DC);
-    border-color: #d8d8d8;
-}
-
-body.dark .level-diamond.active {
-    background: linear-gradient(135deg, #700CBC, #c49ad8);
-    border-color: #d8d8d8;
+body.dark .level-hex {
+    background: linear-gradient(to top, #700CBC var(--fill-pct), #1a2a40 var(--fill-pct));
 }
 
 body.dark .level-tooltip {
@@ -706,13 +677,6 @@ body.dark #output-window {
 
 body.dark .CodeMirror { border-color: #1258DC; }
 
-body.dark .total-score-text { color: #d8d8d8; }
-
-body.dark .total-score-meter { accent-color: #700CBC; }
-
-body.dark .total-score-meter::-webkit-progress-bar   { background: #1a2a35; border-radius: 10px; }
-body.dark .total-score-meter::-webkit-progress-value { background: #700CBC; border-radius: 10px; }
-body.dark .total-score-meter::-moz-progress-bar      { background: #700CBC; border-radius: 10px; }
 
 body.dark #intro-modal {
     background: #1e2a35;

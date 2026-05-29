@@ -1,30 +1,72 @@
 /**
  * Six Hack — sandbox scripts
- *
- * Manages the code editor, style tabs, test case tabs, program loading,
- * scoring display, save/load game, and the intro modal.
  */
 
 let codeMirrorEditor;
-let styleScores = {};
-let currentProgramMaxLines = null;
-let currentProgramMaxBytes = null;
 let currentTab = null;
 let currentProgramId = null;
+let currentProgramIndex = 0;   // 1-based display number of active challenge
 
-const MAX_SCORE = 60;
+// Per-style scores for the current challenge (reset when switching)
+let styleScores = {};
 
-/** Recalculates the total score from styleScores and updates the display. */
-function updateTotalScore() {
-    const total = Object.values(styleScores).reduce((a, b) => a + b, 0);
-    document.getElementById('total-score-text').textContent = `Total Score: ${total} / ${MAX_SCORE}`;
-    document.getElementById('total-score-meter').value = total;
+// Full save state: allChallenges[programId] = { tabCodes, styleScores }
+let allChallenges = {};
+
+// Constraints for minimalist check
+let currentProgramMaxLines = null;
+let currentProgramMaxBytes = null;
+
+const MAX_STYLE_SCORE = 10;
+const NUM_STYLES = 6;
+const MAX_CHALLENGE_SCORE = MAX_STYLE_SCORE * NUM_STYLES; // 60
+
+const AUTOSAVE_KEY = 'sixhack_autosave';
+
+// ── Score helpers ────────────────────────────────────────────────────────────
+
+function getChallengeScore(programId) {
+    const c = allChallenges[programId];
+    if (!c) return 0;
+    return Object.values(c.styleScores || {}).reduce((a, b) => a + b, 0);
 }
+
+function getGrandTotal() {
+    return Object.keys(allChallenges).reduce((sum, id) => sum + getChallengeScore(id), 0);
+}
+
+function updateHeaderScores() {
+    const challengeEl = document.getElementById('challenge-score-display');
+    const totalEl = document.getElementById('total-score-display');
+    if (challengeEl) {
+        const score = getChallengeScore(currentProgramId);
+        challengeEl.textContent = currentProgramId
+            ? `Q${currentProgramIndex}: ${score}/${MAX_CHALLENGE_SCORE}`
+            : '–';
+    }
+    if (totalEl) totalEl.textContent = `Total: ${getGrandTotal()}`;
+}
+
+function updateHexFill(programId) {
+    const hex = document.querySelector(`.level-hex[data-id="${programId}"]`);
+    if (!hex) return;
+    const score = getChallengeScore(programId);
+    const pct = ((score / MAX_CHALLENGE_SCORE) * 100).toFixed(1);
+    hex.style.setProperty('--fill-pct', `${pct}%`);
+}
+
+// ── Style tab score tracking ─────────────────────────────────────────────────
 
 function updateStyleScore(styleKey, score, feedbackArr) {
     styleScores[styleKey] = score;
+    // Mirror into allChallenges so it's always up to date
+    if (currentProgramId) {
+        if (!allChallenges[currentProgramId]) allChallenges[currentProgramId] = { tabCodes: {}, styleScores: {} };
+        allChallenges[currentProgramId].styleScores[styleKey] = score;
+    }
     updateTabProgress(styleKey, score, feedbackArr);
-    updateTotalScore();
+    updateHexFill(currentProgramId);
+    updateHeaderScores();
 }
 
 function repaintTabFills() {
@@ -43,15 +85,48 @@ function updateTabProgress(styleKey, score, feedbackArr) {
     const unfilled  = isDark ? '#333'    : '#b8caf0';
     button.style.background = `linear-gradient(to right, ${fillColor} ${percent}%, ${unfilled} ${percent}%)`;
     let tooltip = `${score}/10`;
-    if (feedbackArr && feedbackArr.length) {
-        tooltip += '\n' + feedbackArr.join('\n');
-    }
+    if (feedbackArr && feedbackArr.length) tooltip += '\n' + feedbackArr.join('\n');
     button.setAttribute('data-feedback', tooltip);
 }
 
+// ── Persistence ──────────────────────────────────────────────────────────────
+
+function buildSaveData() {
+    // Snapshot current tab before saving
+    if (currentTab !== null && currentProgramId !== null) {
+        if (!allChallenges[currentProgramId]) allChallenges[currentProgramId] = { tabCodes: {}, styleScores: {} };
+        allChallenges[currentProgramId].tabCodes[currentTab] = codeMirrorEditor.getValue();
+        allChallenges[currentProgramId].styleScores = { ...styleScores };
+    }
+    return {
+        version: 1,
+        currentProgramId,
+        currentTab,
+        challenges: allChallenges
+    };
+}
+
+function autoSave() {
+    try {
+        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(buildSaveData()));
+    } catch (e) {
+        console.warn('Six Hack: autosave failed', e);
+    }
+}
+
+function restoreFromData(data, codeStyles) {
+    if (!data || !data.challenges) return;
+    allChallenges = data.challenges;
+
+    // Repaint all hex fills from restored scores
+    Object.keys(allChallenges).forEach(id => updateHexFill(id));
+    updateHeaderScores();
+}
+
+// ── Intro modal ──────────────────────────────────────────────────────────────
+
 function showIntroModal() {
     if (localStorage.getItem('sixhack_intro_seen')) return;
-
     const overlay = document.createElement('div');
     overlay.id = 'intro-overlay';
     overlay.innerHTML = `
@@ -74,25 +149,24 @@ function showIntroModal() {
             </div>
         </div>`;
     document.body.appendChild(overlay);
-
     document.getElementById('intro-close-btn').addEventListener('click', () => {
-        if (document.getElementById('intro-dont-show').checked) {
+        if (document.getElementById('intro-dont-show').checked)
             localStorage.setItem('sixhack_intro_seen', '1');
-        }
         overlay.remove();
     });
 }
+
+// ── DOMContentLoaded ─────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
     showIntroModal();
 
     let originalCode = '';
-    const tabCodes = {};
+    const tabCodes = {};   // codes for the currently-active challenge's tabs
     let codeStyles = [];
 
     const codeTabsContainer = document.getElementById('code-tabs');
     const codeInputTextarea = document.getElementById('code-input');
-
     if (!codeTabsContainer || !codeInputTextarea) {
         console.error('Six Hack: missing required DOM elements.');
         return;
@@ -109,22 +183,19 @@ document.addEventListener('DOMContentLoaded', () => {
         autofocus: true
     });
     codeMirrorEditor.setSize(null, 560);
-
-    codeMirrorEditor.setValue(
-        `# Welcome to Six Hack!\n#\n# Select a challenge from the level bar above to begin.`
-    );
+    codeMirrorEditor.setValue('# Welcome to Six Hack!\n#\n# Select a challenge from the level bar above to begin.');
 
     // Shared tooltip for style tabs
     const tabTooltip = document.createElement('div');
     tabTooltip.className = 'tab-tooltip';
     document.body.appendChild(tabTooltip);
 
-    // Shared tooltip for level diamonds
+    // Shared tooltip for level hexagons
     const levelTooltip = document.createElement('div');
     levelTooltip.className = 'level-tooltip';
     document.body.appendChild(levelTooltip);
 
-    // Copy-to popover (right-click on a style tab)
+    // Copy-to popover
     const copyPopover = document.createElement('div');
     copyPopover.id = 'tab-copy-popover';
     document.body.appendChild(copyPopover);
@@ -132,6 +203,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const dismissPopover = () => { copyPopover.style.display = 'none'; };
     document.addEventListener('click', dismissPopover);
     document.addEventListener('keydown', e => { if (e.key === 'Escape') dismissPopover(); });
+
+    // ── Style tabs ───────────────────────────────────────────────────────────
 
     fetch('/sandbox/styles')
         .then(r => r.json())
@@ -149,11 +222,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 button.addEventListener('click', () => {
                     if (currentTab !== null) tabCodes[currentTab] = codeMirrorEditor.getValue();
-
                     document.querySelectorAll('#code-tabs .tab-button').forEach(b => b.classList.remove('active'));
                     button.classList.add('active');
                     currentTab = style.key;
-
                     if (!tabCodes[currentTab]) {
                         tabCodes[currentTab] = originalCode ? style.code_version + originalCode : '';
                     }
@@ -163,11 +234,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 button.addEventListener('contextmenu', e => {
                     e.preventDefault();
                     if (currentTab !== null) tabCodes[currentTab] = codeMirrorEditor.getValue();
-
                     const sourceKey = style.key;
                     const sourceCode = tabCodes[sourceKey] || '';
                     const targets = styles.filter(s => s.key !== sourceKey);
-
                     copyPopover.innerHTML = `<div class="popover-title">Copy code to…</div>`;
                     targets.forEach(target => {
                         const btn = document.createElement('button');
@@ -179,7 +248,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
                         copyPopover.appendChild(btn);
                     });
-
                     const allBtn = document.createElement('button');
                     allBtn.textContent = 'All tabs';
                     allBtn.className = 'popover-all';
@@ -191,7 +259,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         dismissPopover();
                     });
                     copyPopover.appendChild(allBtn);
-
                     const rect = button.getBoundingClientRect();
                     copyPopover.style.display = 'block';
                     const pw = copyPopover.offsetWidth;
@@ -200,8 +267,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     copyPopover.style.top  = `${rect.bottom + 4}px`;
                 });
             });
-
             currentTab = styles[0].key;
+
+            // Restore autosave after styles are ready
+            const saved = localStorage.getItem(AUTOSAVE_KEY);
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    restoreFromData(data, codeStyles);
+                    // Load the last active challenge
+                    if (data.currentProgramId) {
+                        window.pendingRestore = data;
+                        // loadPrograms will trigger loadChallenge which picks up pendingRestore
+                    }
+                } catch (e) {
+                    console.warn('Six Hack: could not restore autosave', e);
+                }
+            }
+
+            loadPrograms(levelTooltip, (programId, programIndex) => {
+                loadChallenge(programId, programIndex, tabCodes, originalCode, codeStyles);
+            });
         });
 
     // Style tab tooltips
@@ -231,9 +317,95 @@ document.addEventListener('DOMContentLoaded', () => {
         instructionsToggle.textContent = open ? '▲ Hints' : '▼ Hints';
     });
 
+    // ── loadChallenge ────────────────────────────────────────────────────────
+
+    function loadChallenge(programId, programIndex, tabCodes, originalCode, codeStyles) {
+        if (!programId) return;
+
+        // Bank current challenge's code before switching
+        if (currentProgramId !== null) {
+            if (currentTab !== null) tabCodes[currentTab] = codeMirrorEditor.getValue();
+            if (!allChallenges[currentProgramId]) allChallenges[currentProgramId] = { tabCodes: {}, styleScores: {} };
+            allChallenges[currentProgramId].tabCodes = { ...tabCodes };
+            allChallenges[currentProgramId].styleScores = { ...styleScores };
+            autoSave();
+        }
+
+        currentProgramId = programId;
+        currentProgramIndex = programIndex;
+
+        // Highlight active hex
+        document.querySelectorAll('.level-hex').forEach(h => {
+            h.classList.toggle('active', h.dataset.id == programId);
+        });
+
+        // Restore or reset tab codes and scores for this challenge
+        const saved = allChallenges[programId];
+        const restoredTabCodes = saved ? { ...saved.tabCodes } : {};
+        const restoredScores = saved ? { ...saved.styleScores } : {};
+
+        // Clear current tab codes
+        Object.keys(tabCodes).forEach(k => delete tabCodes[k]);
+        Object.assign(tabCodes, restoredTabCodes);
+
+        // Reset style scores display
+        Object.keys(styleScores).forEach(key => { styleScores[key] = 0; });
+        const firstTabBtn = document.querySelector('#code-tabs .tab-button');
+        document.querySelectorAll('#code-tabs .tab-button').forEach(btn => {
+            btn.style.background = '';
+            btn.removeAttribute('data-feedback');
+        });
+
+        // Restore scores visually if we have them
+        Object.entries(restoredScores).forEach(([key, score]) => {
+            styleScores[key] = score;
+            updateTabProgress(key, score);
+        });
+
+        fetch(`/sandbox/original_code/${programId}`)
+            .then(r => r.json())
+            .then(data => {
+                if (!data.original_code) return;
+                originalCode = data.original_code;
+
+                // Use saved tab code if available, else prepend style prefix to original
+                const activeStyle = codeStyles.find(s => s.key === currentTab);
+                if (!tabCodes[currentTab]) {
+                    tabCodes[currentTab] = activeStyle ? activeStyle.code_version + originalCode : originalCode;
+                }
+                codeMirrorEditor.setValue(tabCodes[currentTab]);
+                document.getElementById('output').textContent = '';
+
+                // Handle pending restore from file load
+                if (window.pendingRestore && window.pendingRestore.currentProgramId == programId) {
+                    const restore = window.pendingRestore;
+                    window.pendingRestore = null;
+                    if (restore.currentTab) {
+                        const btn = document.getElementById(`tab-btn-${restore.currentTab}`);
+                        if (btn) btn.click();
+                    }
+                }
+            })
+            .catch(err => console.error('Error fetching original code:', err));
+
+        fetch(`/sandbox/load?program_id=${programId}`)
+            .then(r => r.json())
+            .then(data => {
+                currentProgramMaxLines = data.max_lines ?? null;
+                currentProgramMaxBytes = data.max_bytes ?? null;
+                updateInstructions(data);
+            })
+            .catch(err => console.error('Error fetching program info:', err));
+
+        updateHexFill(programId);
+        updateHeaderScores();
+        loadTestCases(programId);
+    }
+
+    // ── Instructions update ──────────────────────────────────────────────────
+
     function updateInstructions(program) {
         document.getElementById('instructions-goal').textContent = program.description || program.name;
-
         const badges = document.getElementById('instructions-badges');
         badges.innerHTML = '';
         if (program.spec_level) {
@@ -248,7 +420,6 @@ document.addEventListener('DOMContentLoaded', () => {
             b.textContent = program.topic;
             badges.appendChild(b);
         }
-
         const hintsList = document.getElementById('hints-list');
         hintsList.innerHTML = '';
         const hints = program.hints || [];
@@ -265,83 +436,6 @@ document.addEventListener('DOMContentLoaded', () => {
             instructionsToggle.textContent = '▼ Hints';
         }
     }
-
-    // ── Challenge loading ────────────────────────────────────────────────────
-
-    function loadChallenge(programId) {
-        if (!programId) return;
-
-        if (!window.pendingGameRestore && Object.values(styleScores).some(s => s > 0)) {
-            if (confirm('Save your current progress before switching challenge?')) {
-                if (currentTab !== null) tabCodes[currentTab] = codeMirrorEditor.getValue();
-                const gameData = {
-                    programId: currentProgramId,
-                    tabCodes: { ...tabCodes },
-                    currentTab,
-                    styleScores: { ...styleScores }
-                };
-                const url = URL.createObjectURL(new Blob([JSON.stringify(gameData, null, 2)], { type: 'application/json' }));
-                const a = document.createElement('a');
-                a.href = url; a.download = 'sixhack_save.json'; a.click();
-                URL.revokeObjectURL(url);
-            }
-        }
-
-        currentProgramId = programId;
-
-        // Highlight active level
-        document.querySelectorAll('.level-diamond').forEach(d => {
-            d.classList.toggle('active', d.dataset.id == programId);
-        });
-
-        fetch(`/sandbox/original_code/${programId}`)
-            .then(r => r.json())
-            .then(data => {
-                if (!data.original_code) return;
-                originalCode = data.original_code;
-                Object.keys(tabCodes).forEach(tab => { tabCodes[tab] = ''; });
-                tabCodes[currentTab] = codeStyles.find(s => s.key === currentTab).code_version + originalCode;
-                codeMirrorEditor.setValue(tabCodes[currentTab]);
-
-                Object.keys(styleScores).forEach(key => {
-                    styleScores[key] = 0;
-                    const btn = document.getElementById(`tab-btn-${key}`);
-                    if (btn) { btn.style.background = ''; btn.removeAttribute('data-feedback'); }
-                });
-                document.getElementById('output').textContent = '';
-                updateTotalScore();
-
-                if (window.pendingGameRestore && window.pendingGameRestore.programId == programId) {
-                    const restore = window.pendingGameRestore;
-                    window.pendingGameRestore = null;
-                    Object.assign(tabCodes, restore.tabCodes);
-                    if (restore.styleScores) Object.assign(styleScores, restore.styleScores);
-                    const savedTabBtn = document.getElementById(`tab-btn-${restore.currentTab}`);
-                    if (savedTabBtn) {
-                        savedTabBtn.click();
-                    } else {
-                        codeMirrorEditor.setValue(tabCodes[currentTab]);
-                    }
-                    updateTotalScore();
-                }
-            })
-            .catch(err => console.error('Error fetching original code:', err));
-
-        fetch(`/sandbox/load?program_id=${programId}`)
-            .then(r => r.json())
-            .then(data => {
-                currentProgramMaxLines = data.max_lines ?? null;
-                currentProgramMaxBytes = data.max_bytes ?? null;
-                updateInstructions(data);
-            })
-            .catch(err => console.error('Error fetching program info:', err));
-
-        loadTestCases(programId);
-    }
-
-    // ── Program / level bar loading ──────────────────────────────────────────
-
-    loadPrograms(levelTooltip, loadChallenge);
 
     // ── Controls ─────────────────────────────────────────────────────────────
 
@@ -377,13 +471,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('save-game-button').addEventListener('click', () => {
-        if (currentTab !== null) tabCodes[currentTab] = codeMirrorEditor.getValue();
         if (!currentProgramId) { alert('Select a challenge before saving.'); return; }
-
-        const gameData = { programId: currentProgramId, tabCodes: { ...tabCodes }, currentTab, styleScores: { ...styleScores } };
-        const url = URL.createObjectURL(new Blob([JSON.stringify(gameData, null, 2)], { type: 'application/json' }));
+        const saveData = buildSaveData();
+        const url = URL.createObjectURL(new Blob([JSON.stringify(saveData, null, 2)], { type: 'application/json' }));
         const a = document.createElement('a');
-        a.href = url; a.download = 'sixhack_game_save.json';
+        a.href = url; a.download = 'sixhack_save.json';
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
         URL.revokeObjectURL(url);
     });
@@ -398,66 +490,78 @@ document.addEventListener('DOMContentLoaded', () => {
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
-                const gameData = JSON.parse(e.target.result);
-                if (!gameData.programId || !gameData.tabCodes) throw new Error('Invalid save file.');
-                window.pendingGameRestore = gameData;
-                loadChallenge(gameData.programId);
+                const data = JSON.parse(e.target.result);
+                if (!data.challenges) throw new Error('Invalid save file.');
+                restoreFromData(data, codeStyles);
+                if (data.currentProgramId) {
+                    window.pendingRestore = data;
+                    // Find the hex to get the index
+                    const hex = document.querySelector(`.level-hex[data-id="${data.currentProgramId}"]`);
+                    const index = hex ? parseInt(hex.dataset.index) : 1;
+                    loadChallenge(data.currentProgramId, index, tabCodes, originalCode, codeStyles);
+                }
             } catch (err) {
-                alert('Failed to load game: ' + err);
+                alert('Failed to load save: ' + err);
             }
         };
         reader.readAsText(file);
     });
+
+    // Expose loadChallenge for use in loadTestCases (All Tests auto-save)
+    window._loadChallenge = (id, idx) => loadChallenge(id, idx, tabCodes, originalCode, codeStyles);
+    window._autoSave = autoSave;
+    window._updateStyleScore = updateStyleScore;
 });
 
 // ── Program loading / level bar ──────────────────────────────────────────────
 
-function loadPrograms(levelTooltip, loadChallenge) {
+function loadPrograms(levelTooltip, onSelect) {
     fetch('/sandbox/programs')
         .then(r => r.json())
         .then(programs => {
             const levelBar = document.getElementById('level-bar');
-            levelBar.innerHTML = '';
-
+            const scoresEl = document.getElementById('header-scores');
+            // Insert hexagons before the scores element
             programs.forEach((program, index) => {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'level-item';
-
-                const diamond = document.createElement('div');
-                diamond.className = 'level-diamond';
-                diamond.dataset.id = program.id;
+                const hex = document.createElement('div');
+                hex.className = 'level-hex';
+                hex.dataset.id = program.id;
+                hex.dataset.index = index + 1;
 
                 const diffClass = program.difficulty ? `diff-${program.difficulty}` : '';
-                if (diffClass) diamond.classList.add(diffClass);
+                if (diffClass) hex.classList.add(diffClass);
 
                 const label = document.createElement('span');
                 label.textContent = index + 1;
-                diamond.appendChild(label);
+                hex.appendChild(label);
 
-                wrapper.appendChild(diamond);
-                levelBar.appendChild(wrapper);
+                levelBar.insertBefore(hex, scoresEl);
 
-                // Tooltip on hover
-                diamond.addEventListener('mouseenter', (e) => {
+                hex.addEventListener('mouseenter', () => {
                     const diff = program.difficulty ? ` · ${program.difficulty}` : '';
-                    const level = program.spec_level ? ` · ${program.spec_level === 'a_level' ? 'A-Level' : 'GCSE'}` : '';
+                    const level = program.spec_level
+                        ? ` · ${program.spec_level === 'a_level' ? 'A-Level' : 'GCSE'}` : '';
                     levelTooltip.innerHTML = `<strong>${program.description || program.name}</strong>${diff}${level}`;
-                    const rect = diamond.getBoundingClientRect();
                     levelTooltip.style.display = 'block';
+                    const rect = hex.getBoundingClientRect();
                     const tw = levelTooltip.offsetWidth;
                     const left = Math.min(rect.left + rect.width / 2 - tw / 2, window.innerWidth - tw - 8);
                     levelTooltip.style.left = `${Math.max(4, left) + window.scrollX}px`;
-                    levelTooltip.style.top = `${rect.bottom + window.scrollY + 6}px`;
+                    levelTooltip.style.top  = `${rect.bottom + window.scrollY + 6}px`;
                 });
-                diamond.addEventListener('mouseleave', () => {
-                    levelTooltip.style.display = 'none';
-                });
-
-                diamond.addEventListener('click', () => loadChallenge(program.id));
+                hex.addEventListener('mouseleave', () => { levelTooltip.style.display = 'none'; });
+                hex.addEventListener('click', () => onSelect(program.id, index + 1));
             });
 
-            // Auto-load first challenge
-            if (programs.length > 0) loadChallenge(programs[0].id);
+            // Decide which challenge to open: pending restore or first
+            const pending = window.pendingRestore;
+            if (pending && pending.currentProgramId) {
+                const hex = document.querySelector(`.level-hex[data-id="${pending.currentProgramId}"]`);
+                const idx = hex ? parseInt(hex.dataset.index) : 1;
+                onSelect(pending.currentProgramId, idx);
+            } else if (programs.length > 0) {
+                onSelect(programs[0].id, 1);
+            }
         })
         .catch(err => console.error('Error loading programs:', err));
 }
@@ -501,11 +605,7 @@ function loadTestCases(programId) {
                         } else {
                             actualOutput = (data.output == null || data.output === '') ? '""' : data.output;
                             const expected = test.expected_output ?? '';
-                            if (!isNaN(actualOutput) && !isNaN(expected) && actualOutput !== '' && expected !== '') {
-                                passed = Number(actualOutput) === Number(expected);
-                            } else {
-                                passed = String(actualOutput).trim() === String(expected).trim();
-                            }
+                            passed = String(actualOutput).trim() === String(expected).trim();
                         }
                     } catch (err) {
                         errorMsg = err.toString();
@@ -529,7 +629,6 @@ function loadTestCases(programId) {
             });
 
             document.getElementById('all-tests-button')?.remove();
-
             const allTestsButton = document.createElement('button');
             allTestsButton.className = 'tab-button';
             allTestsButton.id = 'all-tests-button';
@@ -582,7 +681,10 @@ function loadTestCases(programId) {
 
                         const outputWindow = document.getElementById('output-window');
                         if (outputWindow) outputWindow.innerHTML = outputHtml;
-                        updateStyleScore(currentTab, data.score, data.feedback);
+
+                        // Update score and auto-save
+                        if (window._updateStyleScore) window._updateStyleScore(currentTab, data.score, data.feedback);
+                        if (window._autoSave) window._autoSave();
                     })
                     .catch(err => {
                         const outputWindow = document.getElementById('output-window');
