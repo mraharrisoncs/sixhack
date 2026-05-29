@@ -77,7 +77,8 @@ def setup_routes(app):
     def get_programs():
         programs = PythonProgram.query.all()
         return jsonify([
-            {"id": p.id, "name": p.name, "description": p.description, "difficulty": p.difficulty}
+            {"id": p.id, "name": p.name, "description": p.description,
+             "difficulty": p.difficulty, "topic": p.topic, "spec_level": p.spec_level}
             for p in programs
         ])
 
@@ -91,6 +92,10 @@ def setup_routes(app):
             "id": program.id,
             "name": program.name,
             "code": program.code,
+            "description": program.description,
+            "topic": program.topic,
+            "spec_level": program.spec_level,
+            "hints": json.loads(program.hints or "[]"),
             "max_lines": program.max_lines,
             "max_bytes": program.max_bytes
         })

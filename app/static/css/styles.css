@@ -13,23 +13,185 @@ body {
 header {
     background: SteelBlue;
     color: #D4E0F7;
-    padding: 10px 0;
-    text-align: center;
+    padding: 6px 14px 0 14px;
 }
 
-h1 { text-align: center; margin-top: 20px; }
+#header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#header-title h1 {
+    margin: 0;
+    font-size: 1.4em;
+    font-weight: 700;
+    color: #D4E0F7;
+    white-space: nowrap;
+}
+
+#header-subtitle {
+    font-weight: 400;
+    font-style: italic;
+    font-size: 0.8em;
+    opacity: 0.85;
+}
+
 h2 { text-align: center; margin-top: 15px; }
 p  { margin-left: 20px; }
 
-nav { margin: 20px 0; }
+nav { margin: 0; display: flex; align-items: center; gap: 4px; }
 
 nav a {
     color: #D4E0F7;
     text-decoration: none;
-    padding: 10px 15px;
+    padding: 6px 12px;
+    font-size: 14px;
 }
 
-nav a:hover { background: #e8491d; }
+nav a:hover { background: #e8491d; border-radius: 4px; }
+
+/* ── Level bar ──────────────────────────────────────────── */
+#level-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 0 10px 0;
+    align-items: center;
+}
+
+.level-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.level-diamond {
+    width: 30px;
+    height: 30px;
+    transform: rotate(45deg);
+    background: linear-gradient(135deg, #1a6090, #1258DC);
+    border: 2px solid #D4E0F7;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    position: relative;
+}
+
+.level-diamond span {
+    transform: rotate(-45deg);
+    font-size: 11px;
+    font-weight: 700;
+    color: #D4E0F7;
+    user-select: none;
+}
+
+.level-diamond:hover {
+    background: linear-gradient(135deg, #700CBC, #1258DC);
+    border-color: #fff;
+}
+
+.level-diamond.active {
+    background: linear-gradient(135deg, #c49ad8, #700CBC);
+    border-color: #fff;
+}
+
+.level-diamond.diff-easy   { border-color: #7fd67f; }
+.level-diamond.diff-medium { border-color: #f0c040; }
+.level-diamond.diff-hard   { border-color: #e06060; }
+
+.level-tooltip {
+    display: none;
+    position: absolute;
+    z-index: 5000;
+    max-width: 300px;
+    background: #fff;
+    border: 1px solid #1258DC;
+    color: #210934;
+    padding: 7px 10px;
+    border-radius: 6px;
+    font-size: 0.88em;
+    box-shadow: 0 2px 8px rgba(18, 88, 220, 0.2);
+    pointer-events: none;
+    white-space: normal;
+    line-height: 1.4;
+}
+
+/* ── Instructions panel ─────────────────────────────────── */
+#instructions-panel {
+    border: 2px solid #1258DC;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    background: #eef2fc;
+    overflow: hidden;
+}
+
+#instructions-summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    flex-wrap: wrap;
+}
+
+#instructions-goal {
+    font-weight: 600;
+    font-size: 0.95em;
+    flex: 1;
+    min-width: 0;
+}
+
+#instructions-badges {
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.badge {
+    font-size: 0.72em;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 10px;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.badge-gcse     { background: #d0e8ff; color: #1258DC; }
+.badge-a_level  { background: #e8d0ff; color: #700CBC; }
+.badge-topic    { background: #d8f0d8; color: #2a7a2a; }
+
+.hints-toggle {
+    font-size: 12px;
+    padding: 3px 9px;
+    margin: 0;
+    height: auto;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.hints-toggle:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+#instructions-detail {
+    display: none;
+    padding: 0 12px 8px 12px;
+    border-top: 1px solid #c8d4f0;
+}
+
+#instructions-detail.open { display: block; }
+
+#hints-list {
+    margin: 6px 0 0 0;
+    padding-left: 18px;
+    font-size: 0.88em;
+    line-height: 1.7;
+}
 
 #theme-toggle {
     background: none;
@@ -117,16 +279,6 @@ select {
     box-sizing: border-box;
 }
 
-#program-dropdown {
-    margin-top: 2px;
-    margin-bottom: 10px;
-    height: 44px;
-    color: #210934;
-    background: #D4E0F7;
-    border-color: #1258DC;
-    font-family: 'Exo 2', Tahoma, sans-serif;
-    font-size: 15px;
-}
 
 /* ── Input row (clear / run / input box) ────────────────── */
 .test-container {
@@ -457,6 +609,40 @@ body.dark::before {
 
 body.dark header { background: MidnightBlue; }
 
+body.dark #header-title h1 { color: #D4E0F7; }
+
+body.dark .level-diamond {
+    background: linear-gradient(135deg, #1a2a40, #1258DC);
+    border-color: #4a6a9a;
+}
+
+body.dark .level-diamond:hover {
+    background: linear-gradient(135deg, #700CBC, #1258DC);
+    border-color: #d8d8d8;
+}
+
+body.dark .level-diamond.active {
+    background: linear-gradient(135deg, #700CBC, #c49ad8);
+    border-color: #d8d8d8;
+}
+
+body.dark .level-tooltip {
+    background: #1e2a35;
+    border-color: #555;
+    color: #d8d8d8;
+}
+
+body.dark #instructions-panel {
+    background: #1a2a35;
+    border-color: #1258DC;
+}
+
+body.dark #instructions-detail { border-top-color: #2e3f4f; }
+
+body.dark .badge-gcse    { background: #1a2a40; color: #7ab3f5; }
+body.dark .badge-a_level { background: #2a1a40; color: #c49ad8; }
+body.dark .badge-topic   { background: #1a2a1a; color: #7fd67f; }
+
 body.dark .tab-button {
     background: linear-gradient(to right, #333, #111);
     border-color: #1258DC;
@@ -484,10 +670,6 @@ body.dark #input-box {
     color: #d8d8d8;
 }
 
-body.dark #program-dropdown {
-    background: #273238;
-    color: #d8d8d8;
-}
 
 body.dark button {
     background: linear-gradient(to bottom, #2e3f4f, #1a2a35);

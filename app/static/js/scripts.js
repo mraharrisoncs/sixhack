@@ -10,6 +10,7 @@ let styleScores = {};
 let currentProgramMaxLines = null;
 let currentProgramMaxBytes = null;
 let currentTab = null;
+let currentProgramId = null;
 
 const MAX_SCORE = 60;
 
@@ -20,35 +21,18 @@ function updateTotalScore() {
     document.getElementById('total-score-meter').value = total;
 }
 
-/**
- * Records a score for a style tab, updates its progress fill and tooltip,
- * then refreshes the total score display.
- * @param {string} styleKey
- * @param {number} score
- * @param {string[]} feedbackArr
- */
 function updateStyleScore(styleKey, score, feedbackArr) {
     styleScores[styleKey] = score;
     updateTabProgress(styleKey, score, feedbackArr);
     updateTotalScore();
 }
 
-/**
- * Repaints all style tab progress fills — called after a theme toggle so
- * fill colours update to match the new theme.
- */
 function repaintTabFills() {
     Object.entries(styleScores).forEach(([key, score]) => {
         if (score > 0) updateTabProgress(key, score);
     });
 }
 
-/**
- * Updates the visual progress fill and score tooltip on a single style tab.
- * @param {string} styleKey
- * @param {number} score  Raw score (clamped to 0–10 internally)
- * @param {string[]} [feedbackArr]
- */
 function updateTabProgress(styleKey, score, feedbackArr) {
     const button = document.getElementById(`tab-btn-${styleKey}`);
     if (!button) return;
@@ -65,10 +49,6 @@ function updateTabProgress(styleKey, score, feedbackArr) {
     button.setAttribute('data-feedback', tooltip);
 }
 
-/**
- * Shows the intro modal on first visit. Suppressed if the user has previously
- * ticked "Don't show this again" (stored in localStorage).
- */
 function showIntroModal() {
     if (localStorage.getItem('sixhack_intro_seen')) return;
 
@@ -87,7 +67,7 @@ function showIntroModal() {
                 <li><strong>Recursive</strong> — solves the problem by calling itself</li>
                 <li><strong>Minimalist</strong> — as short and clean as possible</li>
             </ul>
-            <p>Choose a challenge from the dropdown, then use the style tabs to switch between your six versions. Hit <strong>All Tests</strong> to score your code!</p>
+            <p>Choose a challenge from the level bar, then use the style tabs to switch between your six versions. Hit <strong>All Tests</strong> to score your code!</p>
             <div class="modal-buttons">
                 <label><input type="checkbox" id="intro-dont-show"> Don't show this again</label>
                 <button id="intro-close-btn">Let's go! 🚀</button>
@@ -128,23 +108,21 @@ document.addEventListener('DOMContentLoaded', () => {
         matchBrackets: true,
         autofocus: true
     });
-    codeMirrorEditor.setSize(null, 600);
+    codeMirrorEditor.setSize(null, 560);
 
     codeMirrorEditor.setValue(
-        `# Welcome to Six Hack!
-#
-# Your goal is to find six different ways to solve the same problem.
-# Given some starting code, you must rewrite or refactor it six ways:
-#
-#   Structured, Readable, Robust, OOP, Recursive and Minimalist
-#
-# Choose a challenge from the dropdown above to begin!`
+        `# Welcome to Six Hack!\n#\n# Select a challenge from the level bar above to begin.`
     );
 
-    // Tooltip element shared across all style tabs
+    // Shared tooltip for style tabs
     const tabTooltip = document.createElement('div');
     tabTooltip.className = 'tab-tooltip';
     document.body.appendChild(tabTooltip);
+
+    // Shared tooltip for level diamonds
+    const levelTooltip = document.createElement('div');
+    levelTooltip.className = 'level-tooltip';
+    document.body.appendChild(levelTooltip);
 
     // Copy-to popover (right-click on a style tab)
     const copyPopover = document.createElement('div');
@@ -176,7 +154,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     button.classList.add('active');
                     currentTab = style.key;
 
-                    // Initialise tab code on first visit if a program is loaded
                     if (!tabCodes[currentTab]) {
                         tabCodes[currentTab] = originalCode ? style.code_version + originalCode : '';
                     }
@@ -185,8 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 button.addEventListener('contextmenu', e => {
                     e.preventDefault();
-
-                    // Snapshot current editor into its tab before showing popover
                     if (currentTab !== null) tabCodes[currentTab] = codeMirrorEditor.getValue();
 
                     const sourceKey = style.key;
@@ -194,7 +169,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     const targets = styles.filter(s => s.key !== sourceKey);
 
                     copyPopover.innerHTML = `<div class="popover-title">Copy code to…</div>`;
-
                     targets.forEach(target => {
                         const btn = document.createElement('button');
                         btn.textContent = target.name;
@@ -218,7 +192,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                     copyPopover.appendChild(allBtn);
 
-                    // Position near the tab, keeping within viewport
                     const rect = button.getBoundingClientRect();
                     copyPopover.style.display = 'block';
                     const pw = copyPopover.offsetWidth;
@@ -231,6 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentTab = styles[0].key;
         });
 
+    // Style tab tooltips
     codeTabsContainer.addEventListener('mouseover', (e) => {
         if (e.target.classList.contains('tab-button')) {
             const feedback = e.target.getAttribute('data-feedback');
@@ -247,16 +221,61 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.classList.contains('tab-button')) tabTooltip.style.display = 'none';
     });
 
-    const programDropdown = document.getElementById('program-dropdown');
-    programDropdown.addEventListener('change', (e) => {
-        const programId = e.target.value;
+    // ── Instructions panel ───────────────────────────────────────────────────
 
-        // Offer to save progress before switching challenge (skip during a game restore)
+    const instructionsToggle = document.getElementById('instructions-toggle');
+    const instructionsDetail = document.getElementById('instructions-detail');
+
+    instructionsToggle.addEventListener('click', () => {
+        const open = instructionsDetail.classList.toggle('open');
+        instructionsToggle.textContent = open ? '▲ Hints' : '▼ Hints';
+    });
+
+    function updateInstructions(program) {
+        document.getElementById('instructions-goal').textContent = program.description || program.name;
+
+        const badges = document.getElementById('instructions-badges');
+        badges.innerHTML = '';
+        if (program.spec_level) {
+            const b = document.createElement('span');
+            b.className = `badge badge-spec badge-${program.spec_level}`;
+            b.textContent = program.spec_level === 'a_level' ? 'A-Level' : 'GCSE';
+            badges.appendChild(b);
+        }
+        if (program.topic) {
+            const b = document.createElement('span');
+            b.className = 'badge badge-topic';
+            b.textContent = program.topic;
+            badges.appendChild(b);
+        }
+
+        const hintsList = document.getElementById('hints-list');
+        hintsList.innerHTML = '';
+        const hints = program.hints || [];
+        if (hints.length) {
+            hints.forEach(hint => {
+                const li = document.createElement('li');
+                li.textContent = hint;
+                hintsList.appendChild(li);
+            });
+            instructionsToggle.disabled = false;
+        } else {
+            instructionsToggle.disabled = true;
+            instructionsDetail.classList.remove('open');
+            instructionsToggle.textContent = '▼ Hints';
+        }
+    }
+
+    // ── Challenge loading ────────────────────────────────────────────────────
+
+    function loadChallenge(programId) {
+        if (!programId) return;
+
         if (!window.pendingGameRestore && Object.values(styleScores).some(s => s > 0)) {
             if (confirm('Save your current progress before switching challenge?')) {
                 if (currentTab !== null) tabCodes[currentTab] = codeMirrorEditor.getValue();
                 const gameData = {
-                    programId: programDropdown.dataset.lastId,
+                    programId: currentProgramId,
                     tabCodes: { ...tabCodes },
                     currentTab,
                     styleScores: { ...styleScores }
@@ -267,7 +286,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 URL.revokeObjectURL(url);
             }
         }
-        programDropdown.dataset.lastId = programId;
+
+        currentProgramId = programId;
+
+        // Highlight active level
+        document.querySelectorAll('.level-diamond').forEach(d => {
+            d.classList.toggle('active', d.dataset.id == programId);
+        });
 
         fetch(`/sandbox/original_code/${programId}`)
             .then(r => r.json())
@@ -286,7 +311,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('output').textContent = '';
                 updateTotalScore();
 
-                // Apply a pending game restore queued by Load Game
                 if (window.pendingGameRestore && window.pendingGameRestore.programId == programId) {
                     const restore = window.pendingGameRestore;
                     window.pendingGameRestore = null;
@@ -308,13 +332,18 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(data => {
                 currentProgramMaxLines = data.max_lines ?? null;
                 currentProgramMaxBytes = data.max_bytes ?? null;
+                updateInstructions(data);
             })
-            .catch(err => console.error('Error fetching program constraints:', err));
+            .catch(err => console.error('Error fetching program info:', err));
 
         loadTestCases(programId);
-    });
+    }
 
-    loadPrograms();
+    // ── Program / level bar loading ──────────────────────────────────────────
+
+    loadPrograms(levelTooltip, loadChallenge);
+
+    // ── Controls ─────────────────────────────────────────────────────────────
 
     document.getElementById('clear-button').addEventListener('click', clearInputBox);
 
@@ -349,10 +378,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('save-game-button').addEventListener('click', () => {
         if (currentTab !== null) tabCodes[currentTab] = codeMirrorEditor.getValue();
-        const programId = programDropdown.value || null;
-        if (!programId) { alert('Select a challenge before saving.'); return; }
+        if (!currentProgramId) { alert('Select a challenge before saving.'); return; }
 
-        const gameData = { programId, tabCodes: { ...tabCodes }, currentTab, styleScores: { ...styleScores } };
+        const gameData = { programId: currentProgramId, tabCodes: { ...tabCodes }, currentTab, styleScores: { ...styleScores } };
         const url = URL.createObjectURL(new Blob([JSON.stringify(gameData, null, 2)], { type: 'application/json' }));
         const a = document.createElement('a');
         a.href = url; a.download = 'sixhack_game_save.json';
@@ -373,8 +401,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const gameData = JSON.parse(e.target.result);
                 if (!gameData.programId || !gameData.tabCodes) throw new Error('Invalid save file.');
                 window.pendingGameRestore = gameData;
-                programDropdown.value = gameData.programId;
-                programDropdown.dispatchEvent(new Event('change'));
+                loadChallenge(gameData.programId);
             } catch (err) {
                 alert('Failed to load game: ' + err);
             }
@@ -383,33 +410,60 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// ── Program loading ──────────────────────────────────────────────────────────
+// ── Program loading / level bar ──────────────────────────────────────────────
 
-/** Fetches available challenges, populates the dropdown, and auto-selects the first. */
-function loadPrograms() {
+function loadPrograms(levelTooltip, loadChallenge) {
     fetch('/sandbox/programs')
         .then(r => r.json())
         .then(programs => {
-            const dropdown = document.getElementById('program-dropdown');
-            dropdown.innerHTML = '<option value="" disabled selected>Select a challenge</option>';
-            programs.forEach(program => {
-                const option = document.createElement('option');
-                option.value = program.id;
-                const diff = program.difficulty ? ` [${program.difficulty}]` : '';
-                option.textContent = (program.description || program.name) + diff;
-                dropdown.appendChild(option);
+            const levelBar = document.getElementById('level-bar');
+            levelBar.innerHTML = '';
+
+            programs.forEach((program, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'level-item';
+
+                const diamond = document.createElement('div');
+                diamond.className = 'level-diamond';
+                diamond.dataset.id = program.id;
+
+                const diffClass = program.difficulty ? `diff-${program.difficulty}` : '';
+                if (diffClass) diamond.classList.add(diffClass);
+
+                const label = document.createElement('span');
+                label.textContent = index + 1;
+                diamond.appendChild(label);
+
+                wrapper.appendChild(diamond);
+                levelBar.appendChild(wrapper);
+
+                // Tooltip on hover
+                diamond.addEventListener('mouseenter', (e) => {
+                    const diff = program.difficulty ? ` · ${program.difficulty}` : '';
+                    const level = program.spec_level ? ` · ${program.spec_level === 'a_level' ? 'A-Level' : 'GCSE'}` : '';
+                    levelTooltip.innerHTML = `<strong>${program.description || program.name}</strong>${diff}${level}`;
+                    const rect = diamond.getBoundingClientRect();
+                    levelTooltip.style.display = 'block';
+                    const tw = levelTooltip.offsetWidth;
+                    const left = Math.min(rect.left + rect.width / 2 - tw / 2, window.innerWidth - tw - 8);
+                    levelTooltip.style.left = `${Math.max(4, left) + window.scrollX}px`;
+                    levelTooltip.style.top = `${rect.bottom + window.scrollY + 6}px`;
+                });
+                diamond.addEventListener('mouseleave', () => {
+                    levelTooltip.style.display = 'none';
+                });
+
+                diamond.addEventListener('click', () => loadChallenge(program.id));
             });
-            if (programs.length > 0) {
-                dropdown.value = programs[0].id;
-                dropdown.dispatchEvent(new Event('change'));
-            }
+
+            // Auto-load first challenge
+            if (programs.length > 0) loadChallenge(programs[0].id);
         })
         .catch(err => console.error('Error loading programs:', err));
 }
 
 // ── Test case tabs ───────────────────────────────────────────────────────────
 
-/** Fetches test cases for a challenge and renders numbered tabs plus "All Tests". */
 function loadTestCases(programId) {
     fetch(`/sandbox/test_cases/${programId}`)
         .then(r => r.json())
@@ -474,7 +528,6 @@ function loadTestCases(programId) {
                 });
             });
 
-            // Remove stale All Tests button before re-adding for the new program
             document.getElementById('all-tests-button')?.remove();
 
             const allTestsButton = document.createElement('button');
@@ -501,7 +554,6 @@ function loadTestCases(programId) {
                         let outputHtml = `<div><strong>Running test cases...</strong><br>`;
                         if (data.results && Array.isArray(data.results)) {
                             data.results.forEach((test, idx) => {
-                                // Normalise blank/undefined outputs to empty-string sentinel
                                 const actualOutput = (test.actual_output == null || test.actual_output === '') ? '""' : test.actual_output;
                                 const expectedOutput = (test.expected_output == null || test.expected_output === '') ? '""' : test.expected_output;
                                 outputHtml += `<div class="output-test">`;
@@ -519,7 +571,6 @@ function loadTestCases(programId) {
                         }
                         outputHtml += `<hr><strong>Running style checks...</strong><br>`;
                         if (data.feedback && Array.isArray(data.feedback)) {
-                            // Strip per-test lines and the raw score line — only show style feedback
                             data.feedback
                                 .filter(line => !/^Test "\w+/.test(line) && !/^Score: /.test(line))
                                 .forEach(line => { outputHtml += `${line}<br>`; });
@@ -544,7 +595,6 @@ function loadTestCases(programId) {
 
 // ── Utilities ────────────────────────────────────────────────────────────────
 
-/** Clears the input box and restores its placeholder text. */
 function clearInputBox() {
     const inputBox = document.getElementById('input-box');
     inputBox.value = '';

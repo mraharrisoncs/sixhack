@@ -13,12 +13,19 @@
 
 <body>
     <header>
-        <h1 style="display: inline-block;">Six Hack!</h1>
-        <nav style="float: right;">
-            <a href="{{ url_for('home') }}">Home</a>
-            <a href="{{ url_for('about') }}">About</a>
-            <button id="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">💡</button>
-        </nav>
+        <div id="header-top">
+            <div id="header-title">
+                <h1>Six Hack! <span id="header-subtitle">— solving problems six ways</span></h1>
+            </div>
+            <nav>
+                <a href="{{ url_for('home') }}">Home</a>
+                <a href="{{ url_for('about') }}">About</a>
+                <button id="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">💡</button>
+            </nav>
+        </div>
+        <div id="level-bar">
+            <!-- Level diamonds injected by scripts.js -->
+        </div>
     </header>
     <main>
         {% block content %}

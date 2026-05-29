@@ -2,11 +2,20 @@
 {% block content %}
 <div class="flex-container">
 
-    <!-- Left: challenge selector + code editor -->
+    <!-- Left: instructions panel + code editor -->
     <div class="sandbox-container">
-        <select id="program-dropdown">
-            <option value="" disabled selected>Select a challenge</option>
-        </select>
+
+        <div id="instructions-panel">
+            <div id="instructions-summary">
+                <span id="instructions-goal">Select a challenge above to begin</span>
+                <div id="instructions-badges"></div>
+                <button id="instructions-toggle" class="hints-toggle" disabled>▼ Hints</button>
+            </div>
+            <div id="instructions-detail">
+                <ul id="hints-list"></ul>
+            </div>
+        </div>
+
         <form id="sandbox-form">
             <div id="code-tabs">
                 <!-- Style tabs injected by scripts.js -->
