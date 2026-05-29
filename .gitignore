@@ -9,3 +9,4 @@ v1/
 instance/
 data/
 .claude/
+.claude/settings.json

@@ -20,7 +20,10 @@
       "Bash(Remove-Item -Recurse -Force c:/Users/alan/OneDrive/Git/sixhack/v1)",
       "Bash(git add *)",
       "Bash(git rm *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(.venv/Scripts/python -c \"from app import create_app; app = create_app\\(\\); print\\('OK'\\)\")",
+      "Bash(git push *)",
+      "Bash(git commit -m 'shrink and overlap test case tabs for challenges with many tests *)"
     ]
   }
 }
