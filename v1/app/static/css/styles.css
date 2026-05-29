@@ -440,7 +440,19 @@ body:not(.dark) #output:empty::before { color: #888; }
 /* ── Dark theme ─────────────────────────────────────────── */
 body.dark {
     background: linear-gradient(to bottom, midnightblue, darkslategray);
+    background-image: url('/static/sixhack_bg.svg');
+    background-size: cover;
+    background-attachment: fixed;
     color: #d8d8d8;
+}
+
+body.dark::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 30, 0.78);
+    pointer-events: none;
+    z-index: -1;
 }
 
 body.dark header { background: MidnightBlue; }
