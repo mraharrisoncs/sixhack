@@ -57,18 +57,20 @@ def setup_routes(app):
             results = test_code(code, test_cases)
 
             if style_key:
-                final_score, combined_feedback = _combine_test_and_style_results(
+                final_score, combined_feedback, feedback_detail = _combine_test_and_style_results(
                     results, style_key, code,
                     max_lines=program.max_lines, max_bytes=program.max_bytes
                 )
             else:
                 final_score = None
                 combined_feedback = []
+                feedback_detail = None
 
             return jsonify({
                 "results": results,
                 "score": final_score,
-                "feedback": combined_feedback
+                "feedback": combined_feedback,
+                "feedback_detail": feedback_detail,
             })
         except Exception as e:
             return jsonify({"error": str(e)}), 500
@@ -383,15 +385,23 @@ def setup_routes(app):
         style = next((s for s in CODE_STYLES if s['key'] == style_key), None)
         base_score = 10
 
-        # 1. Count failed tests and build per-test feedback
+        # 1. Count failed tests and build per-test detail
         failed_tests = 0
+        test_detail = []
         test_feedback = []
         for test in test_results:
-            if not test.get('passed', False):
+            name = test.get('name', test.get('number', ''))
+            passed = test.get('passed', False)
+            if not passed:
                 failed_tests += 1
-                test_feedback.append(f"Test \"{test.get('name', test.get('number', ''))}\": Failed")
-            else:
-                test_feedback.append(f"Test \"{test.get('name', test.get('number', ''))}\": Passed")
+            test_detail.append({
+                "name": name,
+                "passed": passed,
+                "actual": test.get('actual_output'),
+                "expected": test.get('expected_output'),
+                "error": test.get('error'),
+            })
+            test_feedback.append(f"Test \"{name}\": {'Passed' if passed else 'Failed'}")
 
         # 2. Run style checks (pylint + AST)
         style_score = base_score
@@ -412,9 +422,20 @@ def setup_routes(app):
         # 3. Deduct 2 points per failed test
         final_score = max(0, style_score - 2 * failed_tests)
 
-        # 4. Assemble combined feedback
+        # 4. Flat feedback list (used by tab tooltips)
         combined_feedback = [f"Score: {final_score}/10"] + test_feedback
         if style_feedback:
             combined_feedback.extend(style_feedback)
 
-        return final_score, combined_feedback
+        # 5. Structured detail for rich UI rendering
+        total_tests = len(test_results)
+        passed_tests = total_tests - failed_tests
+        feedback_detail = {
+            "passed": passed_tests,
+            "total": total_tests,
+            "tests": test_detail,
+            "style_messages": style_feedback,
+            "style_score": style_score,
+        }
+
+        return final_score, combined_feedback, feedback_detail

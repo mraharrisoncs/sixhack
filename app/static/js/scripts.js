@@ -655,39 +655,8 @@ function loadTestCases(programId) {
                 })
                     .then(r => r.json())
                     .then(data => {
-                        let outputHtml = `<div><strong>Running test cases...</strong><br>`;
-                        if (data.results && Array.isArray(data.results)) {
-                            data.results.forEach((test, idx) => {
-                                const actualOutput = (test.actual_output == null || test.actual_output === '') ? '""' : test.actual_output;
-                                const expectedOutput = (test.expected_output == null || test.expected_output === '') ? '""' : test.expected_output;
-                                outputHtml += `<div class="output-test">`;
-                                outputHtml += `<strong>Test ${idx + 1}: ${test.name || ''}</strong>, Inputs: <code>${JSON.stringify(test.inputs)}</code><br>`;
-                                outputHtml += `Expected Output: <code>${expectedOutput}</code><br>`;
-                                if (test.error) {
-                                    outputHtml += `<span class="output-error">Error: ${test.error}</span><br>`;
-                                } else {
-                                    outputHtml += `Actual Output:&nbsp;&nbsp;&nbsp;<code>${actualOutput}</code><br>`;
-                                }
-                                outputHtml += `Result: <span class="output-result">${test.passed ? 'PASS ✅' : 'FAIL ❌'}</span>`;
-                                if (!test.passed) outputHtml += ` <span class="output-penalty">score -2</span>`;
-                                outputHtml += `</div>`;
-                            });
-                        }
-                        outputHtml += `<hr><strong>Running style checks...</strong><br>`;
-                        if (data.feedback && Array.isArray(data.feedback)) {
-                            data.feedback
-                                .filter(line => !/^Test "\w+/.test(line) && !/^Score: /.test(line))
-                                .forEach(line => { outputHtml += `${line}<br>`; });
-                        }
-                        if (typeof data.score === 'number') {
-                            outputHtml += `<hr><strong>Score: ${data.score}/10</strong>`;
-                        }
-                        outputHtml += `</div>`;
-
                         const outputWindow = document.getElementById('output-window');
-                        if (outputWindow) outputWindow.innerHTML = outputHtml;
-
-                        // Update score and auto-save
+                        if (outputWindow) outputWindow.innerHTML = renderFeedback(data);
                         if (window._updateStyleScore) window._updateStyleScore(currentTab, data.score, data.feedback);
                         if (window._autoSave) window._autoSave();
                     })
@@ -698,6 +667,82 @@ function loadTestCases(programId) {
             });
         })
         .catch(err => console.error('Error loading test cases:', err));
+}
+
+// ── Feedback renderer ────────────────────────────────────────────────────────
+
+function renderFeedback(data) {
+    const score = typeof data.score === 'number' ? data.score : null;
+    const detail = data.feedback_detail;
+
+    if (!detail) {
+        return score !== null ? `<div><strong>Score: ${score}/10</strong></div>` : '<div>No results.</div>';
+    }
+
+    const { passed, total, tests, style_messages } = detail;
+    const failed = total - passed;
+    const allPassed = failed === 0;
+    const nonePassed = passed === 0;
+
+    let html = '<div class="fb-block">';
+
+    // ── Summary line ──
+    if (allPassed) {
+        html += `<div class="fb-summary fb-pass">✅ All ${total} test${total !== 1 ? 's' : ''} passed — nice work!</div>`;
+    } else if (nonePassed) {
+        html += `<div class="fb-summary fb-fail">❌ No tests passed yet — but let's figure out why.</div>`;
+    } else {
+        html += `<div class="fb-summary fb-partial">⚠️ ${passed} of ${total} tests passed — you're nearly there!</div>`;
+    }
+
+    // ── Per-test rows ──
+    html += '<div class="fb-tests">';
+    tests.forEach((t, idx) => {
+        const icon = t.passed ? '✅' : '❌';
+        const label = t.name ? `Test ${idx + 1} — ${t.name}` : `Test ${idx + 1}`;
+        html += `<div class="fb-test ${t.passed ? 'fb-test-pass' : 'fb-test-fail'}">`;
+        html += `<span class="fb-test-icon">${icon}</span> <strong>${label}</strong>`;
+        if (!t.passed) {
+            html += ` <span class="fb-deduction">−2 pts</span>`;
+            if (t.error) {
+                html += `<br><span class="fb-hint">Error: ${t.error}</span>`;
+            } else {
+                const actual = t.actual == null || t.actual === '' ? '""' : t.actual;
+                const expected = t.expected == null || t.expected === '' ? '""' : t.expected;
+                html += `<br><span class="fb-hint">Expected <code>${expected}</code>, got <code>${actual}</code></span>`;
+            }
+        }
+        html += '</div>';
+    });
+    html += '</div>';
+
+    // ── Style feedback ──
+    if (style_messages && style_messages.length) {
+        html += '<hr class="fb-divider"><div class="fb-style">';
+        html += '<div class="fb-style-label">Style</div>';
+        style_messages.forEach(msg => {
+            html += `<div class="fb-style-msg">💡 ${msg}</div>`;
+        });
+        html += '</div>';
+    } else if (allPassed) {
+        html += '<hr class="fb-divider"><div class="fb-style"><div class="fb-style-label">Style</div>';
+        html += '<div class="fb-style-msg fb-style-ok">✔ No style issues detected.</div></div>';
+    }
+
+    // ── Score line ──
+    if (score !== null) {
+        html += '<hr class="fb-divider">';
+        if (allPassed && !style_messages?.length) {
+            html += `<div class="fb-score fb-score-full"><strong>Score: ${score}/10</strong> — ready to try the next style?</div>`;
+        } else if (nonePassed) {
+            html += `<div class="fb-score fb-score-zero"><strong>Score: ${score}/10</strong> — don't worry, have another look and try again.</div>`;
+        } else {
+            html += `<div class="fb-score"><strong>Score: ${score}/10</strong></div>`;
+        }
+    }
+
+    html += '</div>';
+    return html;
 }
 
 // ── Utilities ────────────────────────────────────────────────────────────────
