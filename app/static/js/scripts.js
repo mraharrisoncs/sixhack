@@ -131,7 +131,7 @@ function showIntroModal() {
     overlay.id = 'intro-overlay';
     overlay.innerHTML = `
         <div id="intro-modal">
-            <h2>Welcome to Six Hack!</h2>
+            <h2>Welcome to six(im).possible().things()</h2>
             <p>Your goal is to find <strong>six different ways</strong> to solve the same problem.</p>
             <p>Given a starting function, rewrite or refactor it in each of these styles:</p>
             <ul>
@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
         autofocus: true
     });
     codeMirrorEditor.setSize(null, 560);
-    codeMirrorEditor.setValue('# Welcome to Six Hack!\n#\n# Select a challenge from the level bar above to begin.');
+    codeMirrorEditor.setValue('# Welcome to six(im).possible().things()\n#\n# Select a challenge from the level bar above to begin.');
 
     // Shared tooltip for style tabs
     const tabTooltip = document.createElement('div');
