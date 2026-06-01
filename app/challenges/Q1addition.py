@@ -1,13 +1,14 @@
-a = int(input())
+﻿a = int(input())
 b = int(input())
 print(a + b)
 
 '''!SIX:
 description = "Add two numbers"
+instructions = "Input two numbers (one per line), add them together, and print the result."
 difficulty = "easy"
 topic = "arithmetic"
 spec_level = "gcse"
-hints = ["Do you really need that many lines?"]
+hints = ["Debug: Run it with inputs 5 and 3 — does it print 8? Try 0 and 0, and a negative number.", "Structure: Wrap the addition in a function def add(a, b): that returns the result, then call it from the main block."]
 max_lines = 1
 
 [[test_cases]]

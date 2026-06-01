@@ -1,4 +1,4 @@
-ram = int(input())
+﻿ram = int(input())
 vm = int(input())
 used_ram = 0
 used_vm = 0
@@ -17,10 +17,11 @@ for i in range(n):
 
 '''!SIX:
 description = "Simulate loading programs into RAM with virtual memory overflow"
+instructions = "Input total RAM, total virtual memory, and a series of program sizes. For each program print whether it loads into RAM, swaps to virtual memory, or cannot be loaded due to insufficient memory."
 difficulty = "medium"
 topic = "systems"
 spec_level = "a_level"
-hints = ["What happens if a single program is larger than all remaining RAM and VM combined?", "The logic is correct but deeply nested — could you flatten it?", "No functions make this hard to test or extend"]
+hints = ["Debug: Use RAM=10, VM=5, then load programs of sizes 6, 4, 8 — trace each Loaded/Swapped/Error decision carefully.", "Structure: Extract def load_program(size, used_ram, ram, used_vm, vm): returning a status string — removes deep nesting and makes each path testable."]
 
 [[test_cases]]
 number = 1

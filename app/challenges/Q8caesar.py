@@ -1,4 +1,4 @@
-msg = input()
+﻿msg = input()
 s = int(input())
 out = ""
 i = 0
@@ -15,10 +15,11 @@ print(out)
 
 '''!SIX:
 description = "Encode a lowercase message with a Caesar cipher"
+instructions = "Input a lowercase message and a shift value, then output the message encoded using a Caesar cipher (each letter shifted forward by the given amount, wrapping at z)."
 difficulty = "medium"
 topic = "strings"
 spec_level = "gcse"
-hints = ["Single-letter variable names make the logic hard to follow", "Python's for loop can iterate over characters directly — no index needed"]
+hints = ["Debug: Try message abc with shift 1 — you should get bcd. Try shift 25 and shift 0 too.", "Structure: Put the encoding in def encode(message, shift): — use a for loop over characters rather than a while loop with an index."]
 
 [[test_cases]]
 number = 1

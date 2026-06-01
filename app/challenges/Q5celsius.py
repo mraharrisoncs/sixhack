@@ -1,4 +1,4 @@
-degrees = float(input())
+﻿degrees = float(input())
 step1 = degrees * 9
 step2 = step1 / 5
 step3 = step2 + 32
@@ -8,10 +8,11 @@ print(answer)
 
 '''!SIX:
 description = "Convert Celsius to Fahrenheit"
+instructions = "Input a temperature in Celsius and output the equivalent in Fahrenheit, rounded to 1 decimal place."
 difficulty = "easy"
 topic = "arithmetic"
 spec_level = "gcse"
-hints = ["Do you need six lines to do one calculation?", "Intermediate variables like step1, step2, step3 add noise without adding clarity"]
+hints = ["Debug: Test with 100 — you should get 212.0. Now check 0 and -40.", "Structure: Put the formula in def celsius_to_fahrenheit(degrees): returning the result — main block handles input and print only."]
 max_lines = 2
 
 [[test_cases]]

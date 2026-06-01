@@ -1,4 +1,4 @@
-p = input()
+﻿p = input()
 score = 0
 if len(p) >= 8:
     score = score + 1
@@ -15,10 +15,11 @@ if score < 2:
 
 '''!SIX:
 description = "Rate password strength as Weak, Medium or Strong"
+instructions = "Input a password string and rate its strength as Weak, Medium, or Strong based on its length, use of uppercase letters, digits, and special characters."
 difficulty = "easy"
 topic = "strings"
 spec_level = "gcse"
-hints = ["Three independent if statements for mutually exclusive outcomes — what keyword would be cleaner?", "The rules are hardcoded inline — a special character check is missing entirely", "What happens with an empty password?"]
+hints = ["Debug: Test Password1 — the code gives Strong, but there is no special character check. Is that correct?", "Structure: Replace the three independent if statements with elif/else, add a special character check, then wrap scoring in def rate_password(password):."]
 
 [[test_cases]]
 number = 1

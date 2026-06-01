@@ -1,4 +1,4 @@
-nums = list(map(int, input().split(",")))
+﻿nums = list(map(int, input().split(",")))
 n = len(nums)
 for i in range(n):
     for j in range(n - 1):
@@ -10,10 +10,11 @@ for i in range(n):
 
 '''!SIX:
 description = "Bubble sort: sort a list and print the list after each pass"
+instructions = "Input a comma-separated list of integers and sort it using bubble sort, printing the state of the list after every pass."
 difficulty = "medium"
 topic = "sorting"
 spec_level = "gcse"
-hints = ["The inner loop should shrink each pass — elements at the end are already sorted", "A swap flag would let you exit early if no swaps occurred"]
+hints = ["Debug: Run with [4,3,2,1] and count lines of output — are there too many passes?", "Structure: The inner loop range should shrink each pass (range(n-1-i)) since sorted elements settle at the end — wrap the sort in def bubble_sort(nums):."]
 
 [[test_cases]]
 number = 1

@@ -148,6 +148,14 @@ nav a:hover { background: #e8491d; border-radius: 4px; }
     font-size: 1em;
 }
 
+.score-box-timer {
+    font-family: 'Kode Mono', monospace;
+    font-size: 0.95em;
+    letter-spacing: 0.05em;
+    color: #D4E0F7;
+    min-width: 64px;
+}
+
 .score-symbol {
     font-size: 1em;
     font-weight: 900;
@@ -192,7 +200,7 @@ nav a:hover { background: #e8491d; border-radius: 4px; }
     gap: 8px;
     padding: 0 10px;
     flex-wrap: wrap;
-    min-height: 60px;
+    min-height: 80px;
 }
 
 #instructions-goal {
@@ -201,6 +209,18 @@ nav a:hover { background: #e8491d; border-radius: 4px; }
     flex: 1;
     min-width: 0;
 }
+
+#instructions-body {
+    width: 100%;
+    margin: 4px 0 2px 0;
+    padding: 0;
+    font-size: 0.88em;
+    line-height: 1.5;
+    color: #444;
+    flex-basis: 100%;
+}
+
+#instructions-body:empty { display: none; }
 
 #instructions-badges {
     display: flex;
@@ -358,50 +378,174 @@ select {
 }
 
 
-/* ── Input row (clear / run / input box) ────────────────── */
-.test-container {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
+/* ── Stage workflow tabs ─────────────────────────────────── */
+#stage-label {
     margin-top: 6px;
+    margin-bottom: 0;
+    padding: 0 10px;
+    height: 20px;
+    line-height: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #1258DC;
+    background: #d4e0f7;
+    border: 2px solid #1258DC;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    display: inline-block;
 }
 
-#clear-button,
-#run-button {
+#stage-tabs {
+    display: flex;
+    gap: 0;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.stage-tab {
+    flex: 1;
+    height: 60px;
+    padding: 0 8px;
+    margin: 0;
+    border: 2px solid #1258DC;
+    background: #b8caf0;
+    color: #210934;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 0;
+    box-shadow: none;
+    transition: background 0.2s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.stage-tab:first-child { border-radius: 0; }
+.stage-tab:last-child  { border-radius: 0; }
+.stage-tab + .stage-tab { border-left: none; }
+
+.stage-tab.stage-active {
+    background: #1258DC;
+    color: white;
+    z-index: 2;
+}
+
+.stage-tab:not(:disabled):not(.stage-active):hover { background: #a0bce8; }
+
+.stage-tab:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+}
+
+.stage-tab.stage-unlocked {
+    border-color: #0a8a4a;
+    color: #0a8a4a;
+}
+
+.stage-tab.stage-active.stage-unlocked {
+    background: #0a8a4a;
+    color: white;
+}
+
+/* ── Debug panel controls ────────────────────────────────── */
+#debug-controls {
+    display: flex;
+    align-items: flex-end;
     padding: 0;
     margin: 0;
-    width: 64px;
-    height: 64px;
-    font-size: 20px;
-    border-radius: 5px;
+}
+
+#run-button {
+    padding: 0 24px;
+    margin: 0;
+    height: 60px;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 10px 10px 0 0;
     border: 2px solid #1258DC;
+    border-bottom: none;
+    background: #1258DC;
+    color: white;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
     box-shadow: none;
 }
+#run-button:hover { background: #700CBC; border-color: #700CBC; border-bottom: none; }
 
-#run-button  { background: #1258DC; color: white; }
-#run-button:hover { background: #700CBC; border-color: #700CBC; }
-
-#clear-button { background: #b8caf0; color: white; border-color: #8aaad8; }
-#clear-button:hover { background: #9ab8e8; border-color: #700CBC; }
-
-#input-box {
-    flex: 1;
-    height: 64px;
-    font-family: "Lucida Console", monospace;
-    font-size: 14px;
-    padding: 10px;
-    line-height: 20px;
-    background-color: #eef2fc;
-    color: #210934;
-    border: 2px solid #1258DC;
-    border-radius: 5px;
-    box-sizing: border-box;
+/* ── Final Test panel ────────────────────────────────────── */
+#final-controls {
+    padding: 0;
 }
+
+.all-tests-btn {
+    width: 100%;
+    height: 60px;
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+    border-radius: 10px 10px 0 0;
+    border: 2px solid #0a8a4a;
+    border-bottom: none;
+    background: #0a8a4a;
+    color: white;
+    cursor: pointer;
+    box-shadow: none;
+}
+.all-tests-btn:hover { background: #07703c; border-color: #07703c; border-bottom: none; }
+
+/* ── Test inputs compact line ────────────────────────────── */
+.test-inputs-line {
+    font-size: 0.88em;
+    margin-bottom: 6px;
+    opacity: 0.85;
+}
+
+/* ── Skulpt run header ───────────────────────────────────── */
+.skulkt-header {
+    font-size: 0.8em;
+    font-style: italic;
+    opacity: 0.55;
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+
+.skulkt-style-check {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    font-size: 0.88em;
+}
+.skulkt-style-label {
+    font-weight: 700;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.6;
+    margin-bottom: 4px;
+}
+.skulkt-style-msg { margin: 2px 0; }
+.skulkt-style-next { margin-top: 6px; font-size: 0.88em; font-style: italic; opacity: 0.75; }
+
+/* ── Skulpt interactive terminal ─────────────────────────── */
+.skulpt-terminal { font-family: "Lucida Console", monospace; font-size: 14px; }
+.skulpt-out { margin: 0; white-space: pre-wrap; word-break: break-all; }
+.skulpt-input-line { display: block; }
+.skulpt-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid currentColor;
+    outline: none;
+    font: inherit;
+    color: inherit;
+    width: min(100%, 320px);
+    padding: 0;
+}
+.skulpt-echo { white-space: pre; display: block; }
+.skulpt-done { color: #666; font-style: italic; margin-top: 4px; font-size: 12px; }
+.skulpt-error { color: #c00; white-space: pre-wrap; margin-top: 4px; }
 
 /* ── Tab buttons (shared by style tabs and test case tabs) ─ */
 #code-tabs,
@@ -412,8 +556,10 @@ select {
     width: 100%;
 }
 
+#unit-panel { padding: 0; margin: 0; }
+
 #tab-buttons {
-    margin-top: 6px;
+    margin-top: 0;
     flex-wrap: nowrap;
     overflow: visible;
     width: calc(100% - 2px);
@@ -435,7 +581,7 @@ select {
 .tab-button {
     padding: 0 15px;
     margin: 0;
-    height: 40px;
+    height: 60px;
     box-shadow: none;
     border: 2px solid #1258DC;
     background: linear-gradient(to right, #b8caf0, #d4e0f7);
@@ -456,6 +602,21 @@ select {
 
 .tab-button:hover { background: linear-gradient(to right, #a0bce8, #b8caf0); }
 
+/* ── Style tab banner (shown before Final Test unlocks tabs) ─ */
+#style-tab-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 60px;
+    background: linear-gradient(to right, #d4e0f7, #eef2fc);
+    border: 2px solid #1258DC;
+    border-radius: 10px 10px 0 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1258DC;
+    letter-spacing: 0.01em;
+}
+
 .tab-button.active {
     font-weight: bold;
     background: linear-gradient(to right, #1a6090, #1258DC);
@@ -472,6 +633,9 @@ select {
     margin-top: 0;
     border-radius: 0 0 8px 8px;
     font-family: monospace;
+    min-height: 456px;
+    max-height: 456px;
+    overflow-y: auto;
 }
 
 #output {
@@ -482,7 +646,7 @@ select {
 }
 
 #output:empty::before {
-    content: "Output will appear here...";
+    content: "Click a tab above to run your program";
     color: gray;
     font-size: 0.85em;
 }
@@ -514,13 +678,17 @@ select {
 .fb-score        { font-size: 1em; margin-top: 6px; }
 .fb-score-full   { color: #1a7a3a; }
 .fb-score-zero   { color: #9a1a1a; }
+.fb-unlock       { margin-top: 10px; padding: 8px 10px; border-radius: 5px; font-size: 0.92em; font-weight: 600; }
+.fb-unlock-yes   { background: #eaf7ee; color: #1a7a3a; }
+.fb-unlock-no    { background: #fff8e8; color: #7a5000; }
+.fb-nudge        { margin-top: 12px; padding: 10px 12px; border-radius: 5px; font-size: 0.92em; font-weight: 600; background: #eaf7ee; color: #1a7a3a; }
 
 /* ── CodeMirror ─────────────────────────────────────────── */
 .CodeMirror {
     font-size: 15px;
     border: 2px solid #1258DC;
     border-top: none;
-    border-radius: 0 0 5px 5px;
+    border-radius: 0 0 8px 8px;
 }
 
 
@@ -671,12 +839,17 @@ meter,
 }
 
 /* ── Light theme overrides ──────────────────────────────── */
+body:not(.dark) .skulkt-header { border-bottom-color: rgba(0,0,0,0.12); }
+body:not(.dark) .skulkt-style-check { border-top-color: rgba(0,0,0,0.12); }
+
 body:not(.dark) #output-window {
     background: #ffffff;
     color: #210934;
     border: 2px solid #1258DC;
     border-top: none;
 }
+
+body:not(.dark) #output-window.output-open-top { border-top: 2px solid #1258DC; }
 
 body:not(.dark) #output { color: #210934; }
 
@@ -725,6 +898,7 @@ body.dark #instructions-panel {
 }
 
 body.dark #instructions-detail { border-top-color: #2e3f4f; }
+body.dark #instructions-body { color: #aaa; }
 
 body.dark .badge-gcse    { background: #1a2a40; color: #7ab3f5; }
 body.dark .badge-a_level { background: #2a1a40; color: #c49ad8; }
@@ -737,6 +911,20 @@ body.dark .tab-button {
 }
 
 body.dark .tab-button:hover { background: linear-gradient(to right, #444, #222); }
+
+body.dark #style-tab-banner {
+    background: linear-gradient(to right, #1a2a40, #1a2030);
+    border-color: #1258DC;
+    color: #7ab3f5;
+}
+
+body.dark #stage-label {
+    background: #1a2a40;
+    border-color: #1258DC;
+    color: #7ab3f5;
+}
+
+body.dark .skulkt-style-check { border-top-color: rgba(255,255,255,0.1); }
 
 body.dark .tab-tooltip {
     background: #1e2a35;
@@ -768,19 +956,19 @@ body.dark button:active {
     background: linear-gradient(to bottom, #1a2a35, #2e3f4f);
 }
 
-body.dark #clear-button {
-    background: #2e3f4f;
-    color: #d8d8d8;
-    border: 2px solid #4a6a9a;
-}
+body.dark #run-button { background: steelblue; border-color: steelblue; color: #d8d8d8; border-bottom: none; }
+body.dark #run-button:hover { background: #700CBC; border-color: #700CBC; border-bottom: none; }
 
-body.dark #clear-button:hover { background: #700CBC; border-color: #700CBC; }
-
-body.dark #run-button {
-    background: steelblue;
-    border: 2px solid #1258DC;
-    color: #d8d8d8;
-}
+body.dark .stage-tab { background: #2a3a4a; border-color: #1258DC; color: #d8d8d8; }
+body.dark .stage-tab.stage-active { background: #1258DC; color: white; }
+body.dark .stage-tab:not(:disabled):not(.stage-active):hover { background: #3a4a5a; }
+body.dark .stage-tab.stage-unlocked { border-color: #0d9a55; color: #5dbb7a; }
+body.dark .stage-tab.stage-active.stage-unlocked { background: #0d6e3d; color: white; }
+body.dark .terminal-label { color: #7ab3f5; }
+body.dark .all-tests-btn { background: #0d6e3d; border-color: #0d6e3d; border-bottom: none; }
+body.dark .all-tests-btn:hover { background: #0a5530; border-color: #0a5530; border-bottom: none; }
+body.dark .skulpt-done { color: #888; }
+body.dark .skulpt-error { color: #ff7070; }
 
 body.dark .output-error,
 body.dark .output-penalty { color: #ff6666; }
@@ -797,12 +985,17 @@ body.dark .fb-style-label  { color: #999; }
 body.dark .fb-style-ok     { color: #5dbb7a; }
 body.dark .fb-score-full   { color: #5dbb7a; }
 body.dark .fb-score-zero   { color: #e07070; }
+body.dark .fb-unlock-yes   { background: #1a2e1f; color: #5dbb7a; }
+body.dark .fb-unlock-no    { background: #2a2010; color: #e0b84a; }
+body.dark .fb-nudge        { background: #1a2e1f; color: #5dbb7a; }
 
 body.dark #output-window {
     border: 2px solid #1258DC;
     border-top: none;
     color: #d8d8d8;
 }
+
+body.dark #output-window.output-open-top { border-top: 2px solid #1258DC; }
 
 body.dark .CodeMirror { border-color: #1258DC; }
 

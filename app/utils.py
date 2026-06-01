@@ -14,7 +14,7 @@ def parse_program_file(filepath):
     Metadata is delimited by '''!SIX: ... !SIX.'''.
     Returns (metadata_dict, code_string).
     """
-    with open(filepath, 'r', encoding='utf-8') as f:
+    with open(filepath, 'r', encoding='utf-8-sig') as f:
         content = f.read()
 
     if "'''!SIX:" in content and "!SIX.'''" in content:
@@ -49,6 +49,7 @@ def populate_database():
             name=filename.replace('.py', ''),
             code=code,
             description=metadata.get('description'),
+            instructions=metadata.get('instructions'),
             difficulty=metadata.get('difficulty'),
             topic=metadata.get('topic'),
             spec_level=metadata.get('spec_level'),

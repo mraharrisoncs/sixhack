@@ -23,6 +23,132 @@ const MAX_CHALLENGE_SCORE = MAX_STYLE_SCORE * NUM_STYLES; // 60
 
 const AUTOSAVE_KEY = 'sixhack_autosave';
 
+// ── Stage workflow state ──────────────────────────────────────────────────────
+let currentStage = 'debug';   // 'debug' | 'unit' | 'final'
+let stageDebugDone = false;    // true once Skulpt has been run at least once
+let unitTestsViewed = new Set(); // indices of unit test tabs clicked
+let totalUnitTests = 0;
+
+// ── Style tab state ───────────────────────────────────────────────────────────
+let firstStyleKey = null;
+
+// ── Timer ─────────────────────────────────────────────────────────────────────
+let timerSeconds = 0;
+let timerInterval = null;
+
+function formatTimer(secs) {
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    const mm = String(m).padStart(2, '0');
+    const ss = String(s).padStart(2, '0');
+    return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+}
+
+function updateTimerDisplay() {
+    const el = document.getElementById('timer-display');
+    if (el) el.textContent = formatTimer(timerSeconds);
+}
+
+function startTimer() {
+    if (timerInterval) return;
+    timerInterval = setInterval(() => { timerSeconds++; updateTimerDisplay(); }, 1000);
+}
+
+// ── Stage workflow ───────────────────────────────────────────────────────────
+
+function switchStage(stage) {
+    currentStage = stage;
+    document.getElementById('debug-panel').style.display = stage === 'debug' ? '' : 'none';
+    document.getElementById('unit-panel').style.display  = stage === 'unit'  ? '' : 'none';
+    document.getElementById('final-panel').style.display = stage === 'final' ? '' : 'none';
+    document.querySelectorAll('.stage-tab').forEach(btn => btn.classList.remove('stage-active'));
+    document.getElementById(`stage-${stage}`).classList.add('stage-active');
+    document.getElementById('output-window').classList.toggle('output-open-top', stage === 'debug');
+    clearOutputTerminal();
+    document.getElementById('output-window').innerHTML = '<pre id="output"></pre>';
+}
+
+function resetStageState() {
+    stageDebugDone = false;
+    unitTestsViewed = new Set();
+    document.getElementById('stage-final').disabled = true;
+    document.getElementById('stage-final').classList.remove('stage-unlocked');
+    switchStage('debug');
+}
+
+function checkFinalUnlock() {
+    const stageUnitDone = totalUnitTests > 0 && unitTestsViewed.size >= totalUnitTests;
+    const finalBtn = document.getElementById('stage-final');
+    if (stageDebugDone && stageUnitDone) {
+        finalBtn.disabled = false;
+        finalBtn.classList.add('stage-unlocked');
+    }
+}
+
+// ── Style tab visibility ──────────────────────────────────────────────────────
+
+function showStyleTabs() {
+    document.getElementById('code-tabs').style.display = '';
+    const banner = document.getElementById('style-tab-banner');
+    if (banner) banner.style.display = 'none';
+    if (currentProgramId) {
+        if (!allChallenges[currentProgramId]) allChallenges[currentProgramId] = { tabCodes: {}, styleScores: {} };
+        allChallenges[currentProgramId].stylesUnlocked = true;
+    }
+}
+
+function hideStyleTabs() {
+    document.getElementById('code-tabs').style.display = 'none';
+    const banner = document.getElementById('style-tab-banner');
+    if (banner) banner.style.display = '';
+}
+
+function applyStyleTabVisibility() {
+    if (allChallenges[currentProgramId]?.stylesUnlocked) {
+        showStyleTabs();
+    } else {
+        hideStyleTabs();
+    }
+}
+
+// ── Debug style check ─────────────────────────────────────────────────────────
+
+function runStyleCheck(code) {
+    fetch('/sandbox/style_check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            style: currentTab,
+            code,
+            max_lines: currentProgramMaxLines,
+            max_bytes: currentProgramMaxBytes
+        })
+    })
+    .then(r => r.json())
+    .then(results => {
+        const outputWindow = document.getElementById('output-window');
+        if (!outputWindow || !outputWindow.classList.contains('skulpt-terminal')) return;
+        const NOISE = /^(No major issues detected\.|AST checks passed\.|(structured|readable|robust|oop|recursive|minimalist) OK)$/i;
+        const msgs = [];
+        Object.values(results).forEach(r => {
+            if (r.feedback) r.feedback.filter(m => !NOISE.test(m.trim())).forEach(m => msgs.push(m));
+        });
+        const div = document.createElement('div');
+        div.className = 'skulkt-style-check';
+        if (msgs.length === 0) {
+            div.innerHTML = '<div class="skulkt-style-label">Style ✔ No issues detected</div>' +
+                '<div class="skulkt-style-next">When you\'re ready to run Unit Tests click the Unit Tests button</div>';
+        } else {
+            div.innerHTML = '<div class="skulkt-style-label">Style</div>' +
+                msgs.map(m => `<div class="skulkt-style-msg">💡 ${m}</div>`).join('');
+        }
+        outputWindow.appendChild(div);
+        outputWindow.scrollTop = outputWindow.scrollHeight;
+    })
+    .catch(() => {});
+}
+
 // ── Score helpers ────────────────────────────────────────────────────────────
 
 function getChallengeScore(programId) {
@@ -102,6 +228,7 @@ function buildSaveData() {
         version: 1,
         currentProgramId,
         currentTab,
+        timerSeconds,
         challenges: allChallenges
     };
 }
@@ -117,7 +244,10 @@ function autoSave() {
 function restoreFromData(data, codeStyles) {
     if (!data || !data.challenges) return;
     allChallenges = data.challenges;
-
+    if (typeof data.timerSeconds === 'number') {
+        timerSeconds = data.timerSeconds;
+        updateTimerDisplay();
+    }
     // Repaint all hex fills from restored scores
     Object.keys(allChallenges).forEach(id => updateHexFill(id));
     updateHeaderScores();
@@ -160,6 +290,7 @@ function showIntroModal() {
 
 document.addEventListener('DOMContentLoaded', () => {
     showIntroModal();
+    startTimer();
 
     let originalCode = '';
     const tabCodes = {};   // codes for the currently-active challenge's tabs
@@ -182,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
         matchBrackets: true,
         autofocus: true
     });
-    codeMirrorEditor.setSize(null, 560);
+    codeMirrorEditor.setSize(null, 480);
     codeMirrorEditor.setValue('# Welcome to six(im).possible().things()\n#\n# Select a challenge from the level bar above to begin.');
 
     // Shared tooltip for style tabs
@@ -210,6 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(r => r.json())
         .then(styles => {
             codeStyles = styles;
+            firstStyleKey = styles[0]?.key ?? null;
             codeTabsContainer.innerHTML = '';
             styles.forEach((style, index) => {
                 const button = document.createElement('button');
@@ -225,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.querySelectorAll('#code-tabs .tab-button').forEach(b => b.classList.remove('active'));
                     button.classList.add('active');
                     currentTab = style.key;
-                    document.getElementById('output-window').innerHTML = '<pre id="output"></pre>';
+                    resetStageState();
                     if (!tabCodes[currentTab]) {
                         tabCodes[currentTab] = originalCode ? style.code_version + originalCode : '';
                     }
@@ -401,6 +533,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         updateHexFill(programId);
         updateHeaderScores();
+        resetStageState();
+        applyStyleTabVisibility();
         loadTestCases(programId);
     }
 
@@ -408,6 +542,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateInstructions(program) {
         document.getElementById('instructions-goal').textContent = program.description || program.name;
+        const bodyEl = document.getElementById('instructions-body');
+        if (bodyEl) bodyEl.textContent = program.instructions || '';
         const badges = document.getElementById('instructions-badges');
         badges.innerHTML = '';
         if (program.spec_level) {
@@ -439,34 +575,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ── Controls ─────────────────────────────────────────────────────────────
+    // ── Stage tab controls ───────────────────────────────────────────────────
 
-    document.getElementById('clear-button').addEventListener('click', clearInputBox);
-
-    document.getElementById('input-box').addEventListener('focus', (e) => {
-        if (e.target.placeholder.startsWith('Type inputs')) e.target.placeholder = '';
+    document.getElementById('stage-debug').addEventListener('click', () => switchStage('debug'));
+    document.getElementById('stage-unit').addEventListener('click',  () => switchStage('unit'));
+    document.getElementById('stage-final').addEventListener('click', () => {
+        if (!document.getElementById('stage-final').disabled) switchStage('final');
     });
 
-    document.getElementById('run-button').addEventListener('click', async () => {
+    // ── Debug panel controls ─────────────────────────────────────────────────
+
+    document.getElementById('run-button').addEventListener('click', () => {
         const code = codeMirrorEditor.getValue();
-        const inputBox = document.getElementById('input-box');
-        const inputs = inputBox.value
-            .split(/[\n,]+/)
-            .map(s => s.trim())
-            .filter(s => s !== '');
-        const response = await fetch('/sandbox/run', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code, input: inputs })
-        });
-        const data = await response.json();
-        const outputWindow = document.getElementById('output-window');
-        if (data.error) {
-            outputWindow.innerHTML = `<span class="output-error">Error:<br>${data.error}</span>`;
-        } else {
-            outputWindow.innerHTML = `<div><strong>Output:</strong><br><pre>${data.output}</pre></div>`;
-        }
+        const styleName = codeStyles.find(s => s.key === currentTab)?.name ?? currentTab;
+        runWithSkulpt(code, `▶ Running Python 3 (Skulpt) · ${styleName}`)
+            .then(() => runStyleCheck(code));
+        stageDebugDone = true;
+        checkFinalUnlock();
     });
+
 
     document.getElementById('save-game-button').addEventListener('click', () => {
         if (!currentProgramId) { alert('Select a challenge before saving.'); return; }
@@ -577,22 +704,22 @@ function loadTestCases(programId) {
         .then(testCases => {
             const tabButtons = document.getElementById('tab-buttons');
             tabButtons.innerHTML = '';
+            totalUnitTests = testCases.length;
+            unitTestsViewed.clear();
 
             testCases.forEach((test, index) => {
                 const button = document.createElement('button');
                 button.className = 'tab-button';
-                button.textContent = `${index + 1}: ${test.name || ''}`;
+                button.textContent = `▶ ${index + 1}: ${test.name || ''}`;
                 tabButtons.appendChild(button);
 
                 button.addEventListener('click', async () => {
                     document.querySelectorAll('#tab-buttons .tab-button').forEach(b => b.classList.remove('active'));
                     button.classList.add('active');
 
-                    // Populate input box so student can see and tweak inputs
-                    const inputBox = document.getElementById('input-box');
-                    if (inputBox) inputBox.value = test.inputs.join('\n');
+                    unitTestsViewed.add(index);
+                    checkFinalUnlock();
 
-                    // Run through the same path as ▶
                     const code = codeMirrorEditor.getValue();
                     let actualOutput = '""';
                     let passed = false;
@@ -617,11 +744,22 @@ function loadTestCases(programId) {
                     }
 
                     const outputWindow = document.getElementById('output-window');
+                    clearOutputTerminal();
+                    const inputsLine = test.inputs && test.inputs.length
+                        ? test.inputs.map((v, i) => `${i + 1}: ${v}`).join(' &nbsp;·&nbsp; ')
+                        : '(none)';
                     if (errorMsg) {
-                        outputWindow.innerHTML = `<span class="output-error">Error:<br>${errorMsg}</span>`;
+                        outputWindow.innerHTML = `
+                            <div>
+                                <div class="test-inputs-line"><strong>Inputs →</strong> ${inputsLine}</div>
+                                <hr>
+                                <span class="output-error">Error:<br>${errorMsg}</span>
+                            </div>`;
                     } else {
                         outputWindow.innerHTML = `
                             <div>
+                                <div class="test-inputs-line"><strong>Inputs →</strong> ${inputsLine}</div>
+                                <hr>
                                 <strong>Output:</strong><br><pre>${actualOutput}</pre>
                                 <hr>
                                 <strong>Test ${index + 1}: ${test.name || ''}</strong><br>
@@ -633,17 +771,16 @@ function loadTestCases(programId) {
                 });
             });
 
-            document.getElementById('all-tests-button')?.remove();
+            // All Tests lives in the Final Test panel
+            const finalControls = document.getElementById('final-controls');
+            finalControls.innerHTML = '';
             const allTestsButton = document.createElement('button');
-            allTestsButton.className = 'tab-button';
+            allTestsButton.className = 'all-tests-btn';
             allTestsButton.id = 'all-tests-button';
-            allTestsButton.textContent = 'All Tests';
-            tabButtons.appendChild(allTestsButton);
+            allTestsButton.textContent = '▶▶ Run All Tests';
+            finalControls.appendChild(allTestsButton);
 
-            allTestsButton.addEventListener('click', async () => {
-                document.querySelectorAll('#tab-buttons .tab-button').forEach(b => b.classList.remove('active'));
-                allTestsButton.classList.add('active');
-
+            allTestsButton.addEventListener('click', () => {
                 const code = codeMirrorEditor.getValue();
                 fetch('/sandbox/test', {
                     method: 'POST',
@@ -656,9 +793,18 @@ function loadTestCases(programId) {
                     .then(r => r.json())
                     .then(data => {
                         const outputWindow = document.getElementById('output-window');
-                        if (outputWindow) outputWindow.innerHTML = renderFeedback(data);
+                        if (outputWindow) { clearOutputTerminal(); outputWindow.innerHTML = renderFeedback(data); }
                         if (window._updateStyleScore) window._updateStyleScore(currentTab, data.score, data.feedback);
                         if (window._autoSave) window._autoSave();
+                        // Reveal all style tabs once Structured scores 8+
+                        if (currentTab === firstStyleKey && typeof data.score === 'number' && data.score >= 8) {
+                            showStyleTabs();
+                            const nudge = document.createElement('div');
+                            nudge.className = 'fb-nudge';
+                            nudge.textContent = '🎉 All six style tabs are now unlocked — pick your next style and keep going!';
+                            const ow = document.getElementById('output-window');
+                            if (ow) ow.appendChild(nudge);
+                        }
                     })
                     .catch(err => {
                         const outputWindow = document.getElementById('output-window');
@@ -739,16 +885,106 @@ function renderFeedback(data) {
         } else {
             html += `<div class="fb-score"><strong>Score: ${score}/10</strong></div>`;
         }
+        // ── Style unlock message (only shown when not yet unlocking, i.e. score < 8) ──
+        if (score < 8) {
+            html += `<div class="fb-unlock fb-unlock-no">💪 Nearly there — aim for 8/10 or above before moving on to other styles.</div>`;
+        }
     }
 
     html += '</div>';
     return html;
 }
 
-// ── Utilities ────────────────────────────────────────────────────────────────
+// ── Skulpt / Try It ──────────────────────────────────────────────────────────
 
-function clearInputBox() {
-    const inputBox = document.getElementById('input-box');
-    inputBox.value = '';
-    inputBox.placeholder = 'Type inputs (one per line, or comma-separated) or click a test tab';
+function clearOutputTerminal() {
+    document.getElementById('output-window').classList.remove('skulpt-terminal');
 }
+
+function runWithSkulpt(code, headerMsg) {
+    const outputWindow = document.getElementById('output-window');
+    outputWindow.innerHTML = '';
+    outputWindow.classList.add('skulpt-terminal');
+    if (headerMsg) {
+        const hdr = document.createElement('div');
+        hdr.className = 'skulkt-header';
+        hdr.textContent = headerMsg;
+        outputWindow.appendChild(hdr);
+    }
+
+    let currentPre = document.createElement('pre');
+    currentPre.className = 'skulpt-out';
+    outputWindow.appendChild(currentPre);
+
+    function outf(text) {
+        currentPre.textContent += text;
+        outputWindow.scrollTop = outputWindow.scrollHeight;
+    }
+
+    function inputfun(prompt) {
+        return new Promise((resolve) => {
+            // Append prompt text to current output block
+            currentPre.textContent += prompt;
+
+            // Create interactive input line
+            const line = document.createElement('div');
+            line.className = 'skulpt-input-line';
+            const inp = document.createElement('input');
+            inp.type = 'text';
+            inp.className = 'skulpt-input';
+            inp.setAttribute('autocomplete', 'off');
+            line.appendChild(inp);
+            outputWindow.appendChild(line);
+
+            // New pre for output after this input
+            currentPre = document.createElement('pre');
+            currentPre.className = 'skulpt-out';
+            outputWindow.appendChild(currentPre);
+
+            outputWindow.scrollTop = outputWindow.scrollHeight;
+            inp.focus();
+
+            inp.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const val = inp.value;
+                    // Replace input widget with plain echoed text
+                    const echo = document.createElement('span');
+                    echo.className = 'skulpt-echo';
+                    echo.textContent = val + '\n';
+                    line.replaceWith(echo);
+                    // Move echo before the new currentPre
+                    outputWindow.insertBefore(echo, currentPre);
+                    resolve(val);
+                }
+            });
+        });
+    }
+
+    Sk.configure({
+        output: outf,
+        read: (filename) => {
+            if (Sk.builtinFiles === undefined || Sk.builtinFiles.files[filename] === undefined)
+                throw new Error(`File not found: '${filename}'`);
+            return Sk.builtinFiles.files[filename];
+        },
+        inputfun: inputfun,
+        inputfunTakesPrompt: true,
+    });
+
+    return Sk.misceval.asyncToPromise(() =>
+        Sk.importMainWithBody('<stdin>', false, code, true)
+    ).then(() => {
+        const done = document.createElement('div');
+        done.className = 'skulpt-done';
+        done.textContent = '[Program finished]';
+        outputWindow.appendChild(done);
+        outputWindow.scrollTop = outputWindow.scrollHeight;
+    }).catch((err) => {
+        const errEl = document.createElement('div');
+        errEl.className = 'skulpt-error';
+        errEl.textContent = err.toString();
+        outputWindow.appendChild(errEl);
+        outputWindow.scrollTop = outputWindow.scrollHeight;
+    });
+}
+

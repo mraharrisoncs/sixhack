@@ -1,4 +1,4 @@
-l = input().split(",")
+﻿l = input().split(",")
 t = input()
 f = -1
 x = 0
@@ -10,10 +10,11 @@ print(f)
 
 '''!SIX:
 description = "Linear search: find the index of a target in a list"
+instructions = "Input a comma-separated list of items and a target value, then print the index of the first occurrence of the target, or -1 if it is not found."
 difficulty = "easy"
 topic = "searching"
 spec_level = "gcse"
-hints = ["Variable names l, t, f, x give no clue what they hold", "The loop keeps going even after finding the target — is that necessary?", "What should happen when the item is not found?"]
+hints = ["Debug: Try list=a,b,c,b and target=b — does it return 1 (first match) or 3 (last match)? Which is correct?", "Structure: Add break once found, put the logic in def linear_search(items, target):, and return -1 explicitly when not found."]
 
 [[test_cases]]
 number = 1

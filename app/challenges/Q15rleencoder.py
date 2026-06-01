@@ -1,4 +1,4 @@
-s = input()
+﻿s = input()
 o = ""
 i = 0
 while i < len(s):
@@ -12,10 +12,11 @@ print(o)
 
 '''!SIX:
 description = "Run-length encode a string (e.g. AAABBC -> 3A2B1C)"
+instructions = "Input a string of uppercase letters and print its run-length encoding — each group of consecutive identical characters becomes a count followed by the character (e.g. AAABBC → 3A2B1C)."
 difficulty = "medium"
 topic = "algorithms"
 spec_level = "a_level"
-hints = ["The code works but is hard to read — meaningful names would help", "Could this be broken into smaller functions?"]
+hints = ["Debug: Test with AAABBC — you should get 3A2B1C. Try a single repeated character and a single unique character.", "Structure: Extract a helper def count_run(s, start): that returns the run length at a position — separates counting from building the output string."]
 
 [[test_cases]]
 number = 1

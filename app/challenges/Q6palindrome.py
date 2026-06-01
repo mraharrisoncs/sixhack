@@ -1,4 +1,4 @@
-word = input()
+﻿word = input()
 reversed_word = ""
 i = 0
 while i < len(word):
@@ -14,10 +14,11 @@ if is_palindrome == False:
 
 '''!SIX:
 description = "Check if a word is a palindrome"
+instructions = "Input a word and print Yes if it reads the same forwards and backwards, or No if it does not."
 difficulty = "medium"
 topic = "strings"
 spec_level = "gcse"
-hints = ["Manually reversing a string with a while loop is unnecessary in Python", "Comparing a boolean to True with == is redundant"]
+hints = ["Debug: Test with racecar (Yes) and hello (No). Trace the while loop — is the reversal correct?", "Structure: Put the palindrome check in def is_palindrome(word): returning True/False — call it from the main block."]
 
 [[test_cases]]
 number = 1

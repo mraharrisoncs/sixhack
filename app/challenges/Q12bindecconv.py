@@ -1,4 +1,4 @@
-n = int(input())
+﻿n = int(input())
 r = ""
 while n > 0:
     r = str(n % 2) + r
@@ -7,10 +7,11 @@ print(r)
 
 '''!SIX:
 description = "Convert a decimal integer to binary"
+instructions = "Input a non-negative decimal integer and print its binary representation as a string of 0s and 1s."
 difficulty = "easy"
 topic = "data representation"
 spec_level = "gcse"
-hints = ["What does this output when the input is 0?", "Variable names n and r hide what the program is doing"]
+hints = ["Debug: Run with input 0 — what does it print? It should print 0, but the while loop never runs for zero.", "Structure: Fix the edge case for 0, then wrap the conversion in def to_binary(n): returning a string."]
 
 [[test_cases]]
 number = 1

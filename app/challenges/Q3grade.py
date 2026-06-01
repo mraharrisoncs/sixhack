@@ -1,4 +1,4 @@
-# get the mark
+﻿# get the mark
 x = int(input())
 if x >= 40:
     g = "D"
@@ -14,10 +14,11 @@ print(g)
 
 '''!SIX:
 description = "Convert a percentage mark to a letter grade"
+instructions = "Input a percentage mark (0–100) and output the letter grade: A (70+), B (60+), C (50+), D (40+), or F (below 40)."
 difficulty = "easy"
 topic = "selection"
 spec_level = "gcse"
-hints = ["The independent if statements look suspicious — trace through a mark of 45", "elif would make the logic clearer and more efficient"]
+hints = ["Debug: Trace through a mark of 75 — count how many if statements fire. Is that efficient?", "Structure: Rewrite using if/elif/else so only one branch runs per mark — then wrap it in a def get_grade(mark): function."]
 
 [[test_cases]]
 number = 1

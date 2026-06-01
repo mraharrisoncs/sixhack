@@ -1,4 +1,4 @@
-nums = list(map(int, input().split(",")))
+﻿nums = list(map(int, input().split(",")))
 target = int(input())
 low = 0
 high = len(nums)
@@ -18,10 +18,11 @@ if not found:
 
 '''!SIX:
 description = "Binary search: find the index of a target in a sorted list"
+instructions = "Input a sorted comma-separated list of integers and a target, then use binary search to find and print the index of the target, or -1 if not found."
 difficulty = "medium"
 topic = "searching"
 spec_level = "gcse"
-hints = ["Trace through searching for 6 in [1,3,5,6,9] — does the loop terminate?", "The initial value of high is off by one", "When moving low up, setting low = mid can cause an infinite loop"]
+hints = ["Debug: Search for 7 in the list 1,3,5,7,9 — trace low, high and mid each iteration. Does it terminate?", "Bug: high should start at len(nums)-1, not len(nums) — it can read past the end of the list.", "Bug: low = mid causes an infinite loop when mid equals low — use low = mid + 1."]
 
 [[test_cases]]
 number = 1

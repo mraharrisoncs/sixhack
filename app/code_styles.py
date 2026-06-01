@@ -22,12 +22,12 @@ CODE_STYLES = [
         "ast_feedback": [
             {
                 "regex": r"no function",
-                "message": "Code is not organised into functions.",
+                "message": "Wrap your logic in a function — e.g. def calculate(): — and call it from a main block.",
                 "delta": -3
             },
             {
                 "regex": r"not separated",
-                "message": "Separation of concerns could be improved.",
+                "message": "Keep input/output out of your calculation function — one function per job (get input, calculate, print result separately).",
                 "delta": -2
             }
         ]
@@ -46,17 +46,17 @@ CODE_STYLES = [
         "pylint_feedback": [
             {
                 "regex": r"C0103: .+",
-                "message": "Poor variable or function naming.",
+                "message": "Use descriptive names — single letters and abbreviations make code hard to follow.",
                 "delta": -2
             },
             {
                 "regex": r"C0301: .+",
-                "message": "Line too long — break it up for readability.",
+                "message": "Line too long — split it across multiple lines for readability.",
                 "delta": -1
             },
             {
                 "regex": r"C0326: .+",
-                "message": "Missing whitespace around operator.",
+                "message": "Add spaces around operators (e.g. x = a + b, not x=a+b).",
                 "delta": -1
             }
         ],
@@ -65,17 +65,17 @@ CODE_STYLES = [
         "ast_feedback": [
             {
                 "regex": r"no comments",
-                "message": "Add comments to explain your code.",
+                "message": "Add at least one comment explaining what your code does — use # to start a comment.",
                 "delta": -3
             },
             {
                 "regex": r"magic number",
-                "message": "Avoid magic numbers — use named constants instead.",
+                "message": "Replace raw numbers with named constants — e.g. TAX_RATE = 0.2 instead of 0.2 in the formula.",
                 "delta": -2
             },
             {
                 "regex": r"inconsistent indentation",
-                "message": "Use consistent indentation throughout (2 or 4 spaces).",
+                "message": "Use consistent indentation — pick 4 spaces and stick to it throughout.",
                 "delta": -2
             }
         ]
@@ -94,12 +94,12 @@ CODE_STYLES = [
         "pylint_feedback": [
             {
                 "regex": r"W0702: .+",
-                "message": "Avoid bare except clauses.",
+                "message": "Avoid bare except: — always specify the exception type, e.g. except ValueError:",
                 "delta": -3
             },
             {
                 "regex": r"W0703: .+",
-                "message": "Avoid catching broad exceptions.",
+                "message": "Don't catch Exception broadly — catch specific errors like ValueError or TypeError.",
                 "delta": -2
             }
         ],
@@ -108,12 +108,12 @@ CODE_STYLES = [
         "ast_feedback": [
             {
                 "regex": r"input not type-checked",
-                "message": "Type-check your inputs (e.g. use int() or float()).",
+                "message": "Convert your input to the right type — e.g. num = int(input('Enter a number: ')).",
                 "delta": -2
             },
             {
                 "regex": r"input not validated",
-                "message": "Validate your inputs — check they are within an acceptable range or format.",
+                "message": "Validate your input — use a while loop or if statement to reject bad values before using them.",
                 "delta": -2
             },
             {
@@ -136,22 +136,22 @@ CODE_STYLES = [
         "ast_feedback": [
             {
                 "regex": r"No class detected",
-                "message": "No class detected.",
+                "message": "No class found — define a class using class MyClass: and put your methods inside it.",
                 "delta": -5
             },
             {
                 "regex": r"Method.*missing 'self'",
-                "message": "Method missing 'self' parameter.",
+                "message": "Each method inside a class needs self as its first parameter — e.g. def calculate(self, x):",
                 "delta": -2
             },
             {
                 "regex": r"Class not instantiated",
-                "message": "Class is never instantiated — create an object from your class.",
+                "message": "You defined a class but never created an object from it — e.g. obj = MyClass() somewhere in your code.",
                 "delta": -3
             },
             {
                 "regex": r"Class methods not used",
-                "message": "Class methods are never called — use your object to do the work.",
+                "message": "You created an object but never called any of its methods — e.g. result = obj.calculate().",
                 "delta": -3
             }
         ]
@@ -169,17 +169,17 @@ CODE_STYLES = [
         "ast_feedback": [
             {
                 "regex": r"No recursion detected",
-                "message": "No recursion detected.",
+                "message": "No recursive call found — your function must call itself, e.g. return my_func(n - 1).",
                 "delta": -7
             },
             {
                 "regex": r"No base case detected",
-                "message": "No base case detected in recursion.",
+                "message": "Add a base case — an if statement that stops the recursion, e.g. if n == 0: return 0.",
                 "delta": -2
             },
             {
                 "regex": r"Recursive function never called",
-                "message": "Recursive function is defined but never called.",
+                "message": "Your recursive function exists but is never called — make sure you call it from outside the function.",
                 "delta": -5
             }
         ]
@@ -198,12 +198,12 @@ CODE_STYLES = [
         "pylint_feedback": [
             {
                 "regex": r"W0611: .+",
-                "message": "Unused import found.",
+                "message": "Remove unused imports — only import what you actually use.",
                 "delta": -3
             },
             {
                 "regex": r"W0612: .+",
-                "message": "Unused variable found.",
+                "message": "Remove unused variables — if you assign it but never use it, delete it.",
                 "delta": -3
             }
         ],

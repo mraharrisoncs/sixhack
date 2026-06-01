@@ -1,4 +1,4 @@
-number = int(input())
+﻿number = int(input())
 steps = 0
 sequence = []
 sequence.append(number)
@@ -15,10 +15,11 @@ print(total_steps)
 
 '''!SIX:
 description = "Count steps in the Collatz sequence to reach 1"
+instructions = "Input a positive integer and count how many steps the Collatz sequence (halve if even, multiply by 3 and add 1 if odd) takes to reach 1."
 difficulty = "medium"
 topic = "iteration"
 spec_level = "gcse"
-hints = ["The sequence list is built but never used — why store every value if you only need the count?", "Integer division // avoids the need to cast back to int"]
+hints = ["Debug: Try input 6 — the answer should be 8 steps. Does it output 8?", "Structure: Move the logic into def count_steps(n): — the sequence list is redundant if you only need the count."]
 
 [[test_cases]]
 number = 1

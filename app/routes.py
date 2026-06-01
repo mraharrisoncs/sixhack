@@ -99,6 +99,7 @@ def setup_routes(app):
             "name": program.name,
             "code": program.code,
             "description": program.description,
+            "instructions": program.instructions,
             "topic": program.topic,
             "spec_level": program.spec_level,
             "hints": json.loads(program.hints or "[]"),

@@ -1,4 +1,4 @@
-E = 0.85 # NB. changing this invalidates the test cases!
+﻿E = 0.85 # NB. changing this invalidates the test cases!
 f = input()
 if f[0] in "eE€":
     t = float(f[1:]) * E
@@ -11,10 +11,11 @@ print(o)
 
 '''!SIX:
 description = "Convert EUR<>GBP"
+instructions = "Input a currency amount prefixed with its symbol (e.g. £3 or €5) and convert it to the other currency, displaying the result with the correct symbol."
 difficulty = "easy"
 topic = "arithmetic"
 spec_level = "gcse"
-hints = ["Variable names like 'f', 't', 'c', 'o' tell the reader nothing", "What happens if the input is invalid?"]
+hints = ["Debug: Try input '£10' — does it give the right EUR amount? The single-letter variable names make tracing the logic very hard.", "Structure: Separate the conversion into def convert(amount, from_currency): and keep input/output in the main block only."]
 
 [[test_cases]]
 number = 1

@@ -1,4 +1,4 @@
-n = int(input())
+﻿n = int(input())
 i = 1
 while i <= n:
     if i % 3 == 0 and i % 5 == 0:
@@ -13,10 +13,11 @@ while i <= n:
 
 '''!SIX:
 description = "Print FizzBuzz from 1 to N"
+instructions = "Input a number N and print the integers from 1 to N, replacing multiples of 3 with Fizz, multiples of 5 with Buzz, and multiples of both with FizzBuzz."
 difficulty = "medium"
 topic = "iteration"
 spec_level = "gcse"
-hints = ["Four separate if statements check every condition repeatedly — can you reduce this?", "elif and else exist for a reason"]
+hints = ["Debug: Run it with n=15 — does every line come out correctly? Count how many conditions Python checks per number.", "Structure: Use elif and else to short-circuit checks, then move the loop into a def fizzbuzz(n): function."]
 
 [[test_cases]]
 number = 1

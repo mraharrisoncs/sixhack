@@ -10,6 +10,7 @@
                 <span id="instructions-goal">Select a challenge above to begin</span>
                 <div id="instructions-badges"></div>
                 <button id="instructions-toggle" class="hints-toggle" disabled>▼ Hints</button>
+                <p id="instructions-body"></p>
             </div>
             <div id="instructions-detail">
                 <ul id="hints-list"></ul>
@@ -17,29 +18,44 @@
         </div>
 
         <form id="sandbox-form">
-            <div id="code-tabs">
+            <div id="code-tabs" style="display:none">
                 <!-- Style tabs injected by scripts.js -->
             </div>
+            <div id="style-tab-banner">Structure the code and Debug it, then run Unit Tests and Final Test &#8212;&#8594;</div>
             <div class="code-container">
                 <textarea id="code-input"></textarea>
             </div>
         </form>
     </div>
 
-    <!-- Right: input, test tabs, output, score -->
+    <!-- Right: stage workflow, terminal/tests, output -->
     <div class="output-container">
-        <div class="test-container">
-            <button id="run-button">▶</button>
-            <textarea id="input-box" class="test-input"
-                placeholder="Type inputs (one per line, or comma-separated) or click a test tab"></textarea>
-            <button id="clear-button">🚫</button>
+        <div id="stage-label">Development stage:</div>
+        <div id="stage-tabs">
+            <button class="stage-tab stage-active" id="stage-debug">🐛 Debug</button>
+            <button class="stage-tab" id="stage-unit">🧪 Unit Tests</button>
+            <button class="stage-tab" id="stage-final" disabled>✅ Final Test</button>
         </div>
 
-        <div id="tab-buttons">
-            <!-- Test case tabs injected by scripts.js -->
+        <div id="debug-panel">
+            <div id="debug-controls">
+                <button id="run-button" title="Run code in interactive terminal">▶ Run</button>
+            </div>
         </div>
 
-        <div id="output-window">
+        <div id="unit-panel" style="display:none">
+            <div id="tab-buttons">
+                <!-- Test case tabs injected by scripts.js -->
+            </div>
+        </div>
+
+        <div id="final-panel" style="display:none">
+            <div id="final-controls">
+                <!-- All Tests button injected by scripts.js -->
+            </div>
+        </div>
+
+        <div id="output-window" class="output-open-top">
             <pre id="output"></pre>
         </div>
 
@@ -57,4 +73,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://skulpt.org/js/skulpt.min.js"></script>
+<script src="https://skulpt.org/js/skulpt-stdlib.js"></script>
 {% endblock %}

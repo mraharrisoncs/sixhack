@@ -1,4 +1,4 @@
-w = int(input())
+﻿w = int(input())
 h = int(input())
 d = int(input())
 s = w * h * d
@@ -6,10 +6,11 @@ print(s)
 
 '''!SIX:
 description = "Calculate the file size of an uncompressed bitmap image in bytes"
+instructions = "Input the width (pixels), height (pixels), and colour depth (bits per pixel) of an image, then calculate and print the uncompressed file size in bytes."
 difficulty = "easy"
 topic = "data representation"
 spec_level = "gcse"
-hints = ["Width x height x colour depth gives you bits, not bytes", "Variable names w, h, d, s are not self-documenting", "What are the units of colour depth — bits per pixel"]
+hints = ["Debug: Test with width=100, height=100, depth=24 — expected answer is 30000 bytes. What does this code output, and why?", "Bug: width x height x depth gives bits not bytes — divide by 8. Then wrap the calculation in def bitmap_size(width, height, depth):."]
 
 [[test_cases]]
 number = 1

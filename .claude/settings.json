@@ -23,7 +23,9 @@
       "Bash(git commit -m ' *)",
       "Bash(.venv/Scripts/python -c \"from app import create_app; app = create_app\\(\\); print\\('OK'\\)\")",
       "Bash(git push *)",
-      "Bash(git commit -m 'shrink and overlap test case tabs for challenges with many tests *)"
+      "Bash(git commit -m 'shrink and overlap test case tabs for challenges with many tests *)",
+      "Bash(python3 -c ' *)",
+      "Bash(python -c ' *)"
     ]
   }
 }

@@ -1,4 +1,4 @@
-n = int(input())
+﻿n = int(input())
 digits = "0123456789ABCDEF"
 result = ""
 while n > 0:
@@ -8,10 +8,11 @@ print(result)
 
 '''!SIX:
 description = "Convert a decimal integer to hexadecimal"
+instructions = "Input a non-negative decimal integer and print its hexadecimal representation (using uppercase A–F)."
 difficulty = "easy"
 topic = "data representation"
 spec_level = "gcse"
-hints = ["What happens when the input is 0?", "This is the same structural flaw as the binary converter — a pattern worth noticing"]
+hints = ["Debug: Run with input 0 — same structural flaw as the binary converter. It should print 0 but the loop never runs.", "Structure: Fix the edge case for 0, then wrap it in def to_hex(n):."]
 
 [[test_cases]]
 number = 1
