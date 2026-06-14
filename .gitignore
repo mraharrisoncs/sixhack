@@ -1,12 +1,12 @@
 __pycache__/
 *.pyc
 *.pyo
-*.db
 .env
 .venv/
 venv/
 v1/
-instance/
+instance/*
+!instance/sixhack.db
 data/
 .claude/
 .claude/settings.json
