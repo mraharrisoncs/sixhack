@@ -101,6 +101,7 @@ nav a:hover { background: #e8491d; border-radius: 4px; }
 .level-hex-wrap:hover  { filter: brightness(1.25); }
 
 .level-hex {
+    /* --fill-pct drives a hard split: filled colour rises from bottom to --fill-pct, unfilled above */
     --fill-pct: 0%;
     width: 34px;
     height: 30px;
@@ -186,6 +187,24 @@ nav a:hover { background: #e8491d; border-radius: 4px; }
 }
 
 /* ── Instructions panel ─────────────────────────────────── */
+#instructions-label {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding: 0 10px;
+    height: 20px;
+    line-height: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #1258DC;
+    background: #d4e0f7;
+    border: 2px solid #1258DC;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    display: inline-block;
+}
+
 #instructions-panel {
     border: 2px solid #1258DC;
     border-radius: 6px;
@@ -200,12 +219,12 @@ nav a:hover { background: #e8491d; border-radius: 4px; }
     gap: 8px;
     padding: 0 10px;
     flex-wrap: wrap;
-    min-height: 80px;
+    min-height: 74px;
 }
 
 #instructions-goal {
     font-weight: 600;
-    font-size: 0.95em;
+    font-size: 0.88em;
     flex: 1;
     min-width: 0;
 }
@@ -214,7 +233,7 @@ nav a:hover { background: #e8491d; border-radius: 4px; }
     width: 100%;
     margin: 4px 0 2px 0;
     padding: 0;
-    font-size: 0.88em;
+    font-size: 0.82em;
     line-height: 1.5;
     color: #444;
     flex-basis: 100%;
@@ -299,7 +318,7 @@ nav a:hover { background: #e8491d; border-radius: 4px; }
 .sandbox-container {
     flex: 1;
     max-width: 100%;
-    margin-top: 6px;
+    margin-top: 0;
     margin-bottom: 10px;
 }
 
@@ -380,7 +399,7 @@ select {
 
 /* ── Stage workflow tabs ─────────────────────────────────── */
 #stage-label {
-    margin-top: 6px;
+    margin-top: 2px;
     margin-bottom: 0;
     padding: 0 10px;
     height: 20px;
@@ -406,7 +425,7 @@ select {
 
 .stage-tab {
     flex: 1;
-    height: 60px;
+    height: 40px;
     padding: 0 8px;
     margin: 0;
     border: 2px solid #1258DC;
@@ -423,8 +442,6 @@ select {
     text-overflow: ellipsis;
 }
 
-.stage-tab:first-child { border-radius: 0; }
-.stage-tab:last-child  { border-radius: 0; }
 .stage-tab + .stage-tab { border-left: none; }
 
 .stage-tab.stage-active {
@@ -441,12 +458,12 @@ select {
 }
 
 .stage-tab.stage-unlocked {
-    border-color: #0a8a4a;
-    color: #0a8a4a;
+    border-color: #0a7a7a;
+    color: #0a7a7a;
 }
 
 .stage-tab.stage-active.stage-unlocked {
-    background: #0a8a4a;
+    background: #0a7a7a;
     color: white;
 }
 
@@ -461,7 +478,7 @@ select {
 #run-button {
     padding: 0 24px;
     margin: 0;
-    height: 60px;
+    height: 40px;
     font-size: 14px;
     font-weight: 700;
     border-radius: 10px 10px 0 0;
@@ -481,19 +498,19 @@ select {
 
 .all-tests-btn {
     width: 100%;
-    height: 60px;
+    height: 40px;
     font-size: 16px;
     font-weight: 700;
     margin: 0;
     border-radius: 10px 10px 0 0;
-    border: 2px solid #0a8a4a;
+    border: 2px solid #0a7a7a;
     border-bottom: none;
-    background: #0a8a4a;
+    background: #0a7a7a;
     color: white;
     cursor: pointer;
     box-shadow: none;
 }
-.all-tests-btn:hover { background: #07703c; border-color: #07703c; border-bottom: none; }
+.all-tests-btn:hover { background: #086060; border-color: #086060; border-bottom: none; }
 
 /* ── Test inputs compact line ────────────────────────────── */
 .test-inputs-line {
@@ -581,7 +598,7 @@ select {
 .tab-button {
     padding: 0 15px;
     margin: 0;
-    height: 60px;
+    height: 40px;
     box-shadow: none;
     border: 2px solid #1258DC;
     background: linear-gradient(to right, #b8caf0, #d4e0f7);
@@ -607,7 +624,7 @@ select {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 60px;
+    height: 40px;
     background: linear-gradient(to right, #d4e0f7, #eef2fc);
     border: 2px solid #1258DC;
     border-radius: 10px 10px 0 0;
@@ -924,6 +941,12 @@ body.dark #stage-label {
     color: #7ab3f5;
 }
 
+body.dark #instructions-label {
+    background: #1a2a40;
+    border-color: #1258DC;
+    color: #7ab3f5;
+}
+
 body.dark .skulkt-style-check { border-top-color: rgba(255,255,255,0.1); }
 
 body.dark .tab-tooltip {
@@ -959,14 +982,14 @@ body.dark button:active {
 body.dark #run-button { background: steelblue; border-color: steelblue; color: #d8d8d8; border-bottom: none; }
 body.dark #run-button:hover { background: #700CBC; border-color: #700CBC; border-bottom: none; }
 
-body.dark .stage-tab { background: #2a3a4a; border-color: #1258DC; color: #d8d8d8; }
+body.dark .stage-tab { background: #1a2535; border-color: #1258DC; color: #8aaac8; }
 body.dark .stage-tab.stage-active { background: #1258DC; color: white; }
-body.dark .stage-tab:not(:disabled):not(.stage-active):hover { background: #3a4a5a; }
-body.dark .stage-tab.stage-unlocked { border-color: #0d9a55; color: #5dbb7a; }
-body.dark .stage-tab.stage-active.stage-unlocked { background: #0d6e3d; color: white; }
+body.dark .stage-tab:not(:disabled):not(.stage-active):hover { background: #2a3a4a; }
+body.dark .stage-tab.stage-unlocked { border-color: #0d9a9a; color: #3dbbbb; }
+body.dark .stage-tab.stage-active.stage-unlocked { background: #0a6a6a; color: white; }
 body.dark .terminal-label { color: #7ab3f5; }
-body.dark .all-tests-btn { background: #0d6e3d; border-color: #0d6e3d; border-bottom: none; }
-body.dark .all-tests-btn:hover { background: #0a5530; border-color: #0a5530; border-bottom: none; }
+body.dark .all-tests-btn { background: #0a6a6a; border-color: #0a6a6a; border-bottom: none; }
+body.dark .all-tests-btn:hover { background: #085555; border-color: #085555; border-bottom: none; }
 body.dark .skulpt-done { color: #888; }
 body.dark .skulpt-error { color: #ff7070; }
 

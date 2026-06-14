@@ -25,6 +25,11 @@ const AUTOSAVE_KEY = 'sixhack_autosave';
 
 // ── Stage workflow state ──────────────────────────────────────────────────────
 let currentStage = 'debug';   // 'debug' | 'unit' | 'final'
+
+// ── Skulpt input mode ─────────────────────────────────────────────────────
+// 'interactive' = inline input element in output window (Debug stage)
+// 'server'      = unit test tabs post to /sandbox/run, Skulpt not used
+let skulptInputMode = 'interactive';
 let stageDebugDone = false;    // true once Skulpt has been run at least once
 let unitTestsViewed = new Set(); // indices of unit test tabs clicked
 let totalUnitTests = 0;
@@ -470,7 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Highlight active hex wrapper
         document.querySelectorAll('.level-hex-wrap').forEach(h => {
-            h.classList.toggle('active', h.dataset.id == programId);
+            h.classList.toggle('active', h.dataset.id === String(programId));
         });
 
         // Restore or reset tab codes and scores for this challenge
@@ -482,15 +487,14 @@ document.addEventListener('DOMContentLoaded', () => {
         Object.keys(tabCodes).forEach(k => delete tabCodes[k]);
         Object.assign(tabCodes, restoredTabCodes);
 
-        // Reset style scores display
+        // Zero all scores first (clears previous challenge's tab fills), then restore
+        // saved scores on top — order matters here
         Object.keys(styleScores).forEach(key => { styleScores[key] = 0; });
-        const firstTabBtn = document.querySelector('#code-tabs .tab-button');
         document.querySelectorAll('#code-tabs .tab-button').forEach(btn => {
             btn.style.background = '';
             btn.removeAttribute('data-feedback');
         });
 
-        // Restore scores visually if we have them
         Object.entries(restoredScores).forEach(([key, score]) => {
             styleScores[key] = score;
             updateTabProgress(key, score);
@@ -577,10 +581,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Stage tab controls ───────────────────────────────────────────────────
 
-    document.getElementById('stage-debug').addEventListener('click', () => switchStage('debug'));
-    document.getElementById('stage-unit').addEventListener('click',  () => switchStage('unit'));
+    document.getElementById('stage-debug').addEventListener('click', () => {
+        skulptInputMode = 'interactive';
+        switchStage('debug');
+    });
+    document.getElementById('stage-unit').addEventListener('click', () => {
+        skulptInputMode = 'server';
+        switchStage('unit');
+    });
     document.getElementById('stage-final').addEventListener('click', () => {
-        if (!document.getElementById('stage-final').disabled) switchStage('final');
+        if (!document.getElementById('stage-final').disabled) {
+            skulptInputMode = 'server';
+            switchStage('final');
+        }
     });
 
     // ── Debug panel controls ─────────────────────────────────────────────────
@@ -699,7 +712,7 @@ function loadPrograms(levelTooltip, onSelect) {
 // ── Test case tabs ───────────────────────────────────────────────────────────
 
 function loadTestCases(programId) {
-    fetch(`/sandbox/test_cases/${programId}`)
+    fetch(`/sandbox/test_cases/${programId}?style=${currentTab}`)
         .then(r => r.json())
         .then(testCases => {
             const tabButtons = document.getElementById('tab-buttons');
@@ -746,7 +759,7 @@ function loadTestCases(programId) {
                     const outputWindow = document.getElementById('output-window');
                     clearOutputTerminal();
                     const inputsLine = test.inputs && test.inputs.length
-                        ? test.inputs.map((v, i) => `${i + 1}: ${v}`).join(' &nbsp;·&nbsp; ')
+                        ? test.inputs.join(', ')
                         : '(none)';
                     if (errorMsg) {
                         outputWindow.innerHTML = `

@@ -1,7 +1,6 @@
 from flask import Flask
 from .models import db
 from .routes import setup_routes
-from .utils import populate_database
 
 
 def create_app():
@@ -13,6 +12,6 @@ def create_app():
     db.init_app(app)
 
     with app.app_context():
+        db.create_all()
         setup_routes(app)
-        populate_database()
         return app

@@ -33,8 +33,10 @@ def run_code(code, inputs):
     """
     try:
         input_bytes = "\n".join(map(str, inputs)).encode('utf-8')
+        # Redirect input() prompts to stderr so they don't pollute captured stdout
+        preamble = "import sys; _real_input = input; input = lambda p='': [sys.stderr.write(str(p)) if p else None, _real_input()][1]\n"
         process = subprocess.run(
-            [sys.executable, "-E", "-X", "utf8", "-c", code],
+            [sys.executable, "-E", "-X", "utf8", "-c", preamble + code],
             input=input_bytes,
             capture_output=True,
             env=_clean_env()

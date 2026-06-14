@@ -5,6 +5,7 @@
     <!-- Left: instructions panel + code editor -->
     <div class="sandbox-container">
 
+        <div id="instructions-label">Instructions</div>
         <div id="instructions-panel">
             <div id="instructions-summary">
                 <span id="instructions-goal">Select a challenge above to begin</span>
@@ -30,11 +31,11 @@
 
     <!-- Right: stage workflow, terminal/tests, output -->
     <div class="output-container">
-        <div id="stage-label">Development stage:</div>
+        <div id="stage-label">Test Stages</div>
         <div id="stage-tabs">
-            <button class="stage-tab stage-active" id="stage-debug">🐛 Debug</button>
-            <button class="stage-tab" id="stage-unit">🧪 Unit Tests</button>
-            <button class="stage-tab" id="stage-final" disabled>✅ Final Test</button>
+            <button class="stage-tab stage-active" id="stage-debug">🐛 Debugging</button>
+            <button class="stage-tab" id="stage-unit">🧪 Iterative Testing</button>
+            <button class="stage-tab" id="stage-final" disabled>✅ Final Testing</button>
         </div>
 
         <div id="debug-panel">

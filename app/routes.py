@@ -1,4 +1,4 @@
-"""Route definitions for the Six Hack sandbox."""
+"""Route definitions for the six(im).possible().things() sandbox."""
 
 import json
 import os
@@ -9,7 +9,7 @@ import re
 import sys
 
 from flask import render_template, request, jsonify
-from app.models import PythonProgram, TestCase, db
+from app.models import Challenge, Submission, db
 from app.sandbox.runner import run_code, test_code
 from app.utils import extract_feedback
 from app.code_styles import CODE_STYLES
@@ -24,6 +24,69 @@ def setup_routes(app):
     @app.route('/about')
     def about():
         return render_template('about.html')
+
+    @app.route('/sandbox/programs', methods=['GET'])
+    def get_programs():
+        challenges = Challenge.query.order_by(Challenge.id).all()
+        return jsonify([
+            {
+                "id": c.id,
+                "name": c.title,
+                "description": c.description,
+                "difficulty": c.difficulty,
+                "spec_level": c.spec_level,
+                "topic": c.topic,
+                "free": c.free,
+            }
+            for c in challenges
+        ])
+
+    @app.route('/sandbox/load', methods=['GET'])
+    def load_program():
+        program_id = request.args.get('program_id')
+        c = Challenge.query.get(program_id)
+        if not c:
+            return jsonify({"error": "Challenge not found"}), 404
+        return jsonify({
+            "id": c.id,
+            "name": c.title,
+            "description": c.description,
+            "instructions": c.instructions,
+            "topic": c.topic,
+            "spec_level": c.spec_level,
+            "difficulty": c.difficulty,
+            "hints": c.hints,
+            "max_lines": c.max_lines,
+            "max_bytes": c.max_bytes,
+        })
+
+    @app.route('/sandbox/original_code/<string:program_id>', methods=['GET'])
+    def get_original_code(program_id):
+        c = Challenge.query.get(program_id)
+        if not c:
+            return jsonify({"error": "Challenge not found"}), 404
+        return jsonify({"original_code": c.starter_code})
+
+    @app.route('/sandbox/test_cases/<string:program_id>', methods=['GET'])
+    def get_test_cases(program_id):
+        c = Challenge.query.get(program_id)
+        if not c:
+            return jsonify({"error": "Challenge not found"}), 404
+
+        style = request.args.get('style')
+        tests = c.tests
+
+        if style:
+            tests = [t for t in tests if t.get('paradigm') in ('all', style)]
+
+        return jsonify([
+            {
+                "name": t.get('name', f"Test {i+1}"),
+                "inputs": t.get('inputs', []),
+                "expected_output": t.get('expected_output', ''),
+            }
+            for i, t in enumerate(tests)
+        ])
 
     @app.route('/sandbox/run', methods=['POST'])
     def run():
@@ -42,16 +105,26 @@ def setup_routes(app):
             program_id = data.get('program_id')
             code = data.get('code')
             style_key = data.get('style')
+            max_lines = data.get('max_lines')
+            max_bytes = data.get('max_bytes')
 
-            program = PythonProgram.query.get_or_404(program_id)
+            c = Challenge.query.get(program_id)
+            if not c:
+                return jsonify({"error": "Challenge not found"}), 404
+
+            all_tests = c.tests or []
+            relevant = [
+                t for t in all_tests
+                if t.get('paradigm') in ('all', style_key)
+            ]
 
             test_cases = [
                 {
-                    "name": tc.name,
-                    "inputs": json.loads(tc.inputs),
-                    "expected_output": tc.expected_output
+                    "name": t.get('name', f"Test {i+1}"),
+                    "inputs": t.get('inputs', []),
+                    "expected_output": t.get('expected_output', ''),
                 }
-                for tc in program.test_cases
+                for i, t in enumerate(relevant)
             ]
 
             results = test_code(code, test_cases)
@@ -59,7 +132,8 @@ def setup_routes(app):
             if style_key:
                 final_score, combined_feedback, feedback_detail = _combine_test_and_style_results(
                     results, style_key, code,
-                    max_lines=program.max_lines, max_bytes=program.max_bytes
+                    max_lines=max_lines or c.max_lines,
+                    max_bytes=max_bytes or c.max_bytes,
                 )
             else:
                 final_score = None
@@ -74,63 +148,6 @@ def setup_routes(app):
             })
         except Exception as e:
             return jsonify({"error": str(e)}), 500
-
-    @app.route('/sandbox/programs', methods=['GET'])
-    def get_programs():
-        import re
-        def sort_key(p):
-            m = re.match(r'Q(\d+)', p.name)
-            return int(m.group(1)) if m else 999
-        programs = sorted(PythonProgram.query.all(), key=sort_key)
-        return jsonify([
-            {"id": p.id, "name": p.name, "description": p.description,
-             "difficulty": p.difficulty, "topic": p.topic, "spec_level": p.spec_level}
-            for p in programs
-        ])
-
-    @app.route('/sandbox/load', methods=['GET'])
-    def load_program():
-        program_id = request.args.get('program_id')
-        program = PythonProgram.query.get(program_id)
-        if not program:
-            return jsonify({"error": "Program not found"}), 404
-        return jsonify({
-            "id": program.id,
-            "name": program.name,
-            "code": program.code,
-            "description": program.description,
-            "instructions": program.instructions,
-            "topic": program.topic,
-            "spec_level": program.spec_level,
-            "hints": json.loads(program.hints or "[]"),
-            "max_lines": program.max_lines,
-            "max_bytes": program.max_bytes
-        })
-
-    @app.route('/sandbox/test_cases/<int:program_id>', methods=['GET'])
-    def get_test_cases(program_id):
-        try:
-            program = PythonProgram.query.get(program_id)
-            if not program:
-                return jsonify({"error": "Program not found"}), 404
-            return jsonify([
-                {
-                    "number": tc.id,
-                    "name": tc.name,
-                    "inputs": json.loads(tc.inputs),
-                    "expected_output": tc.expected_output
-                }
-                for tc in program.test_cases
-            ])
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
-
-    @app.route('/sandbox/original_code/<int:program_id>', methods=['GET'])
-    def get_original_code(program_id):
-        program = PythonProgram.query.get(program_id)
-        if not program:
-            return jsonify({"error": "Program not found"}), 404
-        return jsonify({"original_code": program.code})
 
     @app.route('/sandbox/styles', methods=['GET'])
     def get_code_styles():
@@ -172,7 +189,6 @@ def setup_routes(app):
     # ── Internal helpers ─────────────────────────────────────────────────────
 
     def _run_pylint(code, pylint_args):
-        """Run pylint on code in a temp file and return its stdout."""
         with tempfile.NamedTemporaryFile('w', delete=False, suffix='.py', encoding='utf-8') as tmp:
             tmp.write(code)
             tmp_path = tmp.name
@@ -184,7 +200,6 @@ def setup_routes(app):
             os.unlink(tmp_path)
 
     def _run_ast_check(style, code, max_lines=None, max_bytes=None):
-        """Dispatch to the appropriate AST checker for the given style."""
         check = style.get('ast_parameters', {}).get('check')
         dispatch = {
             "structured": lambda: _check_structured(code),
@@ -201,7 +216,7 @@ def setup_routes(app):
             tree = ast.parse(code)
             has_function = any(isinstance(node, ast.FunctionDef) for node in tree.body)
             if not has_function:
-                return "no function not separated"
+                return "no function"
             for node in ast.walk(tree):
                 if isinstance(node, ast.FunctionDef):
                     has_input = any(isinstance(n, ast.Call) and getattr(n.func, 'id', '') == 'input' for n in ast.walk(node))
@@ -316,13 +331,22 @@ def setup_routes(app):
             return "No class detected"
 
     def _check_recursive(code):
+        def _call_name(call_node):
+            """Return the bare name of a Call's function, whether plain or method call."""
+            func = call_node.func
+            if isinstance(func, ast.Name):
+                return func.id
+            if isinstance(func, ast.Attribute):
+                return func.attr
+            return ''
+
         try:
             tree = ast.parse(code)
             recursive_funcs = set()
             base_case_funcs = set()
             for node in ast.walk(tree):
                 if isinstance(node, ast.FunctionDef):
-                    if any(isinstance(n, ast.Call) and getattr(n.func, 'id', '') == node.name for n in ast.walk(node)):
+                    if any(isinstance(n, ast.Call) and _call_name(n) == node.name for n in ast.walk(node)):
                         recursive_funcs.add(node.name)
                         if any(isinstance(n, ast.If) for n in ast.walk(node)):
                             base_case_funcs.add(node.name)
@@ -333,7 +357,6 @@ def setup_routes(app):
             for node in ast.walk(tree):
                 if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
                     if node.func.id in recursive_funcs:
-                        # Verify the call is external (not inside the function itself)
                         called_externally = True
                         for func_node in ast.walk(tree):
                             if isinstance(func_node, ast.FunctionDef) and func_node.name == node.func.id:
@@ -379,14 +402,9 @@ def setup_routes(app):
         return "; ".join(issues) if issues else "minimalist OK"
 
     def _combine_test_and_style_results(test_results, style_key, code, max_lines=None, max_bytes=None):
-        """
-        Combines functional test results with style analysis into a final score and feedback list.
-        Deducts 2 points per failed test from the style score.
-        """
         style = next((s for s in CODE_STYLES if s['key'] == style_key), None)
         base_score = 10
 
-        # 1. Count failed tests and build per-test detail
         failed_tests = 0
         test_detail = []
         test_feedback = []
@@ -404,31 +422,27 @@ def setup_routes(app):
             })
             test_feedback.append(f"Test \"{name}\": {'Passed' if passed else 'Failed'}")
 
-        # 2. Run style checks (pylint + AST)
         style_score = base_score
         style_feedback = []
 
         if style and style.get('pylint_required'):
             pylint_output = _run_pylint(code, style.get('pylint_parameters'))
             feedback, score_delta = extract_feedback(pylint_output, style.get('pylint_feedback', []))
-            style_score = max(0, min(style_score, base_score + score_delta))
+            style_score = max(0, style_score + score_delta)
             style_feedback.extend(feedback)
 
         if style and style.get('ast_required'):
             ast_result = _run_ast_check(style, code, max_lines, max_bytes)
             feedback, score_delta = extract_feedback(ast_result, style.get('ast_feedback', []))
-            style_score = max(0, min(style_score, base_score + score_delta))
-            style_feedback.extend(feedback if feedback else [ast_result or "AST checks passed."])
+            style_score = max(0, style_score + score_delta)
+            style_feedback.extend(feedback if feedback else [])
 
-        # 3. Deduct 2 points per failed test
         final_score = max(0, style_score - 2 * failed_tests)
 
-        # 4. Flat feedback list (used by tab tooltips)
         combined_feedback = [f"Score: {final_score}/10"] + test_feedback
         if style_feedback:
             combined_feedback.extend(style_feedback)
 
-        # 5. Structured detail for rich UI rendering
         total_tests = len(test_results)
         passed_tests = total_tests - failed_tests
         feedback_detail = {
