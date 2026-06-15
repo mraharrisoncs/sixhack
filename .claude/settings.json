@@ -28,7 +28,9 @@
       "Bash(python -c ' *)",
       "Read(//c/Users/alan/.claude/projects/c--Users-alan-OneDrive-Git-sixhack/memory/**)",
       "Bash(python scripts/seed.py)",
-      "WebFetch(domain:eqaite.org)"
+      "WebFetch(domain:eqaite.org)",
+      "Bash(python scripts/seed.py --force)",
+      "Bash(python -c \"import random; random.seed\\(0\\); print\\(random.randint\\(1,6\\)\\)\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\alan\\.claude\\projects\\c--Users-alan-OneDrive-Git-sixhack\\memory"
