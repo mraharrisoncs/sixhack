@@ -23,6 +23,22 @@ const MAX_CHALLENGE_SCORE = MAX_STYLE_SCORE * NUM_STYLES; // 60
 
 const AUTOSAVE_KEY = 'sixhack_autosave';
 
+// ── Ranks ─────────────────────────────────────────────────────────────────────
+let rankData = [];
+
+fetch('/sandbox/ranks')
+    .then(r => r.json())
+    .then(data => { rankData = data; updateHeaderScores(); });
+
+function getRank(totalScore) {
+    for (let i = rankData.length - 1; i >= 0; i--) {
+        if (totalScore >= rankData[i].min) {
+            return `${rankData[i].name} ${rankData[i].emoji}`;
+        }
+    }
+    return rankData.length ? `${rankData[0].name} ${rankData[0].emoji}` : '';
+}
+
 // ── Stage workflow state ──────────────────────────────────────────────────────
 let currentStage = 'debug';   // 'debug' | 'unit' | 'final'
 
@@ -169,11 +185,23 @@ function getGrandTotal() {
 function updateHeaderScores() {
     const challengeEl = document.getElementById('challenge-score-display');
     const totalEl = document.getElementById('total-score-display');
+    const rankEl = document.getElementById('rank-display');
+    const scoreBox = document.getElementById('challenge-score-box');
+
     if (challengeEl) {
         const score = getChallengeScore(currentProgramId);
-        challengeEl.textContent = currentProgramId ? `${score}/${MAX_CHALLENGE_SCORE}` : '–';
+        const display = currentProgramId ? `${score}/${MAX_CHALLENGE_SCORE}` : '–';
+        challengeEl.textContent = display;
+        if (scoreBox) {
+            scoreBox.title = currentProgramId
+                ? `Score for this challenge: ${score}/${MAX_CHALLENGE_SCORE}`
+                : 'Score for this challenge';
+        }
     }
-    if (totalEl) totalEl.textContent = getGrandTotal();
+
+    const total = getGrandTotal();
+    if (totalEl) totalEl.textContent = total;
+    if (rankEl && rankData.length) rankEl.textContent = getRank(total);
 }
 
 function updateHexFill(programId) {
@@ -318,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
         matchBrackets: true,
         autofocus: true
     });
-    codeMirrorEditor.setSize(null, 480);
+    codeMirrorEditor.setSize(null, 468);
     codeMirrorEditor.setValue('# Welcome to six(im).possible().things()\n#\n# Select a challenge from the level bar above to begin.');
 
     // Shared tooltip for style tabs

@@ -7,6 +7,12 @@ import tempfile
 import ast
 import re
 import sys
+from pathlib import Path
+
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
 
 from flask import render_template, request, jsonify
 from app.models import Challenge, Submission, db
@@ -148,6 +154,12 @@ def setup_routes(app):
             })
         except Exception as e:
             return jsonify({"error": str(e)}), 500
+
+    @app.route('/sandbox/ranks', methods=['GET'])
+    def get_ranks():
+        ranks_path = Path(__file__).parent.parent / 'ranks.toml'
+        data = tomllib.loads(ranks_path.read_text(encoding='utf-8'))
+        return jsonify(data.get('ranks', []))
 
     @app.route('/sandbox/styles', methods=['GET'])
     def get_code_styles():
