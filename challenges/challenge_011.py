@@ -31,19 +31,38 @@ for i in range(n):
     print(",".join(map(str, nums)))
 '''
 
+[[paradigms]]
+paradigm = "all"
 hints = [
-    "Debug: Run with [4,3,2,1] and count lines of output — are there too many passes?",
-    "Bug: The inner loop range should shrink each pass (range(n-1-i)) since sorted elements settle at the end.",
-    "Structured: Wrap the sort in def bubble_sort(nums): and use Python's tuple swap (a, b = b, a).",
-    "Readable: Name the outer loop variable pass_number and inner loop variable comparison_index.",
-    "Robust: What if the list has only one element? What if it is already sorted? Add an early-exit flag.",
-    "OOP: Create a BubbleSorter class with a sort(nums) method that returns each intermediate state.",
-    "Recursive: Not a natural fit for bubble sort, but try defining one pass as a recursive helper.",
-    "Minimalist: Use Python's built-in sort — though that defeats the purpose of learning the algorithm.",
+    "Run with [4,3,2,1] and count lines of output — are there too many passes?",
+    "The inner loop range should shrink each pass (range(n-1-i)) since sorted elements settle at the end.",
 ]
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Normal - four elements"
+inputs = ["4,2,7,1"]
+expected_output = "2,4,1,7\n2,1,4,7\n1,2,4,7\n1,2,4,7"
+
+[[paradigms.tests]]
+name = "Boundary - already sorted"
+inputs = ["1,2,3"]
+expected_output = "1,2,3\n1,2,3\n1,2,3"
+
+[[paradigms.tests]]
+name = "Boundary - two elements"
+inputs = ["5,1"]
+expected_output = "1,5\n1,5"
+
+[[paradigms.tests]]
+name = "Normal - reverse sorted"
+inputs = ["3,2,1"]
+expected_output = "2,1,3\n1,2,3\n1,2,3"
+
+[[paradigms]]
 paradigm = "structured"
+hints = [
+    "Wrap the sort in def bubble_sort(nums): and use Python's tuple swap (a, b = b, a).",
+]
 code = '''
 def bubble_sort(nums):
     n = len(nums)
@@ -57,8 +76,11 @@ nums = list(map(int, input().split(",")))
 bubble_sort(nums)
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "readable"
+hints = [
+    "Name the outer loop variable pass_number and inner loop variable comparison_index.",
+]
 code = '''
 # Bubble sort: larger values "bubble up" to the right each pass
 nums = list(map(int, input().split(",")))
@@ -75,8 +97,11 @@ for pass_number in range(total_elements):
     print(",".join(map(str, nums)))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "robust"
+hints = [
+    "What if the list has only one element? What if it is already sorted? Add an early-exit flag.",
+]
 code = '''
 def bubble_sort(nums):
     if not isinstance(nums, list):
@@ -103,8 +128,11 @@ except ValueError:
     print("Error: all elements must be integers")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "oop"
+hints = [
+    "Create a BubbleSorter class with a sort(nums) method that returns each intermediate state.",
+]
 code = '''
 class BubbleSorter:
     def __init__(self):
@@ -128,8 +156,11 @@ for state in sorter.passes:
     print(",".join(map(str, state)))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "recursive"
+hints = [
+    "Not a natural fit for bubble sort, but try defining one pass as a recursive helper.",
+]
 code = '''
 def bubble_pass(nums, end):
     if end == 0:
@@ -144,36 +175,16 @@ nums = list(map(int, input().split(",")))
 bubble_pass(nums, len(nums) - 1)
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "minimalist"
+hints = [
+    "Use Python's built-in sort — though that defeats the purpose of learning the algorithm.",
+]
 code = '''
 n = list(map(int, input().split(",")))
 [print(",".join(map(str, n))) for i in range(len(n)) for j in range(len(n)-1-i) if n[j]>n[j+1] and n.__setitem__(slice(j,j+2),[n[j+1],n[j]]) or False] or [print(",".join(map(str,n)))]
 '''
 
-[[tests]]
-paradigm = "all"
-name = "Normal - four elements"
-inputs = ["4,2,7,1"]
-expected_output = "2,4,1,7\n2,1,4,7\n1,2,4,7\n1,2,4,7"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - already sorted"
-inputs = ["1,2,3"]
-expected_output = "1,2,3\n1,2,3\n1,2,3"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - two elements"
-inputs = ["5,1"]
-expected_output = "1,5\n1,5"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - reverse sorted"
-inputs = ["3,2,1"]
-expected_output = "2,1,3\n1,2,3\n1,2,3"
 """
 
 # Illustrative only

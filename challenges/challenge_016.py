@@ -43,19 +43,43 @@ if score < 2:
     print("Weak")
 '''
 
+[[paradigms]]
+paradigm = "all"
 hints = [
-    "Debug: Test Password1 — the code gives Strong because score reaches 3, but it is missing the special character check.",
-    "Debug: The thresholds are also wrong — 3 criteria met should not be Strong when there are 4 criteria in total.",
-    "Structured: Add a special character check, fix the thresholds, and wrap scoring in def rate_password(password):.",
-    "Readable: Use a list of named criteria functions and sum() over them for a clear, extensible design.",
-    "Robust: Replace the three independent if statements with elif/else so only one strength label is printed.",
-    "OOP: Create a PasswordStrengthChecker class with a rate(password) method and a criteria list.",
-    "Recursive: Not a natural fit, but you could recursively check each rule in a list.",
-    "Minimalist: sum() over a list of boolean expressions gives the score in one line.",
+    "Test Password1 — the code gives Strong because score reaches 3, but it is missing the special character check.",
+    "The thresholds are also wrong — 3 criteria met should not be Strong when there are 4 criteria in total.",
 ]
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Normal - strong password"
+inputs = ["Hello123!"]
+expected_output = "Strong"
+
+[[paradigms.tests]]
+name = "Normal - medium password"
+inputs = ["hello123"]
+expected_output = "Medium"
+
+[[paradigms.tests]]
+name = "Normal - weak password"
+inputs = ["hello"]
+expected_output = "Weak"
+
+[[paradigms.tests]]
+name = "Boundary - exactly 8 chars with upper, digit, special"
+inputs = ["Abcde1!x"]
+expected_output = "Strong"
+
+[[paradigms.tests]]
+name = "Boundary - 7 chars with upper and digit only"
+inputs = ["Abcde1!"]
+expected_output = "Medium"
+
+[[paradigms]]
 paradigm = "structured"
+hints = [
+    "Add a special character check, fix the thresholds, and wrap scoring in def rate_password(password):.",
+]
 code = '''
 SPECIAL_CHARS = "!@#$%^&*"
 
@@ -79,8 +103,11 @@ def rate_password(password):
 print(rate_password(input()))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "readable"
+hints = [
+    "Use a list of named criteria functions and sum() over them for a clear, extensible design.",
+]
 code = '''
 # Criteria for password strength
 MINIMUM_LENGTH = 8
@@ -106,8 +133,11 @@ else:
     print("Weak")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "robust"
+hints = [
+    "Replace the three independent if statements with elif/else so only one strength label is printed.",
+]
 code = '''
 SPECIAL_CHARS = "!@#$%^&*"
 
@@ -137,8 +167,11 @@ except ValueError as e:
     print(f"Error: {e}")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "oop"
+hints = [
+    "Create a PasswordStrengthChecker class with a rate(password) method and a criteria list.",
+]
 code = '''
 class PasswordStrengthChecker:
     SPECIAL_CHARS = "!@#$%^&*"
@@ -163,8 +196,11 @@ checker = PasswordStrengthChecker()
 print(checker.rate(input()))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "recursive"
+hints = [
+    "Not a natural fit, but you could recursively check each rule in a list.",
+]
 code = '''
 SPECIAL_CHARS = "!@#$%^&*"
 CRITERIA = [
@@ -190,8 +226,11 @@ def rate_password(password):
 print(rate_password(input()))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "minimalist"
+hints = [
+    "sum() over a list of boolean expressions gives the score in one line.",
+]
 code = '''
 SPECIAL = "!@#$%^&*"
 p = input()
@@ -199,35 +238,6 @@ s = sum([len(p)>=8, any(c.isupper() for c in p), any(c.isdigit() for c in p), an
 print("Strong" if s>=4 else "Medium" if s>=2 else "Weak")
 '''
 
-[[tests]]
-paradigm = "all"
-name = "Normal - strong password"
-inputs = ["Hello123!"]
-expected_output = "Strong"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - medium password"
-inputs = ["hello123"]
-expected_output = "Medium"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - weak password"
-inputs = ["hello"]
-expected_output = "Weak"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - exactly 8 chars with upper, digit, special"
-inputs = ["Abcde1!x"]
-expected_output = "Strong"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - 7 chars with upper and digit only"
-inputs = ["Abcde1!"]
-expected_output = "Medium"
 """
 
 # Illustrative only

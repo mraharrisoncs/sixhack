@@ -34,18 +34,42 @@ numbers = list(map(int, line.split(","))) if line else []
 # Your code here: sort numbers using merge sort and print the result
 '''
 
+[[paradigms]]
+paradigm = "all"
 hints = [
-    "Debug: Trace [3,1,4] — split to [3] and [1,4], sort [1,4] to get [1,4], then merge [3] and [1,4].",
-    "Structured: Write a merge(left, right) helper that combines two sorted lists, then a sort function that calls it.",
-    "Readable: Use clear variable names; separate merge logic from divide logic with well-named functions.",
-    "Robust: Handle the base cases — an empty list or single-element list is already sorted, return it as-is.",
-    "OOP: Create a MergeSorter class with sort() and merge() methods; sort() calls itself recursively.",
-    "Recursive: merge_sort(numbers) returns numbers if len <= 1, else merges merge_sort(left) and merge_sort(right).",
-    "Minimalist: The recursive approach can be written compactly, but clarity matters more than brevity here.",
+    "Trace [3,1,4] — split to [3] and [1,4], sort [1,4] to get [1,4], then merge [3] and [1,4].",
 ]
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Unsorted list"
+inputs = ["3,1,4,1,5,9"]
+expected_output = "[1, 1, 3, 4, 5, 9]"
+
+[[paradigms.tests]]
+name = "Empty list"
+inputs = [""]
+expected_output = "[]"
+
+[[paradigms.tests]]
+name = "Single element"
+inputs = ["5"]
+expected_output = "[5]"
+
+[[paradigms.tests]]
+name = "Already sorted"
+inputs = ["1,2,3,4,5"]
+expected_output = "[1, 2, 3, 4, 5]"
+
+[[paradigms.tests]]
+name = "Duplicates"
+inputs = ["2,2,1,1,3"]
+expected_output = "[1, 1, 2, 2, 3]"
+
+[[paradigms]]
 paradigm = "structured"
+hints = [
+    "Write a merge(left, right) helper that combines two sorted lists, then a sort function that calls it.",
+]
 code = '''
 def merge(left, right):
     result = []
@@ -75,8 +99,11 @@ numbers = list(map(int, line.split(","))) if line else []
 print(merge_sort(numbers))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "readable"
+hints = [
+    "Use clear variable names; separate merge logic from divide logic with well-named functions.",
+]
 code = '''
 # Merge sort: divide the list, sort each half, then merge
 
@@ -112,8 +139,11 @@ numbers = list(map(int, line.split(","))) if line else []
 print(merge_sort(numbers))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "robust"
+hints = [
+    "Handle the base cases — an empty list or single-element list is already sorted, return it as-is.",
+]
 code = '''
 def merge(left, right):
     result = []
@@ -143,8 +173,11 @@ except (TypeError, ValueError) as e:
     print(f"Error: {e}")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "oop"
+hints = [
+    "Create a MergeSorter class with sort() and merge() methods; sort() calls itself recursively.",
+]
 code = '''
 class MergeSorter:
     def merge(self, left, right):
@@ -173,8 +206,11 @@ sorter = MergeSorter()
 print(sorter.sort(numbers))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "recursive"
+hints = [
+    "merge_sort(numbers) returns numbers if len <= 1, else merges merge_sort(left) and merge_sort(right).",
+]
 code = '''
 def merge_sort(numbers):
     if len(numbers) <= 1:
@@ -196,8 +232,11 @@ numbers = list(map(int, line.split(","))) if line else []
 print(merge_sort(numbers))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "minimalist"
+hints = [
+    "The recursive approach can be written compactly, but clarity matters more than brevity here.",
+]
 code = '''
 def ms(n):
     if len(n) <= 1: return n
@@ -213,35 +252,6 @@ line = input().strip()
 print(ms(list(map(int, line.split(",")))) if line else [])
 '''
 
-[[tests]]
-paradigm = "all"
-name = "Unsorted list"
-inputs = ["3,1,4,1,5,9"]
-expected_output = "[1, 1, 3, 4, 5, 9]"
-
-[[tests]]
-paradigm = "all"
-name = "Empty list"
-inputs = [""]
-expected_output = "[]"
-
-[[tests]]
-paradigm = "all"
-name = "Single element"
-inputs = ["5"]
-expected_output = "[5]"
-
-[[tests]]
-paradigm = "all"
-name = "Already sorted"
-inputs = ["1,2,3,4,5"]
-expected_output = "[1, 2, 3, 4, 5]"
-
-[[tests]]
-paradigm = "all"
-name = "Duplicates"
-inputs = ["2,2,1,1,3"]
-expected_output = "[1, 1, 2, 2, 3]"
 """
 
 # Illustrative only

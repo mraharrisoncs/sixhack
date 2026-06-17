@@ -22,18 +22,37 @@ b = int(input())
 print(a + b)
 '''
 
+[[paradigms]]
+paradigm = "all"
 hints = [
-    "Debug: Run it with inputs 5 and 3 — does it print 8? Try 0 and 0, and a negative number.",
-    "Structured: Wrap the addition in a function def add(a, b): that returns the result, then call it.",
-    "Readable: Use descriptive names like first_number and second_number, and add a comment explaining the purpose.",
-    "Robust: Validate that both inputs can be converted to integers — what happens if the user types a word?",
-    "OOP: Create an Adder class with an add(a, b) method that returns the sum.",
-    "Recursive: Think of addition as: add(a, b) = a + add(b-1, 1) with base case add(a, 0) = a.",
-    "Minimalist: Can you do this in a single print statement without any variables?",
+    "Run it with inputs 5 and 3 — does it print 8? Try 0 and 0, and a negative number.",
 ]
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Normal"
+inputs = ["5", "3"]
+expected_output = "8"
+
+[[paradigms.tests]]
+name = "Boundary - both zero"
+inputs = ["0", "0"]
+expected_output = "0"
+
+[[paradigms.tests]]
+name = "Normal - large values"
+inputs = ["1000000", "2000000"]
+expected_output = "3000000"
+
+[[paradigms.tests]]
+name = "Normal - negative"
+inputs = ["-4", "10"]
+expected_output = "6"
+
+[[paradigms]]
 paradigm = "structured"
+hints = [
+    "Wrap the addition in a function def add(a, b): that returns the result, then call it.",
+]
 code = '''
 def add(a, b):
     return a + b
@@ -43,8 +62,11 @@ second = int(input())
 print(add(first, second))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "readable"
+hints = [
+    "Use descriptive names like first_number and second_number, and add a comment explaining the purpose.",
+]
 code = '''
 # Read two numbers and display their total
 first_number = int(input())
@@ -53,8 +75,11 @@ total = first_number + second_number
 print(total)
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "robust"
+hints = [
+    "Validate that both inputs can be converted to integers — what happens if the user types a word?",
+]
 code = '''
 def get_integer(prompt=""):
     while True:
@@ -68,8 +93,11 @@ second = get_integer()
 print(first + second)
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "oop"
+hints = [
+    "Create an Adder class with an add(a, b) method that returns the sum.",
+]
 code = '''
 class Adder:
     def __init__(self):
@@ -85,8 +113,11 @@ second = int(input())
 print(adder.add(first, second))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "recursive"
+hints = [
+    "Think of addition as: add(a, b) = a + add(b-1, 1) with base case add(a, 0) = a.",
+]
 code = '''
 def add(a, b):
     if b == 0:
@@ -100,35 +131,15 @@ second = int(input())
 print(add(first, second))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "minimalist"
+hints = [
+    "Can you do this in a single print statement without any variables?",
+]
 code = '''
 print(int(input()) + int(input()))
 '''
 
-[[tests]]
-paradigm = "all"
-name = "Normal"
-inputs = ["5", "3"]
-expected_output = "8"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - both zero"
-inputs = ["0", "0"]
-expected_output = "0"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - large values"
-inputs = ["1000000", "2000000"]
-expected_output = "3000000"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - negative"
-inputs = ["-4", "10"]
-expected_output = "6"
 """
 
 # Illustrative only

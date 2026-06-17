@@ -37,18 +37,27 @@ random.seed(seed)
 # Print a list of 6 counts, e.g. [2, 0, 1, 1, 1, 1]
 '''
 
+[[paradigms]]
+paradigm = "all"
 hints = [
-    "Debug: Use random.randint(1, 6) to roll the die. Print each roll to check it is in the range 1-6.",
-    "Structured: Create a list counts = [0] * 6. For each roll, do counts[face - 1] += 1.",
-    "Readable: Name variables clearly — face_counts, current_face. A comment explaining the index offset helps.",
-    "Robust: Validate num_rolls is non-negative; if zero, all counts should be 0 without entering the loop.",
-    "OOP: Create a DiceGame class with roll() and tally() methods. tally() returns the list of face counts.",
-    "Recursive: A recursive roll function accumulates counts list by list — less natural but valid.",
-    "Minimalist: Use random.choices() and collections.Counter to count rolls in two lines.",
+    "Use random.randint(1, 6) to roll the die. Print each roll to check it is in the range 1-6.",
 ]
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Zero rolls"
+inputs = ["0", "0"]
+expected_output = "[0, 0, 0, 0, 0, 0]"
+
+[[paradigms.tests]]
+name = "Zero rolls any seed"
+inputs = ["0", "99"]
+expected_output = "[0, 0, 0, 0, 0, 0]"
+
+[[paradigms]]
 paradigm = "structured"
+hints = [
+    "Create a list counts = [0] * 6. For each roll, do counts[face - 1] += 1.",
+]
 code = '''
 import random
 
@@ -65,8 +74,11 @@ seed = int(input())
 print(roll_dice(num_rolls, seed))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "readable"
+hints = [
+    "Name variables clearly — face_counts, current_face. A comment explaining the index offset helps.",
+]
 code = '''
 import random
 
@@ -84,8 +96,11 @@ for roll_number in range(num_rolls):
 print(face_counts)
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "robust"
+hints = [
+    "Validate num_rolls is non-negative; if zero, all counts should be 0 without entering the loop.",
+]
 code = '''
 import random
 
@@ -107,8 +122,16 @@ except ValueError as e:
     print(f"Error: {e}")
 '''
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Single roll seed 0"
+inputs = ["1", "0"]
+expected_output = "[0, 0, 0, 1, 0, 0]"
+
+[[paradigms]]
 paradigm = "oop"
+hints = [
+    "Create a DiceGame class with roll() and tally() methods. tally() returns the list of face counts.",
+]
 code = '''
 import random
 
@@ -132,8 +155,11 @@ for _ in range(num_rolls):
 print(game.tally())
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "recursive"
+hints = [
+    "A recursive roll function accumulates counts list by list — less natural but valid.",
+]
 code = '''
 import random
 
@@ -150,8 +176,11 @@ random.seed(seed)
 print(roll_recursive(num_rolls, [0] * 6))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "minimalist"
+hints = [
+    "Use random.choices() and collections.Counter to count rolls in two lines.",
+]
 code = '''
 import random, collections
 
@@ -162,23 +191,6 @@ c = collections.Counter(random.choices(range(1, 7), k=num_rolls))
 print([c[i] for i in range(1, 7)])
 '''
 
-[[tests]]
-paradigm = "all"
-name = "Zero rolls"
-inputs = ["0", "0"]
-expected_output = "[0, 0, 0, 0, 0, 0]"
-
-[[tests]]
-paradigm = "all"
-name = "Zero rolls any seed"
-inputs = ["0", "99"]
-expected_output = "[0, 0, 0, 0, 0, 0]"
-
-[[tests]]
-paradigm = "robust"
-name = "Single roll seed 0"
-inputs = ["1", "0"]
-expected_output = "[0, 0, 0, 1, 0, 0]"
 """
 
 # Illustrative only

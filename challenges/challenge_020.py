@@ -34,18 +34,42 @@ numbers = list(map(int, line.split(","))) if line else []
 # Your code here: sort numbers using insertion sort and print the result
 '''
 
+[[paradigms]]
+paradigm = "all"
 hints = [
-    "Debug: Trace [3,1,4] step by step — after step 1: [1,3,4], step 2: [1,3,4]. Verify each shift.",
-    "Structured: Use a nested loop — outer picks numbers[i], inner shifts elements right while they are larger.",
-    "Readable: Use variable names like current_value and insert_position to make the algorithm clear.",
-    "Robust: Handle empty lists and single-element lists — insertion sort should return them unchanged.",
-    "OOP: Create a Sorter class with a sort() method that performs insertion sort on a stored list.",
-    "Recursive: Sort the first n-1 elements recursively, then insert the nth element into its correct position.",
-    "Minimalist: Python's built-in sorted() returns a sorted list in one call (though not insertion sort).",
+    "Trace [3,1,4] step by step — after step 1: [1,3,4], step 2: [1,3,4]. Verify each shift.",
 ]
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Unsorted list"
+inputs = ["3,1,4,1,5"]
+expected_output = "[1, 1, 3, 4, 5]"
+
+[[paradigms.tests]]
+name = "Reversed list"
+inputs = ["5,4,3,2,1"]
+expected_output = "[1, 2, 3, 4, 5]"
+
+[[paradigms.tests]]
+name = "Already sorted"
+inputs = ["1,2,3,4,5"]
+expected_output = "[1, 2, 3, 4, 5]"
+
+[[paradigms.tests]]
+name = "Empty list"
+inputs = [""]
+expected_output = "[]"
+
+[[paradigms.tests]]
+name = "Single element"
+inputs = ["5"]
+expected_output = "[5]"
+
+[[paradigms]]
 paradigm = "structured"
+hints = [
+    "Use a nested loop — outer picks numbers[i], inner shifts elements right while they are larger.",
+]
 code = '''
 def insertion_sort(numbers):
     for i in range(1, len(numbers)):
@@ -62,8 +86,11 @@ numbers = list(map(int, line.split(","))) if line else []
 print(insertion_sort(numbers))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "readable"
+hints = [
+    "Use variable names like current_value and insert_position to make the algorithm clear.",
+]
 code = '''
 # Insertion sort: build sorted section left to right
 line = input().strip()
@@ -84,8 +111,11 @@ for i in range(1, len(numbers)):
 print(numbers)
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "robust"
+hints = [
+    "Handle empty lists and single-element lists — insertion sort should return them unchanged.",
+]
 code = '''
 def insertion_sort(numbers):
     if not isinstance(numbers, list):
@@ -110,8 +140,11 @@ except (TypeError, ValueError) as e:
     print(f"Error: {e}")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "oop"
+hints = [
+    "Create a Sorter class with a sort() method that performs insertion sort on a stored list.",
+]
 code = '''
 class Sorter:
     def __init__(self, numbers):
@@ -133,8 +166,11 @@ sorter = Sorter(numbers)
 print(sorter.sort())
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "recursive"
+hints = [
+    "Sort the first n-1 elements recursively, then insert the nth element into its correct position.",
+]
 code = '''
 def insert_into_sorted(sorted_list, value):
     if not sorted_list or value <= sorted_list[0]:
@@ -152,42 +188,16 @@ numbers = list(map(int, line.split(","))) if line else []
 print(insertion_sort(numbers))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "minimalist"
+hints = [
+    "Python's built-in sorted() returns a sorted list in one call (though not insertion sort).",
+]
 code = '''
 line = input().strip()
 print(sorted(map(int, line.split(","))) if line else [])
 '''
 
-[[tests]]
-paradigm = "all"
-name = "Unsorted list"
-inputs = ["3,1,4,1,5"]
-expected_output = "[1, 1, 3, 4, 5]"
-
-[[tests]]
-paradigm = "all"
-name = "Reversed list"
-inputs = ["5,4,3,2,1"]
-expected_output = "[1, 2, 3, 4, 5]"
-
-[[tests]]
-paradigm = "all"
-name = "Already sorted"
-inputs = ["1,2,3,4,5"]
-expected_output = "[1, 2, 3, 4, 5]"
-
-[[tests]]
-paradigm = "all"
-name = "Empty list"
-inputs = [""]
-expected_output = "[]"
-
-[[tests]]
-paradigm = "all"
-name = "Single element"
-inputs = ["5"]
-expected_output = "[5]"
 """
 
 # Illustrative only

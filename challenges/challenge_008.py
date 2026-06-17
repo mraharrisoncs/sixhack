@@ -35,19 +35,43 @@ while i < len(msg):
 print(out)
 '''
 
+[[paradigms]]
+paradigm = "all"
 hints = [
-    "Debug: Try message abc with shift 1 — you should get bcd. Try shift 25 and shift 0 too.",
-    "Debug: The magic number 97 is ord('a') — naming it makes the code clearer.",
-    "Structured: Put the encoding in def encode(message, shift): — use a for loop over characters rather than while with index.",
-    "Readable: Use ord('a') instead of 97, and descriptive names like char_code, shifted_code.",
-    "Robust: What if the message contains spaces, digits, or uppercase letters? Add a check or skip non-lowercase characters.",
-    "OOP: Create a CaesarCipher class with encode(message, shift) and decode(message, shift) methods.",
-    "Recursive: encode(message, shift) = encode_char(message[0], shift) + encode(message[1:], shift), base case empty string.",
-    "Minimalist: A join + generator expression encodes the whole string in one line.",
+    "Try message abc with shift 1 — you should get bcd. Try shift 25 and shift 0 too.",
+    "The magic number 97 is ord('a') — naming it makes the code clearer.",
 ]
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Normal"
+inputs = ["hello", "3"]
+expected_output = "khoor"
+
+[[paradigms.tests]]
+name = "Boundary - wrap around z to a"
+inputs = ["xyz", "3"]
+expected_output = "abc"
+
+[[paradigms.tests]]
+name = "Boundary - zero shift"
+inputs = ["python", "0"]
+expected_output = "python"
+
+[[paradigms.tests]]
+name = "Normal - full alphabet"
+inputs = ["abcdefghijklmnopqrstuvwxyz", "1"]
+expected_output = "bcdefghijklmnopqrstuvwxyza"
+
+[[paradigms.tests]]
+name = "Normal - ROT13"
+inputs = ["hello", "13"]
+expected_output = "uryyb"
+
+[[paradigms]]
 paradigm = "structured"
+hints = [
+    "Put the encoding in def encode(message, shift): — use a for loop over characters rather than while with index.",
+]
 code = '''
 def encode_char(char, shift):
     return chr((ord(char) - ord("a") + shift) % 26 + ord("a"))
@@ -60,8 +84,11 @@ shift = int(input())
 print(encode(message, shift))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "readable"
+hints = [
+    "Use ord('a') instead of 97, and descriptive names like char_code, shifted_code.",
+]
 code = '''
 # Caesar cipher: shift each letter forward in the alphabet, wrapping around
 ALPHABET_START = ord("a")
@@ -80,8 +107,11 @@ for character in message:
 print(encoded)
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "robust"
+hints = [
+    "What if the message contains spaces, digits, or uppercase letters? Add a check or skip non-lowercase characters.",
+]
 code = '''
 def encode(message, shift):
     if not isinstance(message, str):
@@ -103,8 +133,11 @@ except ValueError as e:
     print(f"Error: {e}")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "oop"
+hints = [
+    "Create a CaesarCipher class with encode(message, shift) and decode(message, shift) methods.",
+]
 code = '''
 class CaesarCipher:
     def __init__(self):
@@ -126,8 +159,11 @@ shift = int(input())
 print(cipher.encode(message, shift))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "recursive"
+hints = [
+    "encode(message, shift) = encode_char(message[0], shift) + encode(message[1:], shift), base case empty string.",
+]
 code = '''
 def encode(message, shift):
     if not message:
@@ -140,42 +176,16 @@ shift = int(input())
 print(encode(message, shift))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "minimalist"
+hints = [
+    "A join + generator expression encodes the whole string in one line.",
+]
 code = '''
 msg, s = input(), int(input())
 print("".join(chr((ord(c)-97+s)%26+97) for c in msg))
 '''
 
-[[tests]]
-paradigm = "all"
-name = "Normal"
-inputs = ["hello", "3"]
-expected_output = "khoor"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - wrap around z to a"
-inputs = ["xyz", "3"]
-expected_output = "abc"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - zero shift"
-inputs = ["python", "0"]
-expected_output = "python"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - full alphabet"
-inputs = ["abcdefghijklmnopqrstuvwxyz", "1"]
-expected_output = "bcdefghijklmnopqrstuvwxyza"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - ROT13"
-inputs = ["hello", "13"]
-expected_output = "uryyb"
 """
 
 # Illustrative only

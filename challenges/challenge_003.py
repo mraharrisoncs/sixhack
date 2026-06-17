@@ -36,19 +36,48 @@ if x < 40:
 print(g)
 '''
 
+[[paradigms]]
+paradigm = "all"
 hints = [
-    "Debug: Trace through a mark of 75 — count how many if statements fire. Is that efficient?",
-    "Debug: Every condition is checked independently, so a mark of 85 sets g to D, then C, then B, then A — only the last assignment wins.",
-    "Structured: Rewrite using if/elif/else so only one branch runs per mark, then wrap it in def get_grade(mark):.",
-    "Readable: Name your variable mark not x, and use descriptive grade boundaries like GRADE_A = 70.",
-    "Robust: What if the mark is below 0 or above 100? Add a validation check before the grade logic.",
-    "OOP: Create a GradeCalculator class with a grade(mark) method.",
-    "Recursive: Not a natural fit — but try defining grade(mark) that calls itself with mark-1 to reach boundaries.",
-    "Minimalist: A chained ternary fits the whole grade table in one line.",
+    "Trace through a mark of 75 — count how many if statements fire. Is that efficient?",
+    "Every condition is checked independently, so a mark of 85 sets g to D, then C, then B, then A — only the last assignment wins.",
 ]
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Normal - A grade"
+inputs = ["85"]
+expected_output = "A"
+
+[[paradigms.tests]]
+name = "Boundary - upper B"
+inputs = ["69"]
+expected_output = "B"
+
+[[paradigms.tests]]
+name = "Normal - C grade"
+inputs = ["51"]
+expected_output = "C"
+
+[[paradigms.tests]]
+name = "Boundary - lower D"
+inputs = ["40"]
+expected_output = "D"
+
+[[paradigms.tests]]
+name = "Normal - F grade"
+inputs = ["35"]
+expected_output = "F"
+
+[[paradigms.tests]]
+name = "Boundary - lower A"
+inputs = ["70"]
+expected_output = "A"
+
+[[paradigms]]
 paradigm = "structured"
+hints = [
+    "Rewrite using if/elif/else so only one branch runs per mark, then wrap it in def get_grade(mark):.",
+]
 code = '''
 def get_grade(mark):
     if mark >= 70:
@@ -65,8 +94,11 @@ mark = int(input())
 print(get_grade(mark))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "readable"
+hints = [
+    "Name your variable mark not x, and use descriptive grade boundaries like GRADE_A = 70.",
+]
 code = '''
 # Grade boundaries
 GRADE_A = 70
@@ -91,8 +123,11 @@ else:
 print(grade)
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "robust"
+hints = [
+    "What if the mark is below 0 or above 100? Add a validation check before the grade logic.",
+]
 code = '''
 def get_grade(mark):
     if not isinstance(mark, int):
@@ -116,8 +151,11 @@ except ValueError:
     print("Please enter a whole number between 0 and 100.")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "oop"
+hints = [
+    "Create a GradeCalculator class with a grade(mark) method.",
+]
 code = '''
 class GradeCalculator:
     BOUNDARIES = [(70, "A"), (60, "B"), (50, "C"), (40, "D"), (0, "F")]
@@ -137,8 +175,11 @@ mark = int(input())
 print(calculator.grade(mark))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "recursive"
+hints = [
+    "Not a natural fit — but try defining grade(mark) that calls itself with mark-1 to reach boundaries.",
+]
 code = '''
 BOUNDARIES = [(70, "A"), (60, "B"), (50, "C"), (40, "D"), (0, "F")]
 
@@ -154,48 +195,16 @@ mark = int(input())
 print(get_grade(mark))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "minimalist"
+hints = [
+    "A chained ternary fits the whole grade table in one line.",
+]
 code = '''
 m = int(input())
 print("A" if m>=70 else "B" if m>=60 else "C" if m>=50 else "D" if m>=40 else "F")
 '''
 
-[[tests]]
-paradigm = "all"
-name = "Normal - A grade"
-inputs = ["85"]
-expected_output = "A"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - upper B"
-inputs = ["69"]
-expected_output = "B"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - C grade"
-inputs = ["51"]
-expected_output = "C"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - lower D"
-inputs = ["40"]
-expected_output = "D"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - F grade"
-inputs = ["35"]
-expected_output = "F"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - lower A"
-inputs = ["70"]
-expected_output = "A"
 """
 
 # Illustrative only

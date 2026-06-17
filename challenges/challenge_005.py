@@ -31,19 +31,38 @@ answer = round(answer, 1)
 print(answer)
 '''
 
+[[paradigms]]
+paradigm = "all"
 hints = [
-    "Debug: Test with 100 — you should get 212.0. Now check 0 and -40.",
-    "Debug: The code is correct but uses 6 intermediate variables for a single formula — simplify.",
-    "Structured: Put the formula in def celsius_to_fahrenheit(c): returning the result — main block handles input and print.",
-    "Readable: Use FAHRENHEIT_OFFSET = 32 and SCALE_FACTOR = 9/5 as named constants.",
-    "Robust: What if the user types a non-numeric value? Wrap the conversion in a try/except.",
-    "OOP: Create a TemperatureConverter class with a to_fahrenheit(celsius) method.",
-    "Recursive: Not a natural fit, but you could compute C*9 by calling multiply(c, 9) recursively.",
-    "Minimalist: The formula fits on one line inside print() — no intermediate variables needed.",
+    "Test with 100 — you should get 212.0. Now check 0 and -40.",
+    "The code is correct but uses 6 intermediate variables for a single formula — simplify.",
 ]
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Normal - boiling point"
+inputs = ["100"]
+expected_output = "212.0"
+
+[[paradigms.tests]]
+name = "Boundary - freezing point"
+inputs = ["0"]
+expected_output = "32.0"
+
+[[paradigms.tests]]
+name = "Normal - body temperature"
+inputs = ["37"]
+expected_output = "98.6"
+
+[[paradigms.tests]]
+name = "Boundary - equal in both scales"
+inputs = ["-40"]
+expected_output = "-40.0"
+
+[[paradigms]]
 paradigm = "structured"
+hints = [
+    "Put the formula in def celsius_to_fahrenheit(c): returning the result — main block handles input and print.",
+]
 code = '''
 def celsius_to_fahrenheit(celsius):
     return round(celsius * 9 / 5 + 32, 1)
@@ -52,8 +71,11 @@ celsius = float(input())
 print(celsius_to_fahrenheit(celsius))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "readable"
+hints = [
+    "Use FAHRENHEIT_OFFSET = 32 and SCALE_FACTOR = 9/5 as named constants.",
+]
 code = '''
 # Constants for the Celsius to Fahrenheit conversion
 SCALE_FACTOR = 9 / 5
@@ -67,8 +89,11 @@ fahrenheit = celsius * SCALE_FACTOR + FREEZING_OFFSET
 print(round(fahrenheit, DECIMAL_PLACES))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "robust"
+hints = [
+    "What if the user types a non-numeric value? Wrap the conversion in a try/except.",
+]
 code = '''
 def celsius_to_fahrenheit(celsius):
     if celsius < -273.15:
@@ -82,8 +107,11 @@ except ValueError as e:
     print(f"Invalid input: {e}")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "oop"
+hints = [
+    "Create a TemperatureConverter class with a to_fahrenheit(celsius) method.",
+]
 code = '''
 class TemperatureConverter:
     def __init__(self):
@@ -100,8 +128,11 @@ celsius = float(input())
 print(converter.to_fahrenheit(celsius))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "recursive"
+hints = [
+    "Not a natural fit, but you could compute C*9 by calling multiply(c, 9) recursively.",
+]
 code = '''
 def multiply_by_nine_fifths(c, steps=9):
     if steps == 0:
@@ -114,35 +145,15 @@ def celsius_to_fahrenheit(celsius):
 print(celsius_to_fahrenheit(float(input())))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "minimalist"
+hints = [
+    "The formula fits on one line inside print() — no intermediate variables needed.",
+]
 code = '''
 print(round(float(input())*9/5+32,1))
 '''
 
-[[tests]]
-paradigm = "all"
-name = "Normal - boiling point"
-inputs = ["100"]
-expected_output = "212.0"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - freezing point"
-inputs = ["0"]
-expected_output = "32.0"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - body temperature"
-inputs = ["37"]
-expected_output = "98.6"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - equal in both scales"
-inputs = ["-40"]
-expected_output = "-40.0"
 """
 
 # Illustrative only

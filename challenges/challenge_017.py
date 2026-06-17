@@ -44,19 +44,43 @@ for i in range(n):
             print("Error: out of memory")
 '''
 
+[[paradigms]]
+paradigm = "all"
 hints = [
-    "Debug: Use RAM=10, VM=5, then load programs of sizes 6, 4, 8 — trace each Loaded/Swapped/Error decision.",
-    "Debug: The code works but uses deeply nested if/else — an elif flattens this.",
-    "Structured: Extract def load_program(size, used_ram, ram, used_vm, vm): returning a status string.",
-    "Readable: Use descriptive names like ram_capacity, vm_capacity, programs_to_load, program_size.",
-    "Robust: What if a program size is 0 or negative? What if RAM or VM capacity is 0? Add validation.",
-    "OOP: Create a MemoryManager class that tracks state and has a load(size) method.",
-    "Recursive: Not natural here, but you could process the list of program sizes recursively.",
-    "Minimalist: The nested if/else can be flattened into a short elif chain.",
+    "Use RAM=10, VM=5, then load programs of sizes 6, 4, 8 — trace each Loaded/Swapped/Error decision.",
+    "The code works but uses deeply nested if/else — an elif flattens this.",
 ]
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Normal - fits in RAM"
+inputs = ["100", "50", "2", "40", "30"]
+expected_output = "Loaded into RAM\nLoaded into RAM"
+
+[[paradigms.tests]]
+name = "Normal - second spills to VM"
+inputs = ["50", "100", "2", "40", "30"]
+expected_output = "Loaded into RAM\nSwapped to virtual memory"
+
+[[paradigms.tests]]
+name = "Normal - out of memory"
+inputs = ["50", "30", "3", "40", "30", "20"]
+expected_output = "Loaded into RAM\nSwapped to virtual memory\nError: out of memory"
+
+[[paradigms.tests]]
+name = "Boundary - exactly fills RAM"
+inputs = ["100", "50", "2", "60", "40"]
+expected_output = "Loaded into RAM\nLoaded into RAM"
+
+[[paradigms.tests]]
+name = "Boundary - single program too large for everything"
+inputs = ["50", "50", "1", "200"]
+expected_output = "Error: out of memory"
+
+[[paradigms]]
 paradigm = "structured"
+hints = [
+    "Extract def load_program(size, used_ram, ram, used_vm, vm): returning a status string.",
+]
 code = '''
 def load_program(size, used_ram, ram, used_vm, vm):
     if used_ram + size <= ram:
@@ -76,8 +100,11 @@ for _ in range(n):
     print(status)
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "readable"
+hints = [
+    "Use descriptive names like ram_capacity, vm_capacity, programs_to_load, program_size.",
+]
 code = '''
 # Simulate loading programs into RAM with virtual memory overflow
 ram_capacity = int(input())
@@ -101,8 +128,11 @@ for _ in range(program_count):
         print("Error: out of memory")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "robust"
+hints = [
+    "What if a program size is 0 or negative? What if RAM or VM capacity is 0? Add validation.",
+]
 code = '''
 def validate_positive(value, name):
     if not isinstance(value, int) or value < 0:
@@ -129,8 +159,11 @@ except ValueError as e:
     print(f"Error: {e}")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "oop"
+hints = [
+    "Create a MemoryManager class that tracks state and has a load(size) method.",
+]
 code = '''
 class MemoryManager:
     def __init__(self, ram, vm):
@@ -162,8 +195,11 @@ for _ in range(n):
     print(manager.load(int(input())))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "recursive"
+hints = [
+    "Not natural here, but you could process the list of program sizes recursively.",
+]
 code = '''
 def process_programs(sizes, used_ram, ram, used_vm, vm):
     if not sizes:
@@ -186,8 +222,11 @@ sizes = [int(input()) for _ in range(n)]
 process_programs(sizes, 0, ram, 0, vm)
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "minimalist"
+hints = [
+    "The nested if/else can be flattened into a short elif chain.",
+]
 code = '''
 ram, vm = int(input()), int(input())
 ur, uv = 0, 0
@@ -198,35 +237,6 @@ for _ in range(int(input())):
     else: print("Error: out of memory")
 '''
 
-[[tests]]
-paradigm = "all"
-name = "Normal - fits in RAM"
-inputs = ["100", "50", "2", "40", "30"]
-expected_output = "Loaded into RAM\nLoaded into RAM"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - second spills to VM"
-inputs = ["50", "100", "2", "40", "30"]
-expected_output = "Loaded into RAM\nSwapped to virtual memory"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - out of memory"
-inputs = ["50", "30", "3", "40", "30", "20"]
-expected_output = "Loaded into RAM\nSwapped to virtual memory\nError: out of memory"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - exactly fills RAM"
-inputs = ["100", "50", "2", "60", "40"]
-expected_output = "Loaded into RAM\nLoaded into RAM"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - single program too large for everything"
-inputs = ["50", "50", "1", "200"]
-expected_output = "Error: out of memory"
 """
 
 # Illustrative only

@@ -29,19 +29,43 @@ while n > 0:
 print(result)
 '''
 
+[[paradigms]]
+paradigm = "all"
 hints = [
-    "Debug: Run with input 0 — same structural flaw as the binary converter. It should print 0 but the loop never runs.",
-    "Bug: The edge case for n=0 is missing — add an if check before the while loop.",
-    "Structured: Fix the edge case for 0, then wrap it in def to_hex(n): returning a string.",
-    "Readable: Name the digit lookup string HEX_DIGITS and use descriptive names like remainder, hex_string.",
-    "Robust: What if the user enters a negative number? Add a validation check.",
-    "OOP: Create a NumberConverter class with to_hex(n) and to_binary(n) methods.",
-    "Recursive: to_hex(n) = to_hex(n//16) + HEX_DIGITS[n%16], base case n==0 returns ''.",
-    "Minimalist: Python's hex() built-in does this — strip '0x' with [2:] and call .upper().",
+    "Run with input 0 — same structural flaw as the binary converter. It should print 0 but the loop never runs.",
+    "The edge case for n=0 is missing — add an if check before the while loop.",
 ]
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Normal"
+inputs = ["255"]
+expected_output = "FF"
+
+[[paradigms.tests]]
+name = "Boundary - zero"
+inputs = ["0"]
+expected_output = "0"
+
+[[paradigms.tests]]
+name = "Normal - single hex digit"
+inputs = ["10"]
+expected_output = "A"
+
+[[paradigms.tests]]
+name = "Normal - 256"
+inputs = ["256"]
+expected_output = "100"
+
+[[paradigms.tests]]
+name = "Normal - 4096"
+inputs = ["4096"]
+expected_output = "1000"
+
+[[paradigms]]
 paradigm = "structured"
+hints = [
+    "Fix the edge case for 0, then wrap it in def to_hex(n): returning a string.",
+]
 code = '''
 HEX_DIGITS = "0123456789ABCDEF"
 
@@ -57,8 +81,11 @@ def to_hex(n):
 print(to_hex(int(input())))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "readable"
+hints = [
+    "Name the digit lookup string HEX_DIGITS and use descriptive names like remainder, hex_string.",
+]
 code = '''
 # Convert decimal to hexadecimal using repeated division by 16
 HEX_DIGITS = "0123456789ABCDEF"
@@ -78,8 +105,11 @@ else:
     print(hex_string)
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "robust"
+hints = [
+    "What if the user enters a negative number? Add a validation check.",
+]
 code = '''
 HEX_DIGITS = "0123456789ABCDEF"
 
@@ -103,8 +133,11 @@ except ValueError as e:
     print(f"Error: {e}")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "oop"
+hints = [
+    "Create a NumberConverter class with to_hex(n) and to_binary(n) methods.",
+]
 code = '''
 class NumberConverter:
     HEX_DIGITS = "0123456789ABCDEF"
@@ -127,8 +160,11 @@ converter = NumberConverter()
 print(converter.to_hex(int(input())))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "recursive"
+hints = [
+    "to_hex(n) = to_hex(n//16) + HEX_DIGITS[n%16], base case n==0 returns ''.",
+]
 code = '''
 HEX_DIGITS = "0123456789ABCDEF"
 
@@ -141,41 +177,15 @@ n = int(input())
 print(to_hex(n) or "0")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "minimalist"
+hints = [
+    "Python's hex() built-in does this — strip '0x' with [2:] and call .upper().",
+]
 code = '''
 print(hex(int(input()))[2:].upper())
 '''
 
-[[tests]]
-paradigm = "all"
-name = "Normal"
-inputs = ["255"]
-expected_output = "FF"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - zero"
-inputs = ["0"]
-expected_output = "0"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - single hex digit"
-inputs = ["10"]
-expected_output = "A"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - 256"
-inputs = ["256"]
-expected_output = "100"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - 4096"
-inputs = ["4096"]
-expected_output = "1000"
 """
 
 # Illustrative only

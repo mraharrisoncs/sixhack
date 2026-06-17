@@ -81,7 +81,7 @@ function startTimer() {
 function switchStage(stage) {
     currentStage = stage;
     document.getElementById('debug-panel').style.display = stage === 'debug' ? '' : 'none';
-    document.getElementById('unit-panel').style.display  = stage === 'unit'  ? '' : 'none';
+    document.getElementById('unit-panel').style.display = stage === 'unit' ? '' : 'none';
     document.getElementById('final-panel').style.display = stage === 'final' ? '' : 'none';
     document.querySelectorAll('.stage-tab').forEach(btn => btn.classList.remove('stage-active'));
     document.getElementById(`stage-${stage}`).classList.add('stage-active');
@@ -146,28 +146,28 @@ function runStyleCheck(code) {
             max_bytes: currentProgramMaxBytes
         })
     })
-    .then(r => r.json())
-    .then(results => {
-        const outputWindow = document.getElementById('output-window');
-        if (!outputWindow || !outputWindow.classList.contains('skulpt-terminal')) return;
-        const NOISE = /^(No major issues detected\.|AST checks passed\.|(structured|readable|robust|oop|recursive|minimalist) OK)$/i;
-        const msgs = [];
-        Object.values(results).forEach(r => {
-            if (r.feedback) r.feedback.filter(m => !NOISE.test(m.trim())).forEach(m => msgs.push(m));
-        });
-        const div = document.createElement('div');
-        div.className = 'skulkt-style-check';
-        if (msgs.length === 0) {
-            div.innerHTML = '<div class="skulkt-style-label">Style ✔ No issues detected</div>' +
-                '<div class="skulkt-style-next">When you\'re ready to run Unit Tests click the Unit Tests button</div>';
-        } else {
-            div.innerHTML = '<div class="skulkt-style-label">Style</div>' +
-                msgs.map(m => `<div class="skulkt-style-msg">💡 ${m}</div>`).join('');
-        }
-        outputWindow.appendChild(div);
-        outputWindow.scrollTop = outputWindow.scrollHeight;
-    })
-    .catch(() => {});
+        .then(r => r.json())
+        .then(results => {
+            const outputWindow = document.getElementById('output-window');
+            if (!outputWindow || !outputWindow.classList.contains('skulpt-terminal')) return;
+            const NOISE = /^(No major issues detected\.|AST checks passed\.|(structured|readable|robust|oop|recursive|minimalist) OK)$/i;
+            const msgs = [];
+            Object.values(results).forEach(r => {
+                if (r.feedback) r.feedback.filter(m => !NOISE.test(m.trim())).forEach(m => msgs.push(m));
+            });
+            const div = document.createElement('div');
+            div.className = 'skulkt-style-check';
+            if (msgs.length === 0) {
+                div.innerHTML = '<div class="skulkt-style-label">Style ✔ No issues detected</div>' +
+                    '<div class="skulkt-style-next">When you\'re ready to run Unit Tests click the Unit Tests button</div>';
+            } else {
+                div.innerHTML = '<div class="skulkt-style-label">Style</div>' +
+                    msgs.map(m => `<div class="skulkt-style-msg">💡 ${m}</div>`).join('');
+            }
+            outputWindow.appendChild(div);
+            outputWindow.scrollTop = outputWindow.scrollHeight;
+        })
+        .catch(() => { });
 }
 
 // ── Score helpers ────────────────────────────────────────────────────────────
@@ -241,7 +241,7 @@ function updateTabProgress(styleKey, score, feedbackArr) {
     const percent = (score / 10) * 100;
     const isDark = document.body.classList.contains('dark');
     const fillColor = isDark ? '#700CBC' : '#c49ad8';
-    const unfilled  = isDark ? '#333'    : '#b8caf0';
+    const unfilled = isDark ? '#333' : '#b8caf0';
     button.style.background = `linear-gradient(to right, ${fillColor} ${percent}%, ${unfilled} ${percent}%)`;
     let tooltip = `${score}/10`;
     if (feedbackArr && feedbackArr.length) tooltip += '\n' + feedbackArr.join('\n');
@@ -346,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
         matchBrackets: true,
         autofocus: true
     });
-    codeMirrorEditor.setSize(null, 468);
+    codeMirrorEditor.setSize(null, 454);
     codeMirrorEditor.setValue('# Welcome to six(im).possible().things()\n#\n# Select a challenge from the level bar above to begin.');
 
     // Shared tooltip for style tabs
@@ -390,6 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.querySelectorAll('#code-tabs .tab-button').forEach(b => b.classList.remove('active'));
                     button.classList.add('active');
                     currentTab = style.key;
+                    renderHints(currentTab);
                     resetStageState();
                     if (!tabCodes[currentTab]) {
                         tabCodes[currentTab] = originalCode ? style.code_version + originalCode : '';
@@ -431,7 +432,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const pw = copyPopover.offsetWidth;
                     const left = Math.min(rect.left, window.innerWidth - pw - 8);
                     copyPopover.style.left = `${left}px`;
-                    copyPopover.style.top  = `${rect.bottom + 4}px`;
+                    copyPopover.style.top = `${rect.bottom + 4}px`;
                 });
             });
             currentTab = styles[0].key;
@@ -573,6 +574,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── Instructions update ──────────────────────────────────────────────────
 
     function updateInstructions(program) {
+        window.currentProgram = program;
         document.getElementById('instructions-goal').textContent = program.description || program.name;
         const bodyEl = document.getElementById('instructions-body');
         if (bodyEl) bodyEl.textContent = program.instructions || '';
@@ -590,9 +592,14 @@ document.addEventListener('DOMContentLoaded', () => {
             b.textContent = program.topic;
             badges.appendChild(b);
         }
+        renderHints(currentTab);
+    }
+
+    function renderHints(paradigm) {
+        const hintsMap = (window.currentProgram && window.currentProgram.hints) || {};
+        const hints = (paradigm && hintsMap[paradigm]) || hintsMap['all'] || [];
         const hintsList = document.getElementById('hints-list');
         hintsList.innerHTML = '';
-        const hints = program.hints || [];
         if (hints.length) {
             hints.forEach(hint => {
                 const li = document.createElement('li');
@@ -718,7 +725,7 @@ function loadPrograms(levelTooltip, onSelect) {
                     const tw = levelTooltip.offsetWidth;
                     const left = Math.min(rect.left + rect.width / 2 - tw / 2, window.innerWidth - tw - 8);
                     levelTooltip.style.left = `${Math.max(4, left) + window.scrollX}px`;
-                    levelTooltip.style.top  = `${rect.bottom + window.scrollY + 6}px`;
+                    levelTooltip.style.top = `${rect.bottom + window.scrollY + 6}px`;
                 });
                 wrap.addEventListener('mouseleave', () => { levelTooltip.style.display = 'none'; });
                 wrap.addEventListener('click', () => onSelect(program.id, index + 1));

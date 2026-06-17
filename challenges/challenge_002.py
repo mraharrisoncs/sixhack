@@ -32,19 +32,38 @@ o = c + str(round(t, 2))
 print(o)
 '''
 
+[[paradigms]]
+paradigm = "all"
 hints = [
-    "Debug: Try input £10 — does it give the right EUR amount? The single-letter variable names make tracing very hard.",
-    "Debug: The variable name E shadows the exchange rate constant — rename it RATE to avoid confusion.",
-    "Structured: Separate the conversion into def convert(amount, from_currency): and keep input/output in the main block.",
-    "Readable: Use EXCHANGE_RATE as the constant name, and descriptive names like input_string, prefix, amount.",
-    "Robust: What if the user types an amount with no prefix? Add a check for a valid prefix character.",
-    "OOP: Create a CurrencyConverter class with a convert(amount_string) method.",
-    "Recursive: Not natural for conversion — but you could build the rounding recursively as a learning exercise.",
-    "Minimalist: The conversion logic fits in a few lines using a ternary expression.",
+    "Try input £10 — does it give the right EUR amount? The single-letter variable names make tracing very hard.",
+    "The variable name E shadows the exchange rate constant — rename it RATE to avoid confusion.",
 ]
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Normal - EUR to GBP"
+inputs = ["E100"]
+expected_output = "£85.0"
+
+[[paradigms.tests]]
+name = "Normal - GBP to EUR"
+inputs = ["£34.53"]
+expected_output = "€40.62"
+
+[[paradigms.tests]]
+name = "Boundary - zero amount"
+inputs = ["e0"]
+expected_output = "£0.0"
+
+[[paradigms.tests]]
+name = "Normal - large EUR"
+inputs = ["€1000"]
+expected_output = "£850.0"
+
+[[paradigms]]
 paradigm = "structured"
+hints = [
+    "Separate the conversion into def convert(amount, from_currency): and keep input/output in the main block.",
+]
 code = '''
 RATE = 0.85
 
@@ -64,8 +83,11 @@ def convert(input_str):
 print(convert(input()))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "readable"
+hints = [
+    "Use EXCHANGE_RATE as the constant name, and descriptive names like input_string, prefix, amount.",
+]
 code = '''
 # Exchange rate: 1 EUR = 0.85 GBP
 EXCHANGE_RATE = 0.85
@@ -85,8 +107,11 @@ else:
 print(output_symbol + str(converted_amount))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "robust"
+hints = [
+    "What if the user types an amount with no prefix? Add a check for a valid prefix character.",
+]
 code = '''
 RATE = 0.85
 EUR_PREFIXES = "eE€"
@@ -111,8 +136,11 @@ def convert(input_str):
 print(convert(input()))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "oop"
+hints = [
+    "Create a CurrencyConverter class with a convert(amount_string) method.",
+]
 code = '''
 class CurrencyConverter:
     RATE = 0.85
@@ -133,8 +161,11 @@ converter = CurrencyConverter()
 print(converter.convert(input()))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "recursive"
+hints = [
+    "Not natural for conversion — but you could build the rounding recursively as a learning exercise.",
+]
 code = '''
 RATE = 0.85
 
@@ -152,8 +183,11 @@ def convert(input_str):
 print(convert(input()))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "minimalist"
+hints = [
+    "The conversion logic fits in a few lines using a ternary expression.",
+]
 code = '''
 RATE = 0.85
 s = input()
@@ -161,29 +195,6 @@ p, a = s[0], float(s[1:])
 print(("£" + str(round(a * RATE, 2))) if p in "eE€" else ("€" + str(round(a / RATE, 2))))
 '''
 
-[[tests]]
-paradigm = "all"
-name = "Normal - EUR to GBP"
-inputs = ["E100"]
-expected_output = "£85.0"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - GBP to EUR"
-inputs = ["£34.53"]
-expected_output = "€40.62"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - zero amount"
-inputs = ["e0"]
-expected_output = "£0.0"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - large EUR"
-inputs = ["€1000"]
-expected_output = "£850.0"
 """
 
 # Illustrative only

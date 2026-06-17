@@ -30,19 +30,43 @@ while x < len(l):
 print(f)
 '''
 
+[[paradigms]]
+paradigm = "all"
 hints = [
-    "Debug: Try list=a,b,c,b and target=b — does it return 1 (first match) or 3 (last match)? Which is correct?",
-    "Debug: The code updates f on every match, so the last occurrence wins instead of the first.",
-    "Structured: Add break once found, put the logic in def linear_search(items, target): returning -1 explicitly.",
-    "Readable: Use descriptive names like items, target, index instead of l, t, x.",
-    "Robust: What if the list is empty? What if the target contains a comma? Add validation.",
-    "OOP: Create a LinearSearcher class with a search(items, target) method.",
-    "Recursive: linear_search(items, target, i=0): if i >= len(items) return -1, if items[i]==target return i, else recurse.",
-    "Minimalist: Python's list.index() does this in one call — but you need to handle the ValueError for not found.",
+    "Try list=a,b,c,b and target=b — does it return 1 (first match) or 3 (last match)? Which is correct?",
+    "The code updates f on every match, so the last occurrence wins instead of the first.",
 ]
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Normal - item found"
+inputs = ["3,1,4,1,5,9,2,6", "5"]
+expected_output = "4"
+
+[[paradigms.tests]]
+name = "Normal - item not found"
+inputs = ["3,1,4,1,5,9,2,6", "7"]
+expected_output = "-1"
+
+[[paradigms.tests]]
+name = "Boundary - first element"
+inputs = ["3,1,4,1,5", "3"]
+expected_output = "0"
+
+[[paradigms.tests]]
+name = "Boundary - last element"
+inputs = ["3,1,4,1,5", "5"]
+expected_output = "4"
+
+[[paradigms.tests]]
+name = "Normal - duplicate values returns first"
+inputs = ["3,1,4,1,5", "1"]
+expected_output = "1"
+
+[[paradigms]]
 paradigm = "structured"
+hints = [
+    "Add break once found, put the logic in def linear_search(items, target): returning -1 explicitly.",
+]
 code = '''
 def linear_search(items, target):
     for index, value in enumerate(items):
@@ -55,8 +79,11 @@ target = input()
 print(linear_search(items, target))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "readable"
+hints = [
+    "Use descriptive names like items, target, index instead of l, t, x.",
+]
 code = '''
 # Search for the first occurrence of target in a comma-separated list
 items = input().split(",")
@@ -72,8 +99,11 @@ for index, value in enumerate(items):
 print(found_index)
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "robust"
+hints = [
+    "What if the list is empty? What if the target contains a comma? Add validation.",
+]
 code = '''
 def linear_search(items, target):
     if not isinstance(items, list):
@@ -89,8 +119,11 @@ target = input()
 print(linear_search(items, target))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "oop"
+hints = [
+    "Create a LinearSearcher class with a search(items, target) method.",
+]
 code = '''
 class LinearSearcher:
     def __init__(self):
@@ -110,8 +143,11 @@ target = input()
 print(searcher.search(items, target))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "recursive"
+hints = [
+    "linear_search(items, target, i=0): if i >= len(items) return -1, if items[i]==target return i, else recurse.",
+]
 code = '''
 def linear_search(items, target, index=0):
     if index >= len(items):
@@ -125,42 +161,16 @@ target = input()
 print(linear_search(items, target))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "minimalist"
+hints = [
+    "Python's list.index() does this in one call — but you need to handle the ValueError for not found.",
+]
 code = '''
 items, target = input().split(","), input()
 print(items.index(target) if target in items else -1)
 '''
 
-[[tests]]
-paradigm = "all"
-name = "Normal - item found"
-inputs = ["3,1,4,1,5,9,2,6", "5"]
-expected_output = "4"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - item not found"
-inputs = ["3,1,4,1,5,9,2,6", "7"]
-expected_output = "-1"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - first element"
-inputs = ["3,1,4,1,5", "3"]
-expected_output = "0"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - last element"
-inputs = ["3,1,4,1,5", "5"]
-expected_output = "4"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - duplicate values returns first"
-inputs = ["3,1,4,1,5", "1"]
-expected_output = "1"
 """
 
 # Illustrative only

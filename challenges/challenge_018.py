@@ -29,18 +29,37 @@ numbers = list(map(int, line.split(","))) if line else []
 # Your code here: calculate and print the sum of numbers
 '''
 
+[[paradigms]]
+paradigm = "all"
 hints = [
-    "Debug: Try input 1,2,3 — does your loop accumulate correctly? Start total at 0.",
-    "Structured: Write a sum_list(numbers) function that loops and accumulates, then call it.",
-    "Readable: Use a variable named running_total and update it clearly with each element.",
-    "Robust: Handle the empty input case — if the line is blank, numbers should be [] and the sum should be 0.",
-    "OOP: Create a Summator class with an add(n) method and a total() method returning the accumulated sum.",
-    "Recursive: Return numbers[0] + sum_list(numbers[1:]) with base case: empty list returns 0.",
-    "Minimalist: Python's built-in sum() does exactly this in one call.",
+    "Try input 1,2,3 — does your loop accumulate correctly? Start total at 0.",
 ]
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Basic positive list"
+inputs = ["1,2,3"]
+expected_output = "6"
+
+[[paradigms.tests]]
+name = "Mixed positive and negative"
+inputs = ["10,-5,3"]
+expected_output = "8"
+
+[[paradigms.tests]]
+name = "Empty list"
+inputs = [""]
+expected_output = "0"
+
+[[paradigms.tests]]
+name = "Single element"
+inputs = ["5"]
+expected_output = "5"
+
+[[paradigms]]
 paradigm = "structured"
+hints = [
+    "Write a sum_list(numbers) function that loops and accumulates, then call it.",
+]
 code = '''
 def sum_list(numbers):
     total = 0
@@ -53,8 +72,11 @@ numbers = list(map(int, line.split(","))) if line else []
 print(sum_list(numbers))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "readable"
+hints = [
+    "Use a variable named running_total and update it clearly with each element.",
+]
 code = '''
 # Read and sum a list of integers
 line = input().strip()
@@ -67,8 +89,11 @@ for number in numbers:
 print(running_total)
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "robust"
+hints = [
+    "Handle the empty input case — if the line is blank, numbers should be [] and the sum should be 0.",
+]
 code = '''
 def sum_list(numbers):
     if not isinstance(numbers, list):
@@ -88,8 +113,16 @@ except ValueError as e:
     print(f"Error: {e}")
 '''
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Contains zero"
+inputs = ["1,0,2"]
+expected_output = "3"
+
+[[paradigms]]
 paradigm = "oop"
+hints = [
+    "Create a Summator class with an add(n) method and a total() method returning the accumulated sum.",
+]
 code = '''
 class Summator:
     def __init__(self):
@@ -109,8 +142,11 @@ for n in numbers:
 print(summator.total())
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "recursive"
+hints = [
+    "Return numbers[0] + sum_list(numbers[1:]) with base case: empty list returns 0.",
+]
 code = '''
 def sum_list(numbers):
     if not numbers:
@@ -122,42 +158,16 @@ numbers = list(map(int, line.split(","))) if line else []
 print(sum_list(numbers))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "minimalist"
+hints = [
+    "Python's built-in sum() does exactly this in one call.",
+]
 code = '''
 line = input().strip()
 print(sum(map(int, line.split(","))) if line else 0)
 '''
 
-[[tests]]
-paradigm = "all"
-name = "Basic positive list"
-inputs = ["1,2,3"]
-expected_output = "6"
-
-[[tests]]
-paradigm = "all"
-name = "Mixed positive and negative"
-inputs = ["10,-5,3"]
-expected_output = "8"
-
-[[tests]]
-paradigm = "all"
-name = "Empty list"
-inputs = [""]
-expected_output = "0"
-
-[[tests]]
-paradigm = "all"
-name = "Single element"
-inputs = ["5"]
-expected_output = "5"
-
-[[tests]]
-paradigm = "robust"
-name = "Contains zero"
-inputs = ["1,0,2"]
-expected_output = "3"
 """
 
 # Illustrative only

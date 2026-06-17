@@ -59,6 +59,22 @@ def seed(force=False):
             try:
                 data = extract_toml(f)
                 c = data['challenge']
+                paradigms = data.get('paradigms', [])
+                hints = {
+                    p['paradigm']: p['hints']
+                    for p in paradigms
+                    if p.get('hints')
+                }
+                solutions = [
+                    {'paradigm': p['paradigm'], 'code': p['code']}
+                    for p in paradigms
+                    if p.get('code')
+                ]
+                tests = [
+                    {**t, 'paradigm': p['paradigm']}
+                    for p in paradigms
+                    for t in p.get('tests', [])
+                ]
                 db.session.add(Challenge(
                     id           = c['id'],
                     title        = c['title'],
@@ -71,9 +87,9 @@ def seed(force=False):
                     free         = c['free'],
                     max_lines    = c.get('max_lines'),
                     max_bytes    = c.get('max_bytes'),
-                    hints        = c.get('hints', []),
-                    solutions    = data.get('solutions', []),
-                    tests        = data.get('tests', []),
+                    hints        = hints,
+                    solutions    = solutions,
+                    tests        = tests,
                 ))
                 print('OK')
             except Exception as e:

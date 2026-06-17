@@ -34,19 +34,43 @@ while i < len(s):
 print(o)
 '''
 
+[[paradigms]]
+paradigm = "all"
 hints = [
-    "Debug: Test with AAABBC — you should get 3A2B1C. Try a single repeated character and a single unique character.",
-    "Debug: This code is actually correct — the challenge is to find six cleaner ways to write it.",
-    "Structured: Extract a helper def count_run(s, start): that returns the run length at a position.",
-    "Readable: Use descriptive names like current_char, run_length, encoded instead of c, n, o.",
-    "Robust: What if the input contains lowercase letters, digits, or spaces? Add a validation check.",
-    "OOP: Create an RLEEncoder class with an encode(data) method and a decode(encoded) method.",
-    "Recursive: encode(s) = str(run_length) + s[0] + encode(s[run_length:]), base case empty string.",
-    "Minimalist: Use itertools.groupby to group consecutive identical characters in one step.",
+    "Test with AAABBC — you should get 3A2B1C. Try a single repeated character and a single unique character.",
+    "This code is actually correct — the challenge is to find six cleaner ways to write it.",
 ]
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Normal - mixed runs"
+inputs = ["AAABBC"]
+expected_output = "3A2B1C"
+
+[[paradigms.tests]]
+name = "Boundary - single character"
+inputs = ["A"]
+expected_output = "1A"
+
+[[paradigms.tests]]
+name = "Normal - no repeats"
+inputs = ["ABCD"]
+expected_output = "1A1B1C1D"
+
+[[paradigms.tests]]
+name = "Normal - all same"
+inputs = ["AAAAA"]
+expected_output = "5A"
+
+[[paradigms.tests]]
+name = "Normal - two runs"
+inputs = ["AABB"]
+expected_output = "2A2B"
+
+[[paradigms]]
 paradigm = "structured"
+hints = [
+    "Extract a helper def count_run(s, start): that returns the run length at a position.",
+]
 code = '''
 def count_run(data, start):
     char = data[start]
@@ -67,8 +91,11 @@ def rle_encode(data):
 print(rle_encode(input()))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "readable"
+hints = [
+    "Use descriptive names like current_char, run_length, encoded instead of c, n, o.",
+]
 code = '''
 # Run-length encoding: replace repeated characters with count + character
 data = input()
@@ -89,8 +116,11 @@ while index < len(data):
 print(encoded)
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "robust"
+hints = [
+    "What if the input contains lowercase letters, digits, or spaces? Add a validation check.",
+]
 code = '''
 def rle_encode(data):
     if not isinstance(data, str):
@@ -117,8 +147,11 @@ except ValueError as e:
     print(f"Error: {e}")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "oop"
+hints = [
+    "Create an RLEEncoder class with an encode(data) method and a decode(encoded) method.",
+]
 code = '''
 class RLEEncoder:
     def __init__(self):
@@ -151,8 +184,11 @@ encoder = RLEEncoder()
 print(encoder.encode(input()))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "recursive"
+hints = [
+    "encode(s) = str(run_length) + s[0] + encode(s[run_length:]), base case empty string.",
+]
 code = '''
 def count_run(data, index=0):
     if index >= len(data) or data[index] != data[0]:
@@ -168,42 +204,16 @@ def rle_encode(data):
 print(rle_encode(input()))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "minimalist"
+hints = [
+    "Use itertools.groupby to group consecutive identical characters in one step.",
+]
 code = '''
 from itertools import groupby
 print("".join(str(len(list(g)))+k for k,g in groupby(input())))
 '''
 
-[[tests]]
-paradigm = "all"
-name = "Normal - mixed runs"
-inputs = ["AAABBC"]
-expected_output = "3A2B1C"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - single character"
-inputs = ["A"]
-expected_output = "1A"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - no repeats"
-inputs = ["ABCD"]
-expected_output = "1A1B1C1D"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - all same"
-inputs = ["AAAAA"]
-expected_output = "5A"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - two runs"
-inputs = ["AABB"]
-expected_output = "2A2B"
 """
 
 # Illustrative only

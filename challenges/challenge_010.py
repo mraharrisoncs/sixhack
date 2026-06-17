@@ -43,19 +43,44 @@ if not found:
     print(-1)
 '''
 
+[[paradigms]]
+paradigm = "all"
 hints = [
-    "Debug: Search for 7 in the list 1,3,5,7,9 — trace low, high and mid each iteration. Does it terminate?",
-    "Bug: high should start at len(nums)-1 not len(nums) — initialising to len can access an index past the end.",
-    "Bug: low = mid causes an infinite loop when mid equals low — use low = mid + 1 to always advance.",
-    "Structured: Wrap the binary search in def binary_search(nums, target): returning the index or -1.",
-    "Readable: Use descriptive names like low_index, high_index, mid_index instead of low, high, mid.",
-    "Robust: What if the list is not sorted? Add a check or document that the input must be sorted.",
-    "OOP: Create a BinarySearcher class that stores the sorted list and has a search(target) method.",
-    "Recursive: binary_search(nums, target, low, high) with base case low > high returns -1.",
+    "Search for 7 in the list 1,3,5,7,9 — trace low, high and mid each iteration. Does it terminate?",
+    "high should start at len(nums)-1 not len(nums) — initialising to len can access an index past the end.",
+    "low = mid causes an infinite loop when mid equals low — use low = mid + 1 to always advance.",
 ]
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Normal - item found middle"
+inputs = ["1,3,5,7,9", "5"]
+expected_output = "2"
+
+[[paradigms.tests]]
+name = "Normal - item not found"
+inputs = ["1,3,5,7,9", "4"]
+expected_output = "-1"
+
+[[paradigms.tests]]
+name = "Boundary - first element"
+inputs = ["1,3,5,7,9", "1"]
+expected_output = "0"
+
+[[paradigms.tests]]
+name = "Boundary - last element"
+inputs = ["1,3,5,7,9", "9"]
+expected_output = "4"
+
+[[paradigms.tests]]
+name = "Normal - two elements found"
+inputs = ["4,8", "8"]
+expected_output = "1"
+
+[[paradigms]]
 paradigm = "structured"
+hints = [
+    "Wrap the binary search in def binary_search(nums, target): returning the index or -1.",
+]
 code = '''
 def binary_search(nums, target):
     low = 0
@@ -75,8 +100,11 @@ target = int(input())
 print(binary_search(nums, target))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "readable"
+hints = [
+    "Use descriptive names like low_index, high_index, mid_index instead of low, high, mid.",
+]
 code = '''
 # Binary search: repeatedly halve the search range
 nums = list(map(int, input().split(",")))
@@ -102,8 +130,11 @@ else:
     print(-1)
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "robust"
+hints = [
+    "What if the list is not sorted? Add a check or document that the input must be sorted.",
+]
 code = '''
 def binary_search(nums, target):
     if not nums:
@@ -129,8 +160,11 @@ except ValueError as e:
     print(f"Error: {e}")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "oop"
+hints = [
+    "Create a BinarySearcher class that stores the sorted list and has a search(target) method.",
+]
 code = '''
 class BinarySearcher:
     def __init__(self, sorted_list):
@@ -154,8 +188,11 @@ searcher = BinarySearcher(nums)
 print(searcher.search(target))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "recursive"
+hints = [
+    "binary_search(nums, target, low, high) with base case low > high returns -1.",
+]
 code = '''
 def binary_search(nums, target, low, high):
     if low > high:
@@ -172,7 +209,7 @@ target = int(input())
 print(binary_search(nums, target, 0, len(nums) - 1))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "minimalist"
 code = '''
 n = list(map(int, input().split(",")))
@@ -185,35 +222,6 @@ while l <= h:
 else: print(-1)
 '''
 
-[[tests]]
-paradigm = "all"
-name = "Normal - item found middle"
-inputs = ["1,3,5,7,9", "5"]
-expected_output = "2"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - item not found"
-inputs = ["1,3,5,7,9", "4"]
-expected_output = "-1"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - first element"
-inputs = ["1,3,5,7,9", "1"]
-expected_output = "0"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - last element"
-inputs = ["1,3,5,7,9", "9"]
-expected_output = "4"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - two elements found"
-inputs = ["4,8", "8"]
-expected_output = "1"
 """
 
 # Illustrative only

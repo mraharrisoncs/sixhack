@@ -39,18 +39,32 @@ search_name = input().strip()
 # Your code here: find and print matching contacts or "Not found"
 '''
 
+[[paradigms]]
+paradigm = "all"
 hints = [
-    "Debug: Print the contacts list after reading it — check each dict has the right keys and values.",
-    "Structured: Write a find_contact(contacts, name) function that loops and returns matching dicts.",
-    "Readable: Use clear variable names; loop with for contact in contacts and check contact['name'].",
-    "Robust: Use .lower() on both the contact name and search term to make the search case-insensitive.",
-    "OOP: Create a ContactBook class with add(name, phone, email) and search(name) methods.",
-    "Recursive: Search recursively — check the first contact, then recurse on the rest of the list.",
-    "Minimalist: Use a list comprehension to filter matching contacts in one line.",
+    "Print the contacts list after reading it — check each dict has the right keys and values.",
 ]
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Find existing contact"
+inputs = ["2", "Alice,123-456,alice@example.com", "Bob,789-012,bob@example.com", "Alice"]
+expected_output = "Alice | 123-456 | alice@example.com"
+
+[[paradigms.tests]]
+name = "No match found"
+inputs = ["2", "Alice,123-456,alice@example.com", "Bob,789-012,bob@example.com", "Charlie"]
+expected_output = "Not found"
+
+[[paradigms.tests]]
+name = "Find second contact"
+inputs = ["2", "Alice,123-456,alice@example.com", "Bob,789-012,bob@example.com", "Bob"]
+expected_output = "Bob | 789-012 | bob@example.com"
+
+[[paradigms]]
 paradigm = "structured"
+hints = [
+    "Write a find_contact(contacts, name) function that loops and returns matching dicts.",
+]
 code = '''
 def find_contacts(contacts, name):
     results = []
@@ -74,8 +88,11 @@ else:
     print("Not found")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "readable"
+hints = [
+    "Use clear variable names; loop with for contact in contacts and check contact['name'].",
+]
 code = '''
 # Read contacts and search by name
 n = int(input())
@@ -99,8 +116,11 @@ else:
     print("Not found")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "robust"
+hints = [
+    "Use .lower() on both the contact name and search term to make the search case-insensitive.",
+]
 code = '''
 def find_contacts(contacts, name):
     name_lower = name.strip().lower()
@@ -127,8 +147,16 @@ except ValueError as e:
     print(f"Error: {e}")
 '''
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Case-insensitive search"
+inputs = ["2", "Alice,123-456,alice@example.com", "Bob,789-012,bob@example.com", "alice"]
+expected_output = "Alice | 123-456 | alice@example.com"
+
+[[paradigms]]
 paradigm = "oop"
+hints = [
+    "Create a ContactBook class with add(name, phone, email) and search(name) methods.",
+]
 code = '''
 class ContactBook:
     def __init__(self):
@@ -155,8 +183,11 @@ else:
     print("Not found")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "recursive"
+hints = [
+    "Search recursively — check the first contact, then recurse on the rest of the list.",
+]
 code = '''
 def find_contacts(contacts, name, index=0):
     if index >= len(contacts):
@@ -182,8 +213,11 @@ else:
     print("Not found")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "minimalist"
+hints = [
+    "Use a list comprehension to filter matching contacts in one line.",
+]
 code = '''
 n = int(input())
 contacts = [dict(zip(["name","phone","email"], input().split(","))) for _ in range(n)]
@@ -192,29 +226,6 @@ found = [c for c in contacts if c["name"] == name]
 print("\n".join(f"{c['name']} | {c['phone']} | {c['email']}" for c in found) if found else "Not found")
 '''
 
-[[tests]]
-paradigm = "all"
-name = "Find existing contact"
-inputs = ["2", "Alice,123-456,alice@example.com", "Bob,789-012,bob@example.com", "Alice"]
-expected_output = "Alice | 123-456 | alice@example.com"
-
-[[tests]]
-paradigm = "all"
-name = "No match found"
-inputs = ["2", "Alice,123-456,alice@example.com", "Bob,789-012,bob@example.com", "Charlie"]
-expected_output = "Not found"
-
-[[tests]]
-paradigm = "all"
-name = "Find second contact"
-inputs = ["2", "Alice,123-456,alice@example.com", "Bob,789-012,bob@example.com", "Bob"]
-expected_output = "Bob | 789-012 | bob@example.com"
-
-[[tests]]
-paradigm = "robust"
-name = "Case-insensitive search"
-inputs = ["2", "Alice,123-456,alice@example.com", "Bob,789-012,bob@example.com", "alice"]
-expected_output = "Alice | 123-456 | alice@example.com"
 """
 
 # Illustrative only

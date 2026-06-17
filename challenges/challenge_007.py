@@ -39,19 +39,38 @@ total_steps = len(sequence) - 1
 print(total_steps)
 '''
 
+[[paradigms]]
+paradigm = "all"
 hints = [
-    "Debug: Try input 6 — the answer should be 8 steps. Does it output 8?",
-    "Debug: The code maintains both a steps counter and a sequence list but only uses one of them — one is redundant.",
-    "Structured: Move the logic into def count_steps(n): — the sequence list is redundant if you only need the count.",
-    "Readable: Use integer division // instead of dividing then converting back to int with int().",
-    "Robust: What if the user enters 0 or a negative number? The Collatz sequence is only defined for positive integers.",
-    "OOP: Create a CollatzSequence class with a count(n) method and a generate(n) method that returns the full sequence.",
-    "Recursive: count_steps(n) = 0 if n == 1, else 1 + count_steps(n//2 if n even else 3*n+1).",
-    "Minimalist: A while loop with ternary selection fits in just a few lines.",
+    "Try input 6 — the answer should be 8 steps. Does it output 8?",
+    "The code maintains both a steps counter and a sequence list but only uses one of them — one is redundant.",
 ]
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Normal"
+inputs = ["6"]
+expected_output = "8"
+
+[[paradigms.tests]]
+name = "Boundary - minimum input"
+inputs = ["1"]
+expected_output = "0"
+
+[[paradigms.tests]]
+name = "Normal - power of 2"
+inputs = ["8"]
+expected_output = "3"
+
+[[paradigms.tests]]
+name = "Normal - large with many steps"
+inputs = ["27"]
+expected_output = "111"
+
+[[paradigms]]
 paradigm = "structured"
+hints = [
+    "Move the logic into def count_steps(n): — the sequence list is redundant if you only need the count.",
+]
 code = '''
 def count_steps(n):
     steps = 0
@@ -63,8 +82,11 @@ def count_steps(n):
 print(count_steps(int(input())))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "readable"
+hints = [
+    "Use integer division // instead of dividing then converting back to int with int().",
+]
 code = '''
 # Count how many steps the Collatz sequence takes to reach 1
 starting_number = int(input())
@@ -82,8 +104,11 @@ while current_number != 1:
 print(step_count)
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "robust"
+hints = [
+    "What if the user enters 0 or a negative number? The Collatz sequence is only defined for positive integers.",
+]
 code = '''
 def count_steps(n):
     if not isinstance(n, int):
@@ -103,8 +128,11 @@ except ValueError as e:
     print(f"Error: {e}")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "oop"
+hints = [
+    "Create a CollatzSequence class with a count(n) method and a generate(n) method that returns the full sequence.",
+]
 code = '''
 class CollatzSequence:
     def __init__(self):
@@ -124,8 +152,11 @@ collatz = CollatzSequence()
 print(collatz.count(int(input())))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "recursive"
+hints = [
+    "count_steps(n) = 0 if n == 1, else 1 + count_steps(n//2 if n even else 3*n+1).",
+]
 code = '''
 def count_steps(n):
     if n == 1:
@@ -137,8 +168,11 @@ def count_steps(n):
 print(count_steps(int(input())))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "minimalist"
+hints = [
+    "A while loop with ternary selection fits in just a few lines.",
+]
 code = '''
 n, s = int(input()), 0
 while n != 1:
@@ -146,29 +180,6 @@ while n != 1:
 print(s)
 '''
 
-[[tests]]
-paradigm = "all"
-name = "Normal"
-inputs = ["6"]
-expected_output = "8"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - minimum input"
-inputs = ["1"]
-expected_output = "0"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - power of 2"
-inputs = ["8"]
-expected_output = "3"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - large with many steps"
-inputs = ["27"]
-expected_output = "111"
 """
 
 # Illustrative only

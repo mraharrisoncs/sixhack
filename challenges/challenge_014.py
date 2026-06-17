@@ -28,19 +28,38 @@ s = w * h * d
 print(s)
 '''
 
+[[paradigms]]
+paradigm = "all"
 hints = [
-    "Debug: Test with width=100, height=100, depth=24 — expected 30000 bytes. What does this code output, and why?",
-    "Bug: width x height x depth gives bits not bytes — you need to divide by 8 to convert.",
-    "Structured: Wrap the calculation in def bitmap_size(width, height, colour_depth): and keep input in the main block.",
-    "Readable: Use BITS_PER_BYTE = 8 as a named constant instead of dividing by the magic number 8.",
-    "Robust: What if width or height is zero? What if colour_depth is not a power of 2? Add validation.",
-    "OOP: Create an Image class with width, height, colour_depth attributes and a file_size() method.",
-    "Recursive: Not natural here, but you could compute width*height by repeated addition recursively.",
-    "Minimalist: The formula fits on one line — no intermediate variables needed.",
+    "Test with width=100, height=100, depth=24 — expected 30000 bytes. What does this code output, and why?",
+    "width x height x depth gives bits not bytes — you need to divide by 8 to convert.",
 ]
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Normal - 24-bit colour 100x100"
+inputs = ["100", "100", "24"]
+expected_output = "30000"
+
+[[paradigms.tests]]
+name = "Boundary - 1x1 pixel 8-bit"
+inputs = ["1", "1", "8"]
+expected_output = "1"
+
+[[paradigms.tests]]
+name = "Normal - 1920x1080 24-bit"
+inputs = ["1920", "1080", "24"]
+expected_output = "6220800"
+
+[[paradigms.tests]]
+name = "Normal - 640x480 1-bit"
+inputs = ["640", "480", "1"]
+expected_output = "38400"
+
+[[paradigms]]
 paradigm = "structured"
+hints = [
+    "Wrap the calculation in def bitmap_size(width, height, colour_depth): and keep input in the main block.",
+]
 code = '''
 BITS_PER_BYTE = 8
 
@@ -53,8 +72,11 @@ colour_depth = int(input())
 print(bitmap_size(width, height, colour_depth))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "readable"
+hints = [
+    "Use BITS_PER_BYTE = 8 as a named constant instead of dividing by the magic number 8.",
+]
 code = '''
 # Calculate uncompressed bitmap size using the standard formula
 BITS_PER_BYTE = 8
@@ -72,8 +94,11 @@ file_size_bytes = total_bits // BITS_PER_BYTE
 print(file_size_bytes)
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "robust"
+hints = [
+    "What if width or height is zero? What if colour_depth is not a power of 2? Add validation.",
+]
 code = '''
 BITS_PER_BYTE = 8
 VALID_DEPTHS = {1, 4, 8, 16, 24, 32}
@@ -94,8 +119,11 @@ except ValueError as e:
     print(f"Error: {e}")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "oop"
+hints = [
+    "Create an Image class with width, height, colour_depth attributes and a file_size() method.",
+]
 code = '''
 class Image:
     BITS_PER_BYTE = 8
@@ -115,8 +143,11 @@ image = Image(width, height, colour_depth)
 print(image.file_size())
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "recursive"
+hints = [
+    "Not natural here, but you could compute width*height by repeated addition recursively.",
+]
 code = '''
 BITS_PER_BYTE = 8
 
@@ -136,35 +167,15 @@ colour_depth = int(input())
 print(bitmap_size(width, height, colour_depth))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "minimalist"
+hints = [
+    "The formula fits on one line — no intermediate variables needed.",
+]
 code = '''
 print(int(input())*int(input())*int(input())//8)
 '''
 
-[[tests]]
-paradigm = "all"
-name = "Normal - 24-bit colour 100x100"
-inputs = ["100", "100", "24"]
-expected_output = "30000"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - 1x1 pixel 8-bit"
-inputs = ["1", "1", "8"]
-expected_output = "1"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - 1920x1080 24-bit"
-inputs = ["1920", "1080", "24"]
-expected_output = "6220800"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - 640x480 1-bit"
-inputs = ["640", "480", "1"]
-expected_output = "38400"
 """
 
 # Illustrative only

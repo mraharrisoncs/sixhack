@@ -31,18 +31,37 @@ matrix = [list(map(int, input().split(","))) for _ in range(n)]
 # Your code here: transpose the matrix and print the result
 '''
 
+[[paradigms]]
+paradigm = "all"
 hints = [
-    "Debug: Trace the 2x2 case [[1,2],[3,4]] — row 0 col 1 becomes row 1 col 0 in the transpose.",
-    "Structured: Use a helper function build_transposed(matrix) with nested loops: outer over columns, inner over rows.",
-    "Readable: Name your variables num_rows and num_cols; build each transposed row with a list comprehension.",
-    "Robust: Check the matrix is not empty and all rows have equal length before transposing.",
-    "OOP: Create a Matrix class storing the grid, with a transpose() method that returns a new Matrix.",
-    "Recursive: Build the first column as a new row, then recurse on the matrix with that column removed.",
-    "Minimalist: zip(*matrix) gives the transposed columns — wrap each in list() to get the result.",
+    "Trace the 2x2 case [[1,2],[3,4]] — row 0 col 1 becomes row 1 col 0 in the transpose.",
 ]
 
-[[solutions]]
+[[paradigms.tests]]
+name = "2x2 square matrix"
+inputs = ["2", "1,2", "3,4"]
+expected_output = "[[1, 3], [2, 4]]"
+
+[[paradigms.tests]]
+name = "2x3 rectangle"
+inputs = ["2", "1,2,3", "4,5,6"]
+expected_output = "[[1, 4], [2, 5], [3, 6]]"
+
+[[paradigms.tests]]
+name = "Single row matrix"
+inputs = ["1", "1,2,3"]
+expected_output = "[[1], [2], [3]]"
+
+[[paradigms.tests]]
+name = "3x3 square matrix"
+inputs = ["3", "1,2,3", "4,5,6", "7,8,9"]
+expected_output = "[[1, 4, 7], [2, 5, 8], [3, 6, 9]]"
+
+[[paradigms]]
 paradigm = "structured"
+hints = [
+    "Use a helper function build_transposed(matrix) with nested loops: outer over columns, inner over rows.",
+]
 code = '''
 def build_transposed(matrix):
     num_rows = len(matrix)
@@ -60,8 +79,11 @@ matrix = [list(map(int, input().split(","))) for _ in range(n)]
 print(build_transposed(matrix))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "readable"
+hints = [
+    "Name your variables num_rows and num_cols; build each transposed row with a list comprehension.",
+]
 code = '''
 # Transpose a matrix by swapping rows and columns
 n = int(input())
@@ -79,8 +101,11 @@ for col_index in range(num_cols):
 print(transposed)
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "robust"
+hints = [
+    "Check the matrix is not empty and all rows have equal length before transposing.",
+]
 code = '''
 def transpose(matrix):
     if not matrix:
@@ -101,8 +126,11 @@ except ValueError as e:
     print(f"Error: {e}")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "oop"
+hints = [
+    "Create a Matrix class storing the grid, with a transpose() method that returns a new Matrix.",
+]
 code = '''
 class Matrix:
     def __init__(self, grid):
@@ -123,8 +151,11 @@ m = Matrix(grid)
 print(m.transpose())
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "recursive"
+hints = [
+    "Build the first column as a new row, then recurse on the matrix with that column removed.",
+]
 code = '''
 def transpose(matrix):
     if not matrix or not matrix[0]:
@@ -138,37 +169,17 @@ matrix = [list(map(int, input().split(","))) for _ in range(n)]
 print(transpose(matrix))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "minimalist"
+hints = [
+    "zip(*matrix) gives the transposed columns — wrap each in list() to get the result.",
+]
 code = '''
 n = int(input())
 m = [list(map(int, input().split(","))) for _ in range(n)]
 print([list(col) for col in zip(*m)])
 '''
 
-[[tests]]
-paradigm = "all"
-name = "2x2 square matrix"
-inputs = ["2", "1,2", "3,4"]
-expected_output = "[[1, 3], [2, 4]]"
-
-[[tests]]
-paradigm = "all"
-name = "2x3 rectangle"
-inputs = ["2", "1,2,3", "4,5,6"]
-expected_output = "[[1, 4], [2, 5], [3, 6]]"
-
-[[tests]]
-paradigm = "all"
-name = "Single row matrix"
-inputs = ["1", "1,2,3"]
-expected_output = "[[1], [2], [3]]"
-
-[[tests]]
-paradigm = "all"
-name = "3x3 square matrix"
-inputs = ["3", "1,2,3", "4,5,6", "7,8,9"]
-expected_output = "[[1, 4, 7], [2, 5, 8], [3, 6, 9]]"
 """
 
 # Illustrative only

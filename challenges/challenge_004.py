@@ -37,19 +37,38 @@ while i <= n:
     i = i + 1
 '''
 
+[[paradigms]]
+paradigm = "all"
 hints = [
-    "Debug: Run it with n=15 — does every line come out correctly? Count how many conditions Python checks per number.",
-    "Debug: Four independent if statements check overlapping conditions on every iteration — use elif/else to short-circuit.",
-    "Structured: Use elif and else to short-circuit checks, then move the loop into def fizzbuzz(n):.",
-    "Readable: Checking i % 15 == 0 for FizzBuzz is clearer than two separate modulo conditions combined with 'and'.",
-    "Robust: What should happen for n=0 or a negative n? Add a guard at the top.",
-    "OOP: Create a FizzBuzz class with a run(n) method that generates and prints the sequence.",
-    "Recursive: Define fizzbuzz(i, n) that prints the value for i then calls fizzbuzz(i+1, n), with base case i > n.",
-    "Minimalist: The whole thing can fit in a for loop with one print — use string multiplication with booleans.",
+    "Run it with n=15 — does every line come out correctly? Count how many conditions Python checks per number.",
+    "Four independent if statements check overlapping conditions on every iteration — use elif/else to short-circuit.",
 ]
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Normal - up to first FizzBuzz"
+inputs = ["15"]
+expected_output = "1\n2\nFizz\n4\nBuzz\nFizz\n7\n8\nFizz\nBuzz\n11\nFizz\n13\n14\nFizzBuzz"
+
+[[paradigms.tests]]
+name = "Boundary - minimum input"
+inputs = ["1"]
+expected_output = "1"
+
+[[paradigms.tests]]
+name = "Boundary - first Fizz"
+inputs = ["3"]
+expected_output = "1\n2\nFizz"
+
+[[paradigms.tests]]
+name = "Boundary - first Buzz"
+inputs = ["5"]
+expected_output = "1\n2\nFizz\n4\nBuzz"
+
+[[paradigms]]
 paradigm = "structured"
+hints = [
+    "Use elif and else to short-circuit checks, then move the loop into def fizzbuzz(n):.",
+]
 code = '''
 def fizzbuzz_line(i):
     if i % 15 == 0:
@@ -67,8 +86,11 @@ def fizzbuzz(n):
 fizzbuzz(int(input()))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "readable"
+hints = [
+    "Checking i % 15 == 0 for FizzBuzz is clearer than two separate modulo conditions combined with 'and'.",
+]
 code = '''
 # Print FizzBuzz sequence from 1 to limit
 limit = int(input())
@@ -88,8 +110,11 @@ for number in range(1, limit + 1):
         print(number)
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "robust"
+hints = [
+    "What should happen for n=0 or a negative n? Add a guard at the top.",
+]
 code = '''
 def fizzbuzz(n):
     if not isinstance(n, int):
@@ -113,8 +138,11 @@ except ValueError as e:
     print(f"Error: {e}")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "oop"
+hints = [
+    "Create a FizzBuzz class with a run(n) method that generates and prints the sequence.",
+]
 code = '''
 class FizzBuzz:
     def __init__(self):
@@ -138,8 +166,11 @@ game = FizzBuzz()
 game.run(int(input()))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "recursive"
+hints = [
+    "Define fizzbuzz(i, n) that prints the value for i then calls fizzbuzz(i+1, n), with base case i > n.",
+]
 code = '''
 def fizzbuzz(i, n):
     if i > n:
@@ -158,37 +189,17 @@ n = int(input())
 fizzbuzz(1, n)
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "minimalist"
+hints = [
+    "The whole thing can fit in a for loop with one print — use string multiplication with booleans.",
+]
 code = '''
 n = int(input())
 for i in range(1, n+1):
     print("Fizz"*(i%3==0) + "Buzz"*(i%5==0) or i)
 '''
 
-[[tests]]
-paradigm = "all"
-name = "Normal - up to first FizzBuzz"
-inputs = ["15"]
-expected_output = "1\n2\nFizz\n4\nBuzz\nFizz\n7\n8\nFizz\nBuzz\n11\nFizz\n13\n14\nFizzBuzz"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - minimum input"
-inputs = ["1"]
-expected_output = "1"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - first Fizz"
-inputs = ["3"]
-expected_output = "1\n2\nFizz"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - first Buzz"
-inputs = ["5"]
-expected_output = "1\n2\nFizz\n4\nBuzz"
 """
 
 # Illustrative only

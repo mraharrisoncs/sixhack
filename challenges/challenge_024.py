@@ -36,18 +36,42 @@ operation = input().strip()
 # Your code here: perform the bitwise operation and print the result
 '''
 
+[[paradigms]]
+paradigm = "all"
 hints = [
-    "Debug: Use bin(5) and bin(3) to see binary — 101 and 011. Work out AND, OR, XOR by hand then verify.",
-    "Structured: Use if/elif to check the operation name and apply the matching Python bitwise operator.",
-    "Readable: Add a comment for each branch explaining what the operator does in binary terms.",
-    "Robust: Use a dict mapping operation names to operators, or raise an error for unknown operations.",
-    "OOP: Create a BitwiseCalculator class with methods and(), or_(), xor(), not_() for each operation.",
-    "Recursive: Shift and combine bits recursively — compute AND bit by bit using >> and &1.",
-    "Minimalist: A dict of lambdas maps operation names to one-line results.",
+    "Use bin(5) and bin(3) to see binary — 101 and 011. Work out AND, OR, XOR by hand then verify.",
 ]
 
-[[solutions]]
+[[paradigms.tests]]
+name = "AND operation"
+inputs = ["5", "3", "AND"]
+expected_output = "1"
+
+[[paradigms.tests]]
+name = "OR operation"
+inputs = ["5", "3", "OR"]
+expected_output = "7"
+
+[[paradigms.tests]]
+name = "XOR operation"
+inputs = ["5", "3", "XOR"]
+expected_output = "6"
+
+[[paradigms.tests]]
+name = "AND with zero"
+inputs = ["5", "0", "AND"]
+expected_output = "0"
+
+[[paradigms.tests]]
+name = "NOT operation"
+inputs = ["5", "0", "NOT"]
+expected_output = "-6"
+
+[[paradigms]]
 paradigm = "structured"
+hints = [
+    "Use if/elif to check the operation name and apply the matching Python bitwise operator.",
+]
 code = '''
 def bitwise(a, b, operation):
     if operation == "AND":
@@ -71,8 +95,11 @@ else:
     print(result)
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "readable"
+hints = [
+    "Add a comment for each branch explaining what the operator does in binary terms.",
+]
 code = '''
 # Perform a bitwise operation on two integers
 a = int(input())
@@ -100,8 +127,11 @@ else:
     print("Error: Unknown operation")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "robust"
+hints = [
+    "Use a dict mapping operation names to operators, or raise an error for unknown operations.",
+]
 code = '''
 OPERATIONS = {"AND", "OR", "XOR", "NOT"}
 
@@ -126,8 +156,16 @@ except ValueError as e:
     print(f"Error: {e}")
 '''
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Invalid operation"
+inputs = ["5", "3", "NAND"]
+expected_output = "Error: Unknown operation"
+
+[[paradigms]]
 paradigm = "oop"
+hints = [
+    "Create a BitwiseCalculator class with methods and(), or_(), xor(), not_() for each operation.",
+]
 code = '''
 class BitwiseCalculator:
     def __init__(self, a, b):
@@ -162,8 +200,11 @@ except ValueError as e:
     print(f"Error: {e}")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "recursive"
+hints = [
+    "Shift and combine bits recursively — compute AND bit by bit using >> and &1.",
+]
 code = '''
 def bitwise_and(a, b, bit=0):
     if a == 0 and b == 0:
@@ -196,49 +237,17 @@ else:
     print("Error: Unknown operation")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "minimalist"
+hints = [
+    "A dict of lambdas maps operation names to one-line results.",
+]
 code = '''
 a, b, op = int(input()), int(input()), input().strip()
 ops = {"AND": lambda: a & b, "OR": lambda: a | b, "XOR": lambda: a ^ b, "NOT": lambda: ~a}
 print(ops[op]() if op in ops else "Error: Unknown operation")
 '''
 
-[[tests]]
-paradigm = "all"
-name = "AND operation"
-inputs = ["5", "3", "AND"]
-expected_output = "1"
-
-[[tests]]
-paradigm = "all"
-name = "OR operation"
-inputs = ["5", "3", "OR"]
-expected_output = "7"
-
-[[tests]]
-paradigm = "all"
-name = "XOR operation"
-inputs = ["5", "3", "XOR"]
-expected_output = "6"
-
-[[tests]]
-paradigm = "all"
-name = "AND with zero"
-inputs = ["5", "0", "AND"]
-expected_output = "0"
-
-[[tests]]
-paradigm = "all"
-name = "NOT operation"
-inputs = ["5", "0", "NOT"]
-expected_output = "-6"
-
-[[tests]]
-paradigm = "robust"
-name = "Invalid operation"
-inputs = ["5", "3", "NAND"]
-expected_output = "Error: Unknown operation"
 """
 
 # Illustrative only

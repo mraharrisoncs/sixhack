@@ -27,19 +27,43 @@ while n > 0:
 print(r)
 '''
 
+[[paradigms]]
+paradigm = "all"
 hints = [
-    "Debug: Run with input 0 — what does it print? It should print 0 but the while loop never runs for zero.",
-    "Bug: The edge case for n=0 is missing — the loop body never executes and r stays empty.",
-    "Structured: Fix the edge case for 0, then wrap the conversion in def to_binary(n): returning a string.",
-    "Readable: Name your accumulator binary_string and use descriptive comments explaining the repeated division.",
-    "Robust: What if the user types a negative number? Add a check — negative binary representation is a separate topic.",
-    "OOP: Create a NumberConverter class with a to_binary(n) method.",
-    "Recursive: to_binary(n) = to_binary(n//2) + str(n%2), base case n==0 returns '0' (or '' for recursion building up).",
-    "Minimalist: Python's bin() built-in does this — strip the '0b' prefix with [2:].",
+    "Run with input 0 — what does it print? It should print 0 but the while loop never runs for zero.",
+    "The edge case for n=0 is missing — the loop body never executes and r stays empty.",
 ]
 
-[[solutions]]
+[[paradigms.tests]]
+name = "Normal"
+inputs = ["10"]
+expected_output = "1010"
+
+[[paradigms.tests]]
+name = "Boundary - zero"
+inputs = ["0"]
+expected_output = "0"
+
+[[paradigms.tests]]
+name = "Boundary - one"
+inputs = ["1"]
+expected_output = "1"
+
+[[paradigms.tests]]
+name = "Normal - power of two"
+inputs = ["8"]
+expected_output = "1000"
+
+[[paradigms.tests]]
+name = "Normal - 255"
+inputs = ["255"]
+expected_output = "11111111"
+
+[[paradigms]]
 paradigm = "structured"
+hints = [
+    "Fix the edge case for 0, then wrap the conversion in def to_binary(n): returning a string.",
+]
 code = '''
 def to_binary(n):
     if n == 0:
@@ -53,8 +77,11 @@ def to_binary(n):
 print(to_binary(int(input())))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "readable"
+hints = [
+    "Name your accumulator binary_string and use descriptive comments explaining the repeated division.",
+]
 code = '''
 # Convert decimal to binary using repeated division by 2
 decimal = int(input())
@@ -72,8 +99,11 @@ else:
     print(binary_string)
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "robust"
+hints = [
+    "What if the user types a negative number? Add a check — negative binary representation is a separate topic.",
+]
 code = '''
 def to_binary(n):
     if not isinstance(n, int):
@@ -95,8 +125,11 @@ except ValueError as e:
     print(f"Error: {e}")
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "oop"
+hints = [
+    "Create a NumberConverter class with a to_binary(n) method.",
+]
 code = '''
 class NumberConverter:
     def __init__(self):
@@ -117,8 +150,11 @@ converter = NumberConverter()
 print(converter.to_binary(int(input())))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "recursive"
+hints = [
+    "to_binary(n) = to_binary(n//2) + str(n%2), base case n==0 returns '0' (or '' for recursion building up).",
+]
 code = '''
 def to_binary(n):
     if n == 0:
@@ -130,41 +166,15 @@ def to_binary(n):
 print(to_binary(int(input())))
 '''
 
-[[solutions]]
+[[paradigms]]
 paradigm = "minimalist"
+hints = [
+    "Python's bin() built-in does this — strip the '0b' prefix with [2:].",
+]
 code = '''
 print(bin(int(input()))[2:])
 '''
 
-[[tests]]
-paradigm = "all"
-name = "Normal"
-inputs = ["10"]
-expected_output = "1010"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - zero"
-inputs = ["0"]
-expected_output = "0"
-
-[[tests]]
-paradigm = "all"
-name = "Boundary - one"
-inputs = ["1"]
-expected_output = "1"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - power of two"
-inputs = ["8"]
-expected_output = "1000"
-
-[[tests]]
-paradigm = "all"
-name = "Normal - 255"
-inputs = ["255"]
-expected_output = "11111111"
 """
 
 # Illustrative only
