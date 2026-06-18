@@ -156,13 +156,13 @@ function runStyleCheck(code) {
                 if (r.feedback) r.feedback.filter(m => !NOISE.test(m.trim())).forEach(m => msgs.push(m));
             });
             const div = document.createElement('div');
-            div.className = 'skulkt-style-check';
+            div.className = 'skulpt-style-check';
             if (msgs.length === 0) {
-                div.innerHTML = '<div class="skulkt-style-label">Style ✔ No issues detected</div>' +
-                    '<div class="skulkt-style-next">When you\'re ready to run Unit Tests click the Unit Tests button</div>';
+                div.innerHTML = '<div class="skulpt-style-label">Style ✔ No issues detected</div>' +
+                    '<div class="skulpt-style-next">When you\'re ready to run iterative testing click the Iterative Testing button</div>';
             } else {
-                div.innerHTML = '<div class="skulkt-style-label">Style</div>' +
-                    msgs.map(m => `<div class="skulkt-style-msg">💡 ${m}</div>`).join('');
+                div.innerHTML = '<div class="skulpt-style-label">Style</div>' +
+                    msgs.map(m => `<div class="skulpt-style-msg">💡 ${m}</div>`).join('');
             }
             outputWindow.appendChild(div);
             outputWindow.scrollTop = outputWindow.scrollHeight;
@@ -802,14 +802,14 @@ function loadTestCases(programId) {
                     if (errorMsg) {
                         outputWindow.innerHTML = `
                             <div>
-                                <div class="test-inputs-line"><strong>Inputs →</strong> ${inputsLine}</div>
+                                <div class="test-inputs-line"><strong>Running with inputs:</strong> ${inputsLine}</div>
                                 <hr>
                                 <span class="output-error">Error:<br>${errorMsg}</span>
                             </div>`;
                     } else {
                         outputWindow.innerHTML = `
                             <div>
-                                <div class="test-inputs-line"><strong>Inputs →</strong> ${inputsLine}</div>
+                                <div class="test-inputs-line"><strong>Running with inputs:</strong> ${inputsLine}</div>
                                 <hr>
                                 <strong>Output:</strong><br><pre>${actualOutput}</pre>
                                 <hr>
@@ -958,7 +958,7 @@ function runWithSkulpt(code, headerMsg) {
     outputWindow.classList.add('skulpt-terminal');
     if (headerMsg) {
         const hdr = document.createElement('div');
-        hdr.className = 'skulkt-header';
+        hdr.className = 'skulpt-header';
         hdr.textContent = headerMsg;
         outputWindow.appendChild(hdr);
     }

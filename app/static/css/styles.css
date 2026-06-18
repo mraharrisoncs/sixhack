@@ -636,44 +636,39 @@ select {
 
 /* ── Test inputs compact line ────────────────────────────── */
 .test-inputs-line {
-    font-size: 0.88em;
     margin-bottom: 6px;
     opacity: 0.85;
 }
 
 /* ── Skulpt run header ───────────────────────────────────── */
-.skulkt-header {
-    font-size: 0.8em;
+.skulpt-header {
     font-style: italic;
     opacity: 0.55;
     margin-bottom: 6px;
     padding-bottom: 4px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    border-bottom: 1px solid #999;
 }
 
-.skulkt-style-check {
+.skulpt-style-check {
     margin-top: 10px;
     padding-top: 8px;
     border-top: 1px solid rgba(255, 255, 255, 0.15);
-    font-size: 0.88em;
 }
 
-.skulkt-style-label {
+.skulpt-style-label {
     font-weight: 700;
-    font-size: 0.8em;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     opacity: 0.6;
     margin-bottom: 4px;
 }
 
-.skulkt-style-msg {
+.skulpt-style-msg {
     margin: 2px 0;
 }
 
-.skulkt-style-next {
+.skulpt-style-next {
     margin-top: 6px;
-    font-size: 0.88em;
     font-style: italic;
     opacity: 0.75;
 }
@@ -682,6 +677,7 @@ select {
 .skulpt-terminal {
     font-family: "Lucida Console", monospace;
     font-size: 14px;
+    padding: 0 10px;
 }
 
 .skulpt-out {
@@ -715,6 +711,8 @@ select {
     font-style: italic;
     margin-top: 4px;
     font-size: 12px;
+    padding-top: 4px;
+    border-top: 1px solid #999;
 }
 
 .skulpt-error {
@@ -854,7 +852,6 @@ select {
 
 /* Rich feedback block */
 .fb-block {
-    font-size: 0.92em;
     line-height: 1.6;
 }
 
@@ -932,7 +929,6 @@ select {
 
 .fb-style-msg {
     margin: 2px 0 2px 4px;
-    font-size: 0.9em;
 }
 
 .fb-style-ok {
@@ -974,7 +970,6 @@ select {
     margin-top: 12px;
     padding: 10px 12px;
     border-radius: 5px;
-    font-size: 0.92em;
     font-weight: 600;
     background: #eaf7ee;
     color: #1a7a3a;
@@ -1147,11 +1142,8 @@ meter,
 }
 
 /* ── Light theme overrides ──────────────────────────────── */
-body:not(.dark) .skulkt-header {
-    border-bottom-color: rgba(0, 0, 0, 0.12);
-}
 
-body:not(.dark) .skulkt-style-check {
+body:not(.dark) .skulpt-style-check {
     border-top-color: rgba(0, 0, 0, 0.12);
 }
 
@@ -1271,7 +1263,7 @@ body.dark #instructions-label {
     color: #7ab3f5;
 }
 
-body.dark .skulkt-style-check {
+body.dark .skulpt-style-check {
     border-top-color: rgba(255, 255, 255, 0.1);
 }
 
