@@ -344,7 +344,10 @@ document.addEventListener('DOMContentLoaded', () => {
         tabSize: 4,
         indentWithTabs: false,
         matchBrackets: true,
-        autofocus: true
+        autofocus: true,
+        extraKeys: {
+            Tab: function(cm) { cm.replaceSelection('    '); }
+        }
     });
     codeMirrorEditor.setSize(null, 454);
     codeMirrorEditor.setValue('# Welcome to six(im).possible().things()\n#\n# Select a challenge from the level bar above to begin.');
