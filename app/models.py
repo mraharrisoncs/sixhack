@@ -73,6 +73,18 @@ class Submission(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
+class Signup(db.Model):
+    __tablename__ = 'signups'
+
+    id         = db.Column(db.Integer, primary_key=True)
+    type       = db.Column(db.String(20), nullable=False)   # 'newsletter' | 'early_adopter'
+    email      = db.Column(db.String(120), nullable=False, index=True)
+    school     = db.Column(db.String(200))
+    role       = db.Column(db.String(50))
+    code       = db.Column(db.String(30))                   # early adopter code, if generated
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+
+
 class Email(db.Model):
     __tablename__ = 'emails'
 

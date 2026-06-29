@@ -19,7 +19,7 @@ except ImportError:
     import tomli as tomllib
 
 from flask import render_template, request, jsonify, send_file
-from app.models import Challenge, Submission, db
+from app.models import Challenge, Submission, Signup, db
 from app.sandbox.runner import run_code, test_code
 from app.utils import extract_feedback
 from app.code_styles import CODE_STYLES
@@ -235,6 +235,24 @@ def setup_routes(app):
             as_attachment=True,
             download_name=filename
         )
+
+    @app.route('/admin/signups')
+    def admin_signups():
+        import csv
+        key = request.args.get('key', '')
+        expected = os.environ.get('ADMIN_KEY', '')
+        if not expected or key != expected:
+            return 'Forbidden', 403
+        signups = Signup.query.order_by(Signup.created_at).all()
+        buf = io.StringIO()
+        writer = csv.writer(buf)
+        writer.writerow(['id', 'type', 'email', 'school', 'role', 'code', 'created_at'])
+        for s in signups:
+            writer.writerow([s.id, s.type, s.email, s.school or '', s.role or '',
+                             s.code or '', s.created_at.isoformat()])
+        response = app.response_class(buf.getvalue(), mimetype='text/csv')
+        response.headers['Content-Disposition'] = 'attachment; filename="signups.csv"'
+        return response
 
     # ── Internal helpers ─────────────────────────────────────────────────────
 
@@ -507,18 +525,16 @@ def setup_routes(app):
 
 
 def _save_signup(data):
-    """Append signup data to instance/signups.json."""
-    instance_dir = Path(__file__).parent.parent / 'instance'
-    instance_dir.mkdir(exist_ok=True)
-    signups_path = instance_dir / 'signups.json'
-    signups = []
-    if signups_path.exists():
-        try:
-            signups = json.loads(signups_path.read_text(encoding='utf-8'))
-        except (json.JSONDecodeError, OSError):
-            signups = []
-    signups.append({**data, 'timestamp': datetime.now().isoformat()})
-    signups_path.write_text(json.dumps(signups, indent=2), encoding='utf-8')
+    """Write signup data to the database."""
+    signup = Signup(
+        type=data.get('type', 'unknown'),
+        email=data.get('email', ''),
+        school=data.get('school') or None,
+        role=data.get('role') or None,
+        code=data.get('code') or None,
+    )
+    db.session.add(signup)
+    db.session.commit()
 
 
 def _highlight_python_xml(code):
