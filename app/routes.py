@@ -1,12 +1,16 @@
 """Route definitions for the six(im).possible().things() sandbox."""
 
+import io
 import json
 import os
+import random
+import string
 import subprocess
 import tempfile
 import ast
 import re
 import sys
+from datetime import datetime
 from pathlib import Path
 
 try:
@@ -14,7 +18,7 @@ try:
 except ImportError:
     import tomli as tomllib
 
-from flask import render_template, request, jsonify
+from flask import render_template, request, jsonify, send_file
 from app.models import Challenge, Submission, db
 from app.sandbox.runner import run_code, test_code
 from app.utils import extract_feedback
@@ -30,6 +34,10 @@ def setup_routes(app):
     @app.route('/about')
     def about():
         return render_template('about.html')
+
+    @app.route('/help')
+    def help_page():
+        return render_template('help.html')
 
     @app.route('/sandbox/programs', methods=['GET'])
     def get_programs():
@@ -197,6 +205,36 @@ def setup_routes(app):
             }
 
         return jsonify(results)
+
+    # ── Signup / PDF API ─────────────────────────────────────────────────────
+
+    @app.route('/api/signup', methods=['POST'])
+    def api_signup():
+        data = request.get_json() or {}
+        _save_signup({**data, 'type': 'newsletter'})
+        return jsonify({'success': True, 'message': "Thanks! We'll be in touch."})
+
+    @app.route('/api/early_adopter_signup', methods=['POST'])
+    def api_early_adopter_signup():
+        data = request.get_json() or {}
+        suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        code = f"SIXHACK-{suffix[:4]}-{suffix[4:]}"
+        _save_signup({**data, 'type': 'early_adopter', 'code': code})
+        return jsonify({'success': True, 'early_adopter_code': code, 'message': "You're signed up!"})
+
+    @app.route('/api/generate_pdf', methods=['POST'])
+    def api_generate_pdf():
+        data = request.get_json() or {}
+        student_name = data.get('student_name', '')
+        challenges = data.get('challenges', [])
+        pdf_bytes = _generate_portfolio_pdf(student_name, challenges)
+        filename = f"sixhack_export_{datetime.now().strftime('%Y%m%d')}.pdf"
+        return send_file(
+            io.BytesIO(pdf_bytes),
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=filename
+        )
 
     # ── Internal helpers ─────────────────────────────────────────────────────
 
@@ -466,3 +504,142 @@ def setup_routes(app):
         }
 
         return final_score, combined_feedback, feedback_detail
+
+
+def _save_signup(data):
+    """Append signup data to instance/signups.json."""
+    instance_dir = Path(__file__).parent.parent / 'instance'
+    instance_dir.mkdir(exist_ok=True)
+    signups_path = instance_dir / 'signups.json'
+    signups = []
+    if signups_path.exists():
+        try:
+            signups = json.loads(signups_path.read_text(encoding='utf-8'))
+        except (json.JSONDecodeError, OSError):
+            signups = []
+    signups.append({**data, 'timestamp': datetime.now().isoformat()})
+    signups_path.write_text(json.dumps(signups, indent=2), encoding='utf-8')
+
+
+def _highlight_python_xml(code):
+    """Tokenise Python code and return an XML string for XPreformatted."""
+    from pygments.lexers import PythonLexer
+    from pygments.token import Token
+
+    # VS Code light-theme palette
+    COLORS = {
+        Token.Keyword.Namespace:  '#AF00DB',  # import / from
+        Token.Keyword:            '#0000FF',  # def, for, if, return …
+        Token.String.Doc:         '#008000',  # docstrings
+        Token.String:             '#A31515',  # other strings
+        Token.Comment:            '#008000',  # # comments
+        Token.Number:             '#098658',  # numeric literals
+        Token.Name.Decorator:     '#AF00DB',  # @decorator
+        Token.Name.Builtin:       '#267F99',  # print, len, range …
+        Token.Name.Function:      '#795E26',  # function names
+        Token.Name.Class:         '#267F99',  # class names
+    }
+
+    def get_color(ttype):
+        t = ttype
+        while t:
+            if t in COLORS:
+                return COLORS[t]
+            t = t.parent
+        return None
+
+    def esc(text):
+        return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+
+    lexer = PythonLexer(stripnl=False, ensurenl=True)
+    xml_lines = ['']
+    for ttype, value in lexer.get_tokens(code):
+        parts = value.split('\n')
+        for i, part in enumerate(parts):
+            if i > 0:
+                xml_lines.append('')
+            if not part:
+                continue
+            color = get_color(ttype)
+            safe = esc(part)
+            xml_lines[-1] += f'<font color="{color}">{safe}</font>' if color else safe
+
+    return '\n'.join(xml_lines)
+
+
+def _generate_portfolio_pdf(student_name, challenges):
+    """Generate a portfolio PDF and return bytes."""
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import cm
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable, XPreformatted
+    from reportlab.lib import colors
+
+    buf = io.BytesIO()
+    doc = SimpleDocTemplate(buf, pagesize=A4, leftMargin=2*cm, rightMargin=2*cm,
+                            topMargin=2*cm, bottomMargin=2*cm)
+    styles = getSampleStyleSheet()
+    code_style = ParagraphStyle('Code', fontName='Courier', fontSize=7.5, leading=11)
+    label_style = ParagraphStyle('Label', fontName='Helvetica-Bold', fontSize=9,
+                                 textColor=colors.HexColor('#1258DC'), spaceAfter=4)
+    footer_style = ParagraphStyle('Footer', fontName='Helvetica-Oblique', fontSize=8,
+                                  textColor=colors.HexColor('#555555'), leading=13)
+
+    def hr():
+        return HRFlowable(width='100%', thickness=0.5, color=colors.HexColor('#1258DC'),
+                          spaceAfter=8, spaceBefore=8)
+
+    story = []
+    story.append(Paragraph("six(im).possible().things()", styles['Heading1']))
+    story.append(Paragraph("Learning Portfolio", styles['Heading2']))
+    if student_name:
+        story.append(Paragraph(f"Student: {student_name}", styles['Normal']))
+    story.append(Paragraph(f"Exported: {datetime.now().strftime('%d %B %Y')}", styles['Normal']))
+    story.append(Spacer(1, 0.4*cm))
+
+    # Group by challenge, preserving sorted order sent from the frontend
+    by_challenge = {}
+    order = []
+    for entry in challenges:
+        cid = entry.get('challenge_id', '')
+        if cid not in by_challenge:
+            by_challenge[cid] = []
+            order.append(cid)
+        by_challenge[cid].append(entry)
+
+    for i, cid in enumerate(order):
+        if i > 0:
+            story.append(hr())
+
+        entries = by_challenge[cid]
+        first = entries[0]
+        title = first.get('title', cid)
+        problem = first.get('problem_statement', '')
+        story.append(Paragraph(f"{title} ({cid})", styles['Heading3']))
+        if problem:
+            story.append(Paragraph(problem[:300], styles['Normal']))
+        story.append(Spacer(1, 0.2*cm))
+
+        for entry in entries:
+            paradigm = entry.get('paradigm', '').capitalize()
+            score = entry.get('score', 0)
+            code = entry.get('code', '').strip()
+            story.append(Paragraph(f"{paradigm} — Score: {score}/10", label_style))
+            if code:
+                story.append(XPreformatted(_highlight_python_xml(code), code_style))
+            story.append(Spacer(1, 0.3*cm))
+
+    story.append(Spacer(1, 0.5*cm))
+    story.append(hr())
+    story.append(Paragraph(
+        "Customisable PDF export and teacher dashboard available soon in Pro tier "
+        "— see six.hpro.uk/about",
+        footer_style
+    ))
+    story.append(Paragraph(
+        "six(im).possible().things() © Harrison Proserv Ltd. — www.hpro.uk",
+        footer_style
+    ))
+
+    doc.build(story)
+    return buf.getvalue()

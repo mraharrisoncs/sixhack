@@ -1,4 +1,6 @@
 
+pygments
+reportlab
 black
 flake8
 flask

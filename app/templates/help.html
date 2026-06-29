@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="max-width: 780px; margin: 20px auto; padding: 0 20px; font-family: 'Exo 2', Tahoma, sans-serif;">
+
+    <h2>How to use six(im).possible().things()</h2>
+
+    <!-- ── Workflow ──────────────────────────────────────────────────── -->
+    <h3>The workflow</h3>
+
+    <p>Each challenge asks you to solve the same problem in <strong>six different coding styles</strong>. Here is the intended workflow for each style:</p>
+
+    <ol style="line-height: 2;">
+        <li><strong>Choose a challenge</strong> from the row of hexagons at the top of the screen. Hover over a hexagon to see the challenge name and difficulty.</li>
+        <li><strong>Structure the code</strong> — start in the <em>Structured</em> style tab. Your goal here is to break the solution into well-named subroutines (functions) and keep concerns separate. <em>Separating concerns</em> means that each function does one clear job: a function that reads input should not also do calculations; a function that computes a result should not also print it. Keeping concerns separate makes code easier to read, test, and reuse.</li>
+        <li><strong>Debug</strong> in the Debugging stage — run your code interactively using the Run button. Fix any errors before moving on.</li>
+        <li><strong>Iterative Testing</strong> — step through the individual test cases one by one. Each test runs your code against a specific input and checks the output. Fix failures and re-run.</li>
+        <li><strong>Final Testing</strong> — once you have viewed all the test cases, the Final Test button unlocks. This runs the full automated test suite plus a style check and produces a score out of 10.</li>
+        <li><strong>Repeat for the other five styles.</strong> Completing Final Testing on the Structured style unlocks the remaining five style tabs — Readable, Robust, OOP, Recursive, and Minimalist. Work through each one.</li>
+    </ol>
+
+    <hr style="margin: 30px 0; border: none; border-top: 1px solid #ccd4e8;">
+
+    <!-- ── Styles ────────────────────────────────────────────────────── -->
+    <h3>The six styles</h3>
+
+    <table style="width:100%; border-collapse: collapse; font-size: 0.95em;">
+        <colgroup>
+            <col style="width: 18%;">
+            <col style="width: 82%;">
+        </colgroup>
+        <tbody>
+            <tr style="border-bottom: 1px solid #dde4f0;">
+                <td style="padding: 10px 12px; font-weight: 700; color: #1258DC; vertical-align: top;">Structured</td>
+                <td style="padding: 10px 12px;">Code is divided into focused functions that each do one job. Input, processing, and output are kept in separate functions. Clear, step-by-step logic that reads like an algorithm.</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #dde4f0;">
+                <td style="padding: 10px 12px; font-weight: 700; color: #1258DC; vertical-align: top;">Readable</td>
+                <td style="padding: 10px 12px;">Self-documenting code — descriptive variable names, helpful comments, and a layout that makes the intent immediately obvious to any reader. Prioritises human understanding over brevity.</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #dde4f0;">
+                <td style="padding: 10px 12px; font-weight: 700; color: #1258DC; vertical-align: top;">Robust</td>
+                <td style="padding: 10px 12px;">Handles edge cases and invalid inputs without crashing. Uses validation, error handling, and defensive checks so the code behaves correctly even when given unexpected data.</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #dde4f0;">
+                <td style="padding: 10px 12px; font-weight: 700; color: #1258DC; vertical-align: top;">OOP</td>
+                <td style="padding: 10px 12px;">Object-oriented — the solution is modelled using classes and objects. Data and the methods that act on it are encapsulated together, reflecting real-world entities or concepts.</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #dde4f0;">
+                <td style="padding: 10px 12px; font-weight: 700; color: #1258DC; vertical-align: top;">Recursive</td>
+                <td style="padding: 10px 12px;">The function solves the problem by calling itself on a smaller version of the same problem. Requires a clear base case (when to stop) and a recursive case (how to reduce the problem).</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px 12px; font-weight: 700; color: #1258DC; vertical-align: top;">Minimalist</td>
+                <td style="padding: 10px 12px;">As short and clean as possible — typically a single function (often a one-liner or two) using Python's built-in tools. Demonstrates how expressive Python can be when conciseness is the goal.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr style="margin: 30px 0; border: none; border-top: 1px solid #ccd4e8;">
+
+    <!-- ── Scoring ───────────────────────────────────────────────────── -->
+    <h3>Scores, XP, and Rank</h3>
+
+    <p>Each style is scored out of <strong>10 points</strong> by the automated test suite. A challenge has six styles, so the maximum per challenge is <strong>60 points</strong>.</p>
+
+    <p>The <strong>per-challenge score</strong> appears below the output window on the right — it shows your current total across all six styles for the active challenge.</p>
+
+    <p>Your <strong>total XP</strong> (Experience Points) is the sum of all your scores across every challenge you have attempted. It is displayed in the top-right corner of the screen alongside your current <strong>Rank</strong>:</p>
+
+    <table style="width: 100%; border-collapse: collapse; font-size: 0.95em; max-width: 420px;">
+        <tbody>
+            <tr style="border-bottom: 1px solid #dde4f0;"><td style="padding: 8px 12px;">0 – 49 XP</td><td style="padding: 8px 12px; font-weight: 600;">Dormouse 🐭</td></tr>
+            <tr style="border-bottom: 1px solid #dde4f0;"><td style="padding: 8px 12px;">50 – 99 XP</td><td style="padding: 8px 12px; font-weight: 600;">White Rabbit 🐇</td></tr>
+            <tr style="border-bottom: 1px solid #dde4f0;"><td style="padding: 8px 12px;">100 – 149 XP</td><td style="padding: 8px 12px; font-weight: 600;">Mad Hatter 🎩</td></tr>
+            <tr style="border-bottom: 1px solid #dde4f0;"><td style="padding: 8px 12px;">150 – 299 XP</td><td style="padding: 8px 12px; font-weight: 600;">Gryphon 🦅</td></tr>
+            <tr style="border-bottom: 1px solid #dde4f0;"><td style="padding: 8px 12px;">300 – 599 XP</td><td style="padding: 8px 12px; font-weight: 600;">Jabberwock 🐉</td></tr>
+            <tr><td style="padding: 8px 12px;">600 + XP</td><td style="padding: 8px 12px; font-weight: 600;">Cheshire Cat 😸</td></tr>
+        </tbody>
+    </table>
+
+    <hr style="margin: 30px 0; border: none; border-top: 1px solid #ccd4e8;">
+
+    <!-- ── Save / Load / PDF ─────────────────────────────────────────── -->
+    <h3>Save, Load, and PDF export</h3>
+
+    <p>Your progress is <strong>auto-saved in your browser</strong> as you work, so closing and reopening the tab will restore where you left off.</p>
+
+    <p>The buttons in the bottom bar let you do more:</p>
+
+    <ul style="line-height: 2;">
+        <li><strong>💾 Save</strong> — downloads your entire progress as a <code>.json</code> file. Use this to back up your work or transfer it to another device or browser.</li>
+        <li><strong>📂 Load</strong> — loads a previously saved <code>.json</code> file, restoring all your code and scores.</li>
+        <li><strong>📄 Save PDF</strong> — generates a portfolio PDF of all your scored attempts, with syntax-highlighted code and scores for each style. Download it to share with a teacher or keep as a record of your work.</li>
+    </ul>
+
+    <hr style="margin: 30px 0; border: none; border-top: 1px solid #ccd4e8;">
+
+    <!-- ── Pricing ───────────────────────────────────────────────────── -->
+    <h3>Free, Coder, and Pro tiers</h3>
+
+    <p>Challenges 1–12 are <strong>free forever</strong>. To unlock more challenges and features, two paid tiers are available.</p>
+
+    <div style="display: flex; gap: 24px; flex-wrap: wrap; margin-top: 16px;">
+
+        <div style="flex: 1; min-width: 260px; border: 2px solid #1258DC; border-radius: 10px; padding: 20px 24px;">
+            <h4 style="margin-top: 0; color: #1258DC;">Coder Tier — £29 / year</h4>
+            <p style="font-size: 0.9em; color: #555; margin-bottom: 14px;">For individual students or teachers who want the full challenge set and portfolio export.</p>
+            <ul style="line-height: 2; padding-left: 18px;">
+                <li>✅ Challenges 13–24 unlocked</li>
+                <li>✅ All future rolling challenge sets</li>
+                <li>✅ PDF export (all attempts + scores)</li>
+                <li>✅ Email PDFs to students / parents</li>
+                <li>✅ Everything from the free tier</li>
+            </ul>
+        </div>
+
+        <div style="flex: 1; min-width: 260px; border: 2px solid #700CBC; border-radius: 10px; padding: 20px 24px;">
+            <h4 style="margin-top: 0; color: #700CBC;">Pro Tier — £99 / year <span style="font-size: 0.8em; font-weight: 400; color: #888;">(early adopter price)</span></h4>
+            <p style="font-size: 0.9em; color: #555; margin-bottom: 14px;">For class and department management — everything in Coder, plus tools for teachers.</p>
+            <ul style="line-height: 2; padding-left: 18px;">
+                <li>✅ Everything in Coder tier</li>
+                <li>✅ Teacher dashboard — view submissions and track progress</li>
+                <li>✅ Class reports &amp; analytics</li>
+                <li>✅ Leaderboard</li>
+                <li>✅ Class management &amp; rosters</li>
+            </ul>
+        </div>
+
+    </div>
+
+    <p style="margin-top: 20px;">Interested? <a href="mailto:alan@hpro.uk">Get in touch</a> or see <a href="/about">the about page</a> for more.</p>
+
+    <hr style="margin: 30px 0; border: none; border-top: 1px solid #ccd4e8;">
+
+    <p style="font-size: 0.85em; color: #777;">&copy; Alan Harrison, Harrison Proserv Ltd &nbsp;<a href="https://hpro.uk" target="_blank">hpro.uk</a></p>
+
+</div>
+{% endblock %}

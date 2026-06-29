@@ -93,6 +93,7 @@ function switchStage(stage) {
 function resetStageState() {
     stageDebugDone = false;
     unitTestsViewed = new Set();
+    document.getElementById('stage-unit').disabled = true;
     document.getElementById('stage-final').disabled = true;
     document.getElementById('stage-final').classList.remove('stage-unlocked');
     switchStage('debug');
@@ -100,7 +101,11 @@ function resetStageState() {
 
 function checkFinalUnlock() {
     const stageUnitDone = totalUnitTests > 0 && unitTestsViewed.size >= totalUnitTests;
+    const unitBtn = document.getElementById('stage-unit');
     const finalBtn = document.getElementById('stage-final');
+    if (stageDebugDone) {
+        unitBtn.disabled = false;
+    }
     if (stageDebugDone && stageUnitDone) {
         finalBtn.disabled = false;
         finalBtn.classList.add('stage-unlocked');
@@ -318,6 +323,187 @@ function showIntroModal() {
         overlay.remove();
     });
 }
+
+// ── Signup modals ────────────────────────────────────────────────────────────
+
+function _signupFormHTML(namePlaceholder) {
+    return `
+        <input type="email" class="signup-email" placeholder="Email address" required>
+        <input type="text" class="signup-school" placeholder="School / organisation">
+        <select class="signup-role">
+            <option value="">Role…</option>
+            <option value="teacher">Teacher</option>
+            <option value="hod">Head of Department</option>
+            <option value="student">Student</option>
+            <option value="other">Other</option>
+        </select>`;
+}
+
+function _collectSignupFields(overlay) {
+    return {
+        email: overlay.querySelector('.signup-email').value.trim(),
+        school: overlay.querySelector('.signup-school').value.trim(),
+        role: overlay.querySelector('.signup-role').value,
+    };
+}
+
+function showSignupModal1(onDone) {
+    if (localStorage.getItem('modal_3_shown')) { onDone(); return; }
+    localStorage.setItem('modal_3_shown', '1');
+
+    const overlay = document.createElement('div');
+    overlay.className = 'signup-overlay';
+    overlay.innerHTML = `
+        <div class="signup-modal">
+            <h2>Stay in the loop.</h2>
+            <p>Get email updates on new challenges and features.</p>
+            ${_signupFormHTML()}
+            <div class="modal-actions">
+                <button class="btn-skip" id="sm1-skip">Skip</button>
+                <button class="btn-primary" id="sm1-submit">Subscribe</button>
+            </div>
+            <div class="modal-success" id="sm1-success" style="display:none"></div>
+        </div>`;
+    document.body.appendChild(overlay);
+
+    overlay.querySelector('#sm1-skip').addEventListener('click', () => {
+        overlay.remove(); onDone();
+    });
+
+    overlay.querySelector('#sm1-submit').addEventListener('click', () => {
+        const fields = _collectSignupFields(overlay);
+        if (!fields.email) { overlay.querySelector('.signup-email').focus(); return; }
+        localStorage.setItem('modal_3_signup_done', '1');
+        fetch('/api/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(fields)
+        }).catch(() => {});
+        const msg = overlay.querySelector('#sm1-success');
+        msg.textContent = "Thanks! We'll be in touch.";
+        msg.style.display = 'block';
+        overlay.querySelector('#sm1-submit').disabled = true;
+        overlay.querySelector('#sm1-skip').disabled = true;
+        setTimeout(() => { overlay.remove(); onDone(); }, 1400);
+    });
+}
+
+function showSignupModal2(onDone) {
+    if (localStorage.getItem('modal_7_shown')) { onDone(); return; }
+    if (localStorage.getItem('early_adopter')) { onDone(); return; }
+    if (localStorage.getItem('modal_3_signup_done')) { onDone(); return; }
+    localStorage.setItem('modal_7_shown', '1');
+
+    const overlay = document.createElement('div');
+    overlay.className = 'signup-overlay';
+    overlay.innerHTML = `
+        <div class="signup-modal">
+            <h2>Ready for more?</h2>
+            <p>Sign up as an early adopter:</p>
+            <ul>
+                <li>Free CODER access (challenges 13–24 + future sets) for 1 year</li>
+                <li>£50 discount on PRO when it launches</li>
+            </ul>
+            ${_signupFormHTML()}
+            <div class="modal-actions">
+                <button class="btn-skip" id="sm2-skip">Keep Exploring</button>
+                <button class="btn-primary" id="sm2-submit">Sign Up</button>
+            </div>
+            <div class="modal-success" id="sm2-success" style="display:none"></div>
+        </div>`;
+    document.body.appendChild(overlay);
+
+    overlay.querySelector('#sm2-skip').addEventListener('click', () => {
+        overlay.remove(); onDone();
+    });
+
+    overlay.querySelector('#sm2-submit').addEventListener('click', () => {
+        const fields = _collectSignupFields(overlay);
+        if (!fields.email) { overlay.querySelector('.signup-email').focus(); return; }
+        fetch('/api/early_adopter_signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(fields)
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                localStorage.setItem('early_adopter', '1');
+                localStorage.setItem('early_adopter_signup_email', fields.email);
+                localStorage.setItem('coder_tier_unlocked', '1');
+                const msg = overlay.querySelector('#sm2-success');
+                msg.textContent = `You're signed up! Early adopter code: ${data.early_adopter_code}`;
+                msg.style.display = 'block';
+                overlay.querySelector('#sm2-submit').disabled = true;
+                overlay.querySelector('#sm2-skip').disabled = true;
+                setTimeout(() => { overlay.remove(); onDone(); }, 2200);
+            }
+        })
+        .catch(() => { overlay.remove(); onDone(); });
+    });
+}
+
+function showSignupModal3(onDone) {
+    const overlay = document.createElement('div');
+    overlay.className = 'signup-overlay';
+    overlay.innerHTML = `
+        <div class="signup-modal">
+            <h2>Unlock the next level.</h2>
+            <p>Sign up for <strong>CODER TIER</strong> to access challenges 13–24 and all future sets free for 1 year.</p>
+            ${_signupFormHTML()}
+            <div class="modal-actions">
+                <button class="btn-skip" id="sm3-cancel">Back</button>
+                <button class="btn-primary" id="sm3-submit">Sign Up</button>
+            </div>
+            <div class="modal-success" id="sm3-success" style="display:none"></div>
+            <div class="modal-error" id="sm3-error" style="display:none"></div>
+        </div>`;
+    document.body.appendChild(overlay);
+
+    overlay.querySelector('#sm3-cancel').addEventListener('click', () => { overlay.remove(); });
+
+    overlay.querySelector('#sm3-submit').addEventListener('click', () => {
+        const fields = _collectSignupFields(overlay);
+        if (!fields.email) { overlay.querySelector('.signup-email').focus(); return; }
+        overlay.querySelector('#sm3-error').style.display = 'none';
+        fetch('/api/early_adopter_signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(fields)
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                localStorage.setItem('early_adopter', '1');
+                localStorage.setItem('early_adopter_signup_email', fields.email);
+                localStorage.setItem('coder_tier_unlocked', '1');
+                const msg = overlay.querySelector('#sm3-success');
+                msg.textContent = `You're signed up! Early adopter code: ${data.early_adopter_code}`;
+                msg.style.display = 'block';
+                overlay.querySelector('#sm3-submit').disabled = true;
+                setTimeout(() => { overlay.remove(); onDone(); }, 2200);
+            }
+        })
+        .catch(() => {
+            const err = overlay.querySelector('#sm3-error');
+            err.textContent = 'Something went wrong. Please try again.';
+            err.style.display = 'block';
+        });
+    });
+}
+
+window.checkModalBeforeLoad = function(programId, index, isFree, callback) {
+    const isPaid = !isFree || index >= 13;
+    if (isPaid && !localStorage.getItem('early_adopter')) {
+        showSignupModal3(callback);
+    } else if (index === 3) {
+        showSignupModal1(callback);
+    } else if (index === 7) {
+        showSignupModal2(callback);
+    } else {
+        callback();
+    }
+};
 
 // ── DOMContentLoaded ─────────────────────────────────────────────────────────
 
@@ -563,6 +749,8 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(data => {
                 currentProgramMaxLines = data.max_lines ?? null;
                 currentProgramMaxBytes = data.max_bytes ?? null;
+                window._challengeMeta = window._challengeMeta || {};
+                window._challengeMeta[programId] = data;
                 updateInstructions(data);
             })
             .catch(err => console.error('Error fetching program info:', err));
@@ -634,6 +822,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Tooltips on disabled stage tabs (disabled elements don't show title in browsers)
+    const stageTooltip = document.createElement('div');
+    stageTooltip.className = 'stage-tab-tooltip';
+    stageTooltip.style.display = 'none';
+    document.body.appendChild(stageTooltip);
+
+    const STAGE_TIPS = {
+        'stage-unit':  'Debug first to unlock this stage',
+        'stage-final': 'Complete Iterative Testing to unlock this stage',
+    };
+
+    document.getElementById('stage-tabs').addEventListener('mouseover', e => {
+        const btn = e.target.closest('.stage-tab');
+        if (!btn || !btn.disabled || !STAGE_TIPS[btn.id]) return;
+        stageTooltip.textContent = STAGE_TIPS[btn.id];
+        stageTooltip.style.display = 'block';
+        const rect = btn.getBoundingClientRect();
+        const tw = stageTooltip.offsetWidth;
+        stageTooltip.style.left = `${Math.max(4, rect.left + rect.width / 2 - tw / 2 + window.scrollX)}px`;
+        stageTooltip.style.top  = `${rect.bottom + window.scrollY + 6}px`;
+    });
+    document.getElementById('stage-tabs').addEventListener('mouseout', e => {
+        if (!e.target.closest('.stage-tab')) return;
+        stageTooltip.style.display = 'none';
+    });
+
     // ── Debug panel controls ─────────────────────────────────────────────────
 
     document.getElementById('run-button').addEventListener('click', () => {
@@ -683,6 +897,55 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.readAsText(file);
     });
 
+    document.getElementById('save-pdf-button').addEventListener('click', async () => {
+        const attempted = Object.keys(allChallenges)
+            .filter(id => Object.values(allChallenges[id].styleScores || {}).some(s => s > 0))
+            .sort();
+        if (attempted.length === 0) {
+            alert('No scored attempts yet. Run Final Testing on a challenge to export!');
+            return;
+        }
+
+        const exportData = [];
+        for (const id of attempted) {
+            const d = allChallenges[id];
+            const program = (window._allPrograms || []).find(p => p.id === id);
+            const meta = (window._challengeMeta || {})[id];
+            for (const [paradigm, code] of Object.entries(d.tabCodes || {})) {
+                if ((d.styleScores[paradigm] || 0) === 0) continue;
+                exportData.push({
+                    challenge_id: id,
+                    title: program?.name || id,
+                    problem_statement: meta?.instructions?.slice(0, 300) || program?.description || '',
+                    code,
+                    paradigm,
+                    score: (d.styleScores || {})[paradigm] || 0
+                });
+            }
+        }
+
+        const studentName = localStorage.getItem('sixhack_student_name') || '';
+        try {
+            const r = await fetch('/api/generate_pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ student_name: studentName, challenges: exportData })
+            });
+            if (!r.ok) throw new Error(`Server error ${r.status}`);
+            const blob = await r.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sixhack_export_${new Date().toISOString().split('T')[0]}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            alert('Error generating PDF: ' + err);
+        }
+    });
+
     // Expose loadChallenge for use in loadTestCases (All Tests auto-save)
     window._loadChallenge = (id, idx) => loadChallenge(id, idx, tabCodes, originalCode, codeStyles);
     window._autoSave = autoSave;
@@ -695,6 +958,7 @@ function loadPrograms(levelTooltip, onSelect) {
     fetch('/sandbox/programs')
         .then(r => r.json())
         .then(programs => {
+            window._allPrograms = programs;
             const levelBar = document.getElementById('level-bar');
             const scoresEl = document.getElementById('header-scores');
             // Insert hexagons before the scores element
@@ -731,7 +995,11 @@ function loadPrograms(levelTooltip, onSelect) {
                     levelTooltip.style.top = `${rect.bottom + window.scrollY + 6}px`;
                 });
                 wrap.addEventListener('mouseleave', () => { levelTooltip.style.display = 'none'; });
-                wrap.addEventListener('click', () => onSelect(program.id, index + 1));
+                wrap.addEventListener('click', () => {
+                    const idx = index + 1;
+                    window.checkModalBeforeLoad(program.id, idx, program.free !== false,
+                        () => onSelect(program.id, idx));
+                });
             });
 
             // Decide which challenge to open: pending restore or first

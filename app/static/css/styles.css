@@ -198,6 +198,21 @@ nav a:hover {
     line-height: 1;
 }
 
+.stage-tab-tooltip {
+    display: none;
+    position: absolute;
+    z-index: 5000;
+    background: #fff;
+    border: 1px solid #1258DC;
+    color: #210934;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.85em;
+    box-shadow: 0 2px 8px rgba(18, 88, 220, 0.2);
+    white-space: nowrap;
+    pointer-events: none;
+}
+
 .level-tooltip {
     display: none;
     position: absolute;
@@ -454,6 +469,13 @@ button:active {
 .bottom-tab-btn:hover {
     background: linear-gradient(to bottom, #a0bce8, #b8caf0);
     border-color: #1258DC;
+}
+
+.bottom-tab-btn:disabled {
+    color: #aaa;
+    border-color: #ccc;
+    background: #f0f0f0;
+    cursor: not-allowed;
 }
 
 .copyright {
@@ -1130,6 +1152,108 @@ body.dark #tab-copy-popover .popover-all {
     align-items: center;
     gap: 6px;
     cursor: pointer;
+}
+
+/* ── Signup modals ──────────────────────────────────────── */
+.signup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 9100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.signup-modal {
+    background: #ffffff;
+    color: #210934;
+    border: 2px solid #1258DC;
+    border-radius: 10px;
+    padding: 32px 36px;
+    max-width: 480px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(18, 88, 220, 0.25);
+    font-family: 'Exo 2', Tahoma, sans-serif;
+}
+
+.signup-modal h2 {
+    margin-top: 0;
+    color: #1258DC;
+    font-size: 1.3rem;
+}
+
+.signup-modal p {
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+.signup-modal ul {
+    padding-left: 20px;
+    line-height: 1.9;
+    margin-bottom: 16px;
+}
+
+.signup-modal input[type="text"],
+.signup-modal input[type="email"],
+.signup-modal select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+    border: 1.5px solid #1258DC;
+    border-radius: 6px;
+    font-family: 'Exo 2', Tahoma, sans-serif;
+    font-size: 14px;
+    color: #210934;
+    background: #f5f8ff;
+}
+
+.signup-modal .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+    justify-content: flex-end;
+}
+
+.signup-modal .btn-primary {
+    background: #1258DC;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 9px 22px;
+    font-family: 'Exo 2', Tahoma, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.signup-modal .btn-primary:hover { background: #0e46b3; }
+
+.signup-modal .btn-skip {
+    background: transparent;
+    color: #666;
+    border: 1.5px solid #ccc;
+    border-radius: 6px;
+    padding: 9px 18px;
+    font-family: 'Exo 2', Tahoma, sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.signup-modal .btn-skip:hover { background: #f0f0f0; }
+
+.signup-modal .modal-success {
+    color: #0a7a7a;
+    font-weight: 600;
+    margin-top: 12px;
+    font-size: 14px;
+}
+
+.signup-modal .modal-error {
+    color: #c0392b;
+    font-size: 13px;
+    margin-top: 8px;
 }
 
 /* ── Legacy element suppression ─────────────────────────── */
