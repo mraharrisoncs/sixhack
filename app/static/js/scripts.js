@@ -310,7 +310,7 @@ function showIntroModal() {
                 <li><strong>Recursive</strong> — solves the problem by calling itself</li>
                 <li><strong>Minimalist</strong> — as short and clean as possible</li>
             </ul>
-            <p>Choose a challenge from the level bar, then use the style tabs to switch between your six versions. Hit <strong>All Tests</strong> to score your code!</p>
+            <p>Choose a challenge from the level bar, structure the code into subroutines, then debug and test it. When successful, the remaining style tabs will unlock. Solve the same problem six ways, to produce <strong>six(im).possible().things()</strong>!</p>
             <div class="modal-buttons">
                 <label><input type="checkbox" id="intro-dont-show"> Don't show this again</label>
                 <button id="intro-close-btn">Let's go! 🚀</button>
