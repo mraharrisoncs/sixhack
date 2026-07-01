@@ -581,6 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     currentTab = style.key;
                     renderHints(currentTab);
                     resetStageState();
+                    if (currentProgramId) loadTestCases(currentProgramId);
                     if (!tabCodes[currentTab]) {
                         tabCodes[currentTab] = originalCode ? style.code_version + originalCode : '';
                     }
@@ -1067,26 +1068,17 @@ function loadTestCases(programId) {
                     const inputsLine = test.inputs && test.inputs.length
                         ? test.inputs.join(', ')
                         : '(none)';
-                    if (errorMsg) {
-                        outputWindow.innerHTML = `
-                            <div>
-                                <div class="test-inputs-line"><strong>Running with inputs:</strong> ${inputsLine}</div>
-                                <hr>
-                                <span class="output-error">Error:<br>${errorMsg}</span>
-                            </div>`;
-                    } else {
-                        outputWindow.innerHTML = `
-                            <div>
-                                <div class="test-inputs-line"><strong>Running with inputs:</strong> ${inputsLine}</div>
-                                <hr>
-                                <strong>Output:</strong><br><pre>${actualOutput}</pre>
-                                <hr>
-                                <strong>Test ${index + 1}: ${test.name || ''}</strong><br>
-                                Expected: <code>${test.expected_output ?? '""'}</code><br>
-                                Result: <span class="output-result">${passed ? 'PASS ✅' : 'FAIL ❌'}</span>
-                                ${!passed ? '<span class="output-penalty"> score -2</span>' : ''}
-                            </div>`;
-                    }
+                    outputWindow.innerHTML = `
+                        <div>
+                            <div class="test-inputs-line"><strong>Running with inputs:</strong> ${inputsLine}</div>
+                            <hr>
+                            <strong>Output:</strong><br><pre>${errorMsg ? `<span class="output-error">${errorMsg}</span>` : actualOutput}</pre>
+                            <hr>
+                            <strong>Test ${index + 1}: ${test.name || ''}</strong><br>
+                            Expected: <code>${test.expected_output ?? '""'}</code><br>
+                            Result: <span class="output-result">${passed ? 'PASS ✅' : 'FAIL ❌'}</span>
+                            ${!passed ? '<span class="output-penalty"> score -2</span>' : ''}
+                        </div>`;
                 });
             });
 

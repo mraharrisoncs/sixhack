@@ -77,6 +77,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
-<script src="https://skulpt.org/js/skulpt.min.js"></script>
-<script src="https://skulpt.org/js/skulpt-stdlib.js"></script>
+<script src="{{ url_for('static', filename='js/skulpt.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/skulpt-stdlib.js') }}"></script>
 {% endblock %}

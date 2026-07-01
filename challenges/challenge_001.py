@@ -93,6 +93,11 @@ second = get_integer()
 print(first + second)
 '''
 
+[[paradigms.tests]]
+name = "Erroneous - non-numeric input"
+inputs = ["xyz", "xyz", "5", "3"]
+expected_output = "8"
+
 [[paradigms]]
 paradigm = "oop"
 hints = [
